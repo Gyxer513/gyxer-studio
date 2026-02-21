@@ -14,66 +14,97 @@ Gyxer Studio is a visual tool for building production-ready backends. You design
 
 - **Visual Model Editor** — drag-and-drop data modeling with React Flow
 - **Code Generation** — clean NestJS + Prisma code you actually want to read
-- **Module System** — add Auth, File Storage, Queues, Search with a checkbox
+- **Generate to Folder or ZIP** — write files directly to a directory or download as archive
+- **Module System** — add Auth (JWT), File Storage, Queues, Search with a checkbox
 - **Security Report** — Helmet, Rate Limiting, CORS, secrets check on every generation
-- **Built-in HTTP Client** — test your API right from the editor
 - **Docker Compose** — generated and ready to `docker compose up`
-- **CLI** — `npx gyxer new`, `generate`, `add`, `deploy`
+- **i18n** — English and Russian interface
+- **CLI** — `npx gyxer new`, `generate`, `studio`
 
 ## Tech Stack
 
 | Layer | Technology |
 |-------|-----------|
-| Editor | React, React Flow, TypeScript |
-| Generated Backend | NestJS, Prisma, TypeScript |
-| Database | PostgreSQL |
-| Optional Modules | Redis, BullMQ, MinIO, JWT/OAuth/Keycloak, Elasticsearch |
+| Editor | React 19, React Flow v12, Zustand v5, Tailwind CSS, Vite 6 |
+| Schema | TypeScript + Zod validation |
+| Generator | TypeScript, string-based code generation |
+| Generated Backend | NestJS, Prisma, class-validator, Swagger |
+| Database | PostgreSQL, MySQL, SQLite |
 | Infrastructure | Docker, Docker Compose |
+
+## Project Structure
+
+```
+gyxer-studio/
+  packages/
+    schema/       # @gyxer/schema  — JSON project schema types + Zod validation
+    generator/    # @gyxer/generator — NestJS code generation engine
+    editor/       # @gyxer/editor   — React Flow visual editor
+    cli/          # @gyxer/cli      — CLI wrapper
+  examples/       # Example project schemas (blog, blog-with-auth)
+```
+
+## Quick Start
+
+```bash
+# Clone and install
+git clone https://github.com/Gyxer513/gyxer-studio.git
+cd gyxer-studio
+npm install
+
+# Run the visual editor
+npm run dev -w packages/editor
+
+# Run tests (59 tests)
+npm test -w packages/schema
+npm test -w packages/generator
+```
+
+Open http://localhost:5173 — add entities, configure fields and relations, then hit **Generate**.
 
 ## Available Modules
 
-| Module | Description |
-|--------|------------|
-| `auth-jwt` | JWT authentication with refresh tokens |
-| `auth-oauth` | OAuth2 (Google, GitHub, etc.) |
-| `auth-keycloak` | Keycloak integration |
-| `file-storage` | MinIO-based file uploads |
-| `queues` | BullMQ background jobs |
-| `search` | Elasticsearch integration |
-| `cache` | Redis caching layer |
-| `websockets` | Real-time events via Socket.IO |
+| Module | Status | Description |
+|--------|--------|------------|
+| `auth-jwt` | ✅ Done | JWT authentication with refresh tokens, guards, decorators |
+| `file-storage` | Planned | MinIO-based file uploads |
+| `queues` | Planned | BullMQ background jobs |
+| `cache` | Planned | Redis caching layer |
+| `websockets` | Planned | Real-time events via Socket.IO |
+| `search` | Planned | Elasticsearch integration |
+
+## What Gets Generated
+
+For each entity you create, Gyxer generates:
+
+- **Prisma schema** — models, relations, indexes, cascades
+- **NestJS module** — module, controller, service
+- **DTOs** — CreateDto + UpdateDto with class-validator decorators
+- **Swagger** — @ApiTags, @ApiOperation, @ApiResponse on every endpoint
+- **main.ts** — Bootstrap with Swagger, Helmet, CORS, ValidationPipe
+- **app.module.ts** — All modules wired together
+- **Docker** — Dockerfile + docker-compose.yml (app + PostgreSQL)
+- **.env** — Environment config with .env.example
+- **Security Report** — JSON report checking Helmet, Rate Limit, CORS, secrets
 
 ## Roadmap
 
-- [x] Project vision & architecture
-- [ ] Visual model editor (entities, fields, relations)
-- [ ] NestJS code generator (CRUD, DTOs, Swagger)
-- [ ] Prisma schema generation
-- [ ] Module system (auth, storage, queues)
-- [ ] Security report
-- [ ] CLI (`gyxer new`, `generate`, `add`)
-- [ ] Built-in HTTP client
-- [ ] Docker Compose generation
-- [ ] Public release (open source)
-
-## How It Will Work
-
-```
-# Create a new project
-npx gyxer new my-app
-
-# Open visual editor
-npx gyxer studio
-
-# Generate backend from your model
-npx gyxer generate
-
-# Add a module
-npx gyxer add auth-jwt
-
-# Start everything
-docker compose up
-```
+- [x] Monorepo setup (npm workspaces, 4 packages)
+- [x] JSON schema contract (@gyxer/schema + Zod)
+- [x] Code generator (Prisma, NestJS CRUD, Docker, Security Report)
+- [x] Visual editor (React Flow, entities, fields, relations)
+- [x] Generate to folder / ZIP from browser
+- [x] i18n (EN/RU)
+- [x] Auth JWT module
+- [x] 59 tests passing
+- [x] UI polish (Gyxer branding, Inter font, dark entity cards)
+- [ ] Relation editing UI (type on edge, delete)
+- [ ] Built-in HTTP client (Postman-like)
+- [ ] Additional modules (cache, queues, file-storage, websockets, search)
+- [ ] CLI wizard (`npx gyxer new`)
+- [ ] Dark theme
+- [ ] Documentation site
+- [ ] Public release
 
 ## Philosophy
 
@@ -88,4 +119,4 @@ MIT
 
 ---
 
-Built by [Gyxer](https://gyxer.com)
+Built by [Gyxer](https://github.com/Gyxer513)
