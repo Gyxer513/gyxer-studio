@@ -51,10 +51,14 @@ export function generateMain(project: GyxerProject): string {
   // Swagger
   if (project.settings.enableSwagger) {
     lines.push('  // Swagger API documentation');
+    const hasAuthJwt = project.modules.some((m) => m.name === 'auth-jwt' && m.enabled !== false);
     lines.push('  const config = new DocumentBuilder()');
     lines.push(`    .setTitle('${project.name}')`);
     lines.push(`    .setDescription('${project.description || 'API documentation'}')`);
     lines.push(`    .setVersion('${project.version}')`);
+    if (hasAuthJwt) {
+      lines.push("    .addBearerAuth()");
+    }
     lines.push('    .build();');
     lines.push('  const document = SwaggerModule.createDocument(app, config);');
     lines.push("  SwaggerModule.setup('api/docs', app, document);");
@@ -82,6 +86,9 @@ export function generateMain(project: GyxerProject): string {
  * Generate app.module.ts with all entity modules imported.
  */
 export function generateAppModule(project: GyxerProject): string {
+  const hasAuthJwt = project.modules.some((m) => m.name === 'auth-jwt' && m.enabled !== false);
+  const needsAppGuard = project.settings.enableRateLimit || hasAuthJwt;
+
   const imports: string[] = [];
   const moduleNames: string[] = [];
 
@@ -92,6 +99,16 @@ export function generateAppModule(project: GyxerProject): string {
   // Rate limiting
   if (project.settings.enableRateLimit) {
     imports.push(`import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';`);
+  }
+
+  // Auth JWT
+  if (hasAuthJwt) {
+    imports.push(`import { AuthModule } from './auth/auth.module';`);
+    imports.push(`import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';`);
+    moduleNames.push('AuthModule');
+  }
+
+  if (needsAppGuard) {
     imports.push(`import { APP_GUARD } from '@nestjs/core';`);
   }
 
@@ -124,12 +141,22 @@ export function generateAppModule(project: GyxerProject): string {
 
   lines.push('  ],');
 
-  if (project.settings.enableRateLimit) {
+  if (needsAppGuard) {
     lines.push('  providers: [');
-    lines.push('    {');
-    lines.push('      provide: APP_GUARD,');
-    lines.push('      useClass: ThrottlerGuard,');
-    lines.push('    },');
+    if (project.settings.enableRateLimit) {
+      lines.push('    {');
+      lines.push('      provide: APP_GUARD,');
+      lines.push('      useClass: ThrottlerGuard,');
+      lines.push('    },');
+    }
+    if (hasAuthJwt) {
+      lines.push('    // Global JWT guard — all routes protected by default');
+      lines.push('    // Use @Public() decorator to make specific routes public');
+      lines.push('    {');
+      lines.push('      provide: APP_GUARD,');
+      lines.push('      useClass: JwtAuthGuard,');
+      lines.push('    },');
+    }
     lines.push('  ],');
   }
 

@@ -78,6 +78,17 @@ export function generateSecurityReport(project: GyxerProject): SecurityReport {
     severity: 'critical',
   });
 
+  // Authentication
+  const hasAuthJwt = project.modules?.some((m) => m.name === 'auth-jwt' && m.enabled !== false);
+  checks.push({
+    name: 'Authentication',
+    passed: !!hasAuthJwt,
+    message: hasAuthJwt
+      ? 'JWT authentication enabled — routes protected by default, bcrypt password hashing'
+      : 'No authentication module — API endpoints are publicly accessible',
+    severity: 'critical',
+  });
+
   // Swagger in production warning
   if (project.settings.enableSwagger) {
     checks.push({

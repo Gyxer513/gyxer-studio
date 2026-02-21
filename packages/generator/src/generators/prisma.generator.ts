@@ -56,6 +56,12 @@ function generateModel(entity: Entity, project: GyxerProject): string {
   lines.push('  createdAt DateTime @default(now())');
   lines.push('  updatedAt DateTime @updatedAt');
 
+  // Auth: add passwordHash to User model
+  const hasAuthJwt = project.modules?.some((m) => m.name === 'auth-jwt' && m.enabled !== false);
+  if (hasAuthJwt && entity.name === 'User') {
+    lines.push('  passwordHash  String  @map("password_hash")');
+  }
+
   // User-defined fields
   for (const field of entity.fields) {
     lines.push(`  ${generateField(field, entity)}`);

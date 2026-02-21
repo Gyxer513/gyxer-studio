@@ -20,6 +20,9 @@ export {
   generateEnvExample,
 } from './generators/docker.generator.js';
 
+// Modules
+export { generateAuthJwtFiles } from './modules/auth-jwt.generator.js';
+
 // Security
 export { generateSecurityReport, formatSecurityReport } from './security/report.js';
 export type { SecurityCheck, SecurityReport } from './security/report.js';

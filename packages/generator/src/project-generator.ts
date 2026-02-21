@@ -21,6 +21,12 @@ import {
 } from './generators/docker.generator.js';
 import { generateSecurityReport, formatSecurityReport } from './security/report.js';
 import type { SecurityReport } from './security/report.js';
+import {
+  generateAuthJwtFiles,
+  getAuthEnvVars,
+  getAuthDependencies,
+  getAuthDevDependencies,
+} from './modules/auth-jwt.generator.js';
 
 export interface GenerateOptions {
   outputDir: string;
@@ -120,6 +126,18 @@ export async function generateProject(
     log(`  + src/${kebab}/ (module, controller, service, DTOs)`);
   }
 
+  // ─── Auth JWT module ────────────────────────────────────
+  const hasAuthJwt = project.modules.some((m) => m.name === 'auth-jwt' && m.enabled !== false);
+  if (hasAuthJwt) {
+    const authFiles = generateAuthJwtFiles(project);
+    for (const [relativePath, content] of authFiles) {
+      const fullPath = path.join(outputDir, relativePath);
+      await fs.ensureDir(path.dirname(fullPath));
+      await writeFile(fullPath, content, filesCreated);
+    }
+    log('  + src/auth/ (module, controller, service, DTOs, JWT strategy, guards, decorators)');
+  }
+
   // ─── App bootstrap ─────────────────────────────────────
   const srcDir = path.join(outputDir, 'src');
   await fs.ensureDir(srcDir);
@@ -164,12 +182,14 @@ export async function generateProject(
   }
 
   // ─── Environment ───────────────────────────────────────
-  await writeFile(path.join(outputDir, '.env'), generateEnvFile(project), filesCreated);
-  await writeFile(
-    path.join(outputDir, '.env.example'),
-    generateEnvExample(project),
-    filesCreated,
-  );
+  let envContent = generateEnvFile(project);
+  let envExampleContent = generateEnvExample(project);
+  if (hasAuthJwt) {
+    envContent += getAuthEnvVars();
+    envExampleContent += 'JWT_SECRET=your-secret-key\nJWT_EXPIRES_IN=15m\nJWT_REFRESH_SECRET=your-refresh-secret\nJWT_REFRESH_EXPIRES_IN=7d\n';
+  }
+  await writeFile(path.join(outputDir, '.env'), envContent, filesCreated);
+  await writeFile(path.join(outputDir, '.env.example'), envExampleContent, filesCreated);
   log('  + .env, .env.example');
 
   // ─── Security Report ───────────────────────────────────
@@ -196,6 +216,8 @@ export async function generateProject(
 // ─── Helper generators ──────────────────────────────────────
 
 function generatePackageJson(project: GyxerProject): string {
+  const hasAuthJwt = project.modules.some((m) => m.name === 'auth-jwt' && m.enabled !== false);
+
   const pkg = {
     name: project.name,
     version: project.version,
@@ -224,6 +246,7 @@ function generatePackageJson(project: GyxerProject): string {
       ...(project.settings.enableRateLimit
         ? { '@nestjs/throttler': '^6.0.0' }
         : {}),
+      ...(hasAuthJwt ? getAuthDependencies() : {}),
     },
     devDependencies: {
       '@nestjs/cli': '^10.4.0',
@@ -231,6 +254,7 @@ function generatePackageJson(project: GyxerProject): string {
       prisma: '^6.0.0',
       typescript: '^5.7.0',
       prettier: '^3.4.0',
+      ...(hasAuthJwt ? getAuthDevDependencies() : {}),
     },
   };
 

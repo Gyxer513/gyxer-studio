@@ -1,0 +1,51 @@
+{
+  "name": "my-blog-auth",
+  "version": "0.1.0",
+  "description": "Blog API with JWT authentication",
+  "entities": [
+    {
+      "name": "User",
+      "description": "Blog user / author",
+      "fields": [
+        { "name": "email", "type": "string", "required": true, "unique": true },
+        { "name": "name", "type": "string", "required": true },
+        { "name": "bio", "type": "text", "required": false },
+        { "name": "isActive", "type": "boolean", "required": true, "default": true }
+      ],
+      "relations": [
+        { "name": "posts", "type": "one-to-many", "target": "Post", "onDelete": "CASCADE" }
+      ]
+    },
+    {
+      "name": "Post",
+      "description": "Blog post",
+      "fields": [
+        { "name": "title", "type": "string", "required": true },
+        { "name": "slug", "type": "string", "required": true, "unique": true, "index": true },
+        { "name": "content", "type": "text", "required": true },
+        {
+          "name": "status",
+          "type": "enum",
+          "required": true,
+          "default": "DRAFT",
+          "enumValues": ["DRAFT", "PUBLISHED", "ARCHIVED"]
+        }
+      ],
+      "relations": [
+        { "name": "author", "type": "one-to-many", "target": "User", "foreignKey": "authorId", "onDelete": "CASCADE" }
+      ]
+    }
+  ],
+  "modules": [
+    { "name": "auth-jwt", "enabled": true }
+  ],
+  "settings": {
+    "port": 3000,
+    "database": "postgresql",
+    "enableSwagger": true,
+    "enableCors": true,
+    "enableHelmet": true,
+    "enableRateLimit": true,
+    "docker": true
+  }
+}
