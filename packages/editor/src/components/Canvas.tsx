@@ -4,9 +4,8 @@ import {
   Background,
   Controls,
   MiniMap,
-  useNodesState,
-  useEdgesState,
-  addEdge,
+  applyNodeChanges,
+  type NodeChange,
   type Connection,
   type Edge,
   type Node,
@@ -19,9 +18,9 @@ import { EntityNode } from './EntityNode';
 const nodeTypes = { entity: EntityNode };
 
 export function Canvas() {
-  const { entities, relations, addRelation, updateEntity } = useProjectStore();
+  const { entities, relations, addRelation, updateEntity, selectEntity } = useProjectStore();
 
-  // Convert store entities → React Flow nodes
+  // Convert store entities → React Flow nodes (single source of truth)
   const nodes: Node[] = useMemo(
     () =>
       entities.map((entity) => ({
@@ -53,17 +52,36 @@ export function Canvas() {
     [relations],
   );
 
-  const [flowNodes, setNodes, onNodesChange] = useNodesState(nodes);
-  const [flowEdges, setEdges, onEdgesChange] = useEdgesState(edges);
+  // Handle React Flow node changes (drag, select, etc.) — apply directly to Zustand store
+  const onNodesChange = useCallback(
+    (changes: NodeChange[]) => {
+      // For position changes during drag, update Zustand store
+      for (const change of changes) {
+        if (change.type === 'position' && change.position && !change.dragging) {
+          // Drag ended — persist position
+          updateEntity(change.id, { position: change.position });
+        }
+        if (change.type === 'select' && change.selected) {
+          selectEntity(change.id);
+        }
+      }
 
-  // Sync nodes from store when entities change
-  React.useEffect(() => {
-    setNodes(nodes);
-  }, [nodes, setNodes]);
-
-  React.useEffect(() => {
-    setEdges(edges);
-  }, [edges, setEdges]);
+      // For smooth dragging, apply intermediate position changes locally
+      // We compute and let React Flow handle it through the controlled nodes
+      const hasDragging = changes.some(
+        (c) => c.type === 'position' && c.dragging,
+      );
+      if (hasDragging) {
+        // Apply drag changes via the store for real-time feedback
+        for (const change of changes) {
+          if (change.type === 'position' && change.position && change.dragging) {
+            updateEntity(change.id, { position: change.position });
+          }
+        }
+      }
+    },
+    [updateEntity, selectEntity],
+  );
 
   // Handle new connection (create relation)
   const onConnect = useCallback(
@@ -75,23 +93,13 @@ export function Canvas() {
     [addRelation],
   );
 
-  // Handle node drag end (update position in store)
-  const onNodeDragStop = useCallback(
-    (_: React.MouseEvent, node: Node) => {
-      updateEntity(node.id, { position: node.position });
-    },
-    [updateEntity],
-  );
-
   return (
     <div className="flex-1 h-full">
       <ReactFlow
-        nodes={flowNodes}
-        edges={flowEdges}
+        nodes={nodes}
+        edges={edges}
         onNodesChange={onNodesChange}
-        onEdgesChange={onEdgesChange}
         onConnect={onConnect}
-        onNodeDragStop={onNodeDragStop}
         nodeTypes={nodeTypes}
         fitView
         className="bg-gray-50"

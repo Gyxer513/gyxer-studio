@@ -4,7 +4,7 @@ import { useProjectStore } from '../store/project-store';
  * Export the current editor state to a @gyxer/schema-compatible JSON object.
  */
 export function exportToSchema(): Record<string, unknown> {
-  const { entities, relations, settings } = useProjectStore.getState();
+  const { entities, relations, settings, modules } = useProjectStore.getState();
 
   const schemaEntities = entities.map((entity) => {
     // Find relations where this entity is the source
@@ -36,12 +36,18 @@ export function exportToSchema(): Record<string, unknown> {
     };
   });
 
+  // Build modules array from toggle flags
+  const schemaModules: Array<{ name: string; enabled: boolean; options: Record<string, unknown> }> = [];
+  if (modules.authJwt) {
+    schemaModules.push({ name: 'auth-jwt', enabled: true, options: {} });
+  }
+
   return {
     name: settings.name,
     version: '0.1.0',
     description: settings.description,
     entities: schemaEntities,
-    modules: [],
+    modules: schemaModules,
     settings: {
       port: settings.port,
       database: settings.database,

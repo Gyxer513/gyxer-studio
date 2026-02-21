@@ -1,6 +1,7 @@
 import React, { useCallback } from 'react';
 import { Handle, Position, type NodeProps } from '@xyflow/react';
-import { useProjectStore, type EntityData, type FieldData } from '../store/project-store';
+import { useProjectStore, type FieldData } from '../store/project-store';
+import { useTranslation } from '../i18n';
 
 const FIELD_TYPE_ICONS: Record<string, string> = {
   string: 'Aa',
@@ -23,6 +24,7 @@ interface EntityNodeData {
 export function EntityNode({ data, selected }: NodeProps) {
   const nodeData = data as unknown as EntityNodeData;
   const { selectEntity, removeEntity, addField } = useProjectStore();
+  const { t } = useTranslation();
 
   const handleSelect = useCallback(() => {
     selectEntity(nodeData.entityId);
@@ -57,9 +59,9 @@ export function EntityNode({ data, selected }: NodeProps) {
         <button
           onClick={handleRemove}
           className="text-white/70 hover:text-white text-xs ml-2"
-          title="Remove entity"
+          title={t('node.remove')}
         >
-          x
+          ✕
         </button>
       </div>
 
@@ -94,7 +96,7 @@ export function EntityNode({ data, selected }: NodeProps) {
           onClick={handleAddField}
           className="w-full text-xs text-gray-400 hover:text-gyxer-600 hover:bg-gray-50 py-1 rounded mt-1 transition-colors"
         >
-          + add field
+          {t('node.addField')}
         </button>
       </div>
 

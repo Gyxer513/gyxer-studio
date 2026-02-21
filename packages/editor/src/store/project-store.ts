@@ -54,12 +54,17 @@ export interface ProjectSettings {
   docker: boolean;
 }
 
+export interface ModulesConfig {
+  authJwt: boolean;
+}
+
 // ─── Store ──────────────────────────────────────────
 
 interface ProjectStore {
   entities: EntityData[];
   relations: RelationData[];
   settings: ProjectSettings;
+  modules: ModulesConfig;
   selectedEntityId: string | null;
 
   // Entity actions
@@ -78,8 +83,9 @@ interface ProjectStore {
   updateRelation: (id: string, data: Partial<RelationData>) => void;
   removeRelation: (id: string) => void;
 
-  // Settings
+  // Settings & modules
   updateSettings: (data: Partial<ProjectSettings>) => void;
+  toggleModule: (module: keyof ModulesConfig, enabled: boolean) => void;
 }
 
 let entityCounter = 0;
@@ -100,6 +106,9 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
     enableRateLimit: true,
     docker: true,
   },
+  modules: {
+    authJwt: false,
+  },
 
   // ── Entity ──────────────────────────────────────
 
@@ -113,7 +122,10 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
       ],
       position,
     };
-    set((state) => ({ entities: [...state.entities, newEntity] }));
+    set((state) => ({
+      entities: [...state.entities, newEntity],
+      selectedEntityId: newEntity.id,
+    }));
   },
 
   updateEntity: (id, data) => {
@@ -213,6 +225,12 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
   updateSettings: (data) => {
     set((state) => ({
       settings: { ...state.settings, ...data },
+    }));
+  },
+
+  toggleModule: (module, enabled) => {
+    set((state) => ({
+      modules: { ...state.modules, [module]: enabled },
     }));
   },
 }));
