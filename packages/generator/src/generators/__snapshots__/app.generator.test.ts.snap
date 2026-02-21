@@ -1,0 +1,70 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`App Generator > generateAppModule > should generate app.module.ts matching snapshot 1`] = `
+"import { Module } from '@nestjs/common';
+import { PrismaModule } from './prisma/prisma.module';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { APP_GUARD } from '@nestjs/core';
+import { UserModule } from './user/user.module';
+
+@Module({
+  imports: [
+    ThrottlerModule.forRoot([{
+      ttl: 60000,
+      limit: 100,
+    }]),
+    PrismaModule,
+    UserModule,
+  ],
+  providers: [
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
+  ],
+})
+export class AppModule {}
+"
+`;
+
+exports[`App Generator > generateMain > should generate main.ts matching snapshot 1`] = `
+"import { NestFactory } from '@nestjs/core';
+import { ValidationPipe } from '@nestjs/common';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import helmet from 'helmet';
+import { AppModule } from './app.module';
+
+async function bootstrap() {
+  const app = await NestFactory.create(AppModule);
+
+  // Security headers
+  app.use(helmet());
+
+  // CORS
+  app.enableCors();
+
+  // Global validation pipe
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
+    }),
+  );
+
+  // Swagger API documentation
+  const config = new DocumentBuilder()
+    .setTitle('test-app')
+    .setDescription('Test app')
+    .setVersion('0.1.0')
+    .build();
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('api/docs', app, document);
+
+  await app.listen(process.env.PORT ?? 3000);
+  console.log(\`Application is running on: \${await app.getUrl()}\`);
+  console.log(\`Swagger docs: \${await app.getUrl()}/api/docs\`);
+}
+bootstrap();
+"
+`;
