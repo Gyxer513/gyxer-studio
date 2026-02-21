@@ -3,8 +3,6 @@ import {
   ReactFlow,
   Background,
   Controls,
-  MiniMap,
-  applyNodeChanges,
   type NodeChange,
   type Connection,
   type Edge,
@@ -107,11 +105,6 @@ export function Canvas() {
       >
         <Background variant={BackgroundVariant.Dots} gap={24} size={1} color="#d4d4d4" />
         <Controls />
-        <MiniMap
-          nodeColor="#C8232C"
-          maskColor="rgba(0, 0, 0, 0.06)"
-          className="!bg-white"
-        />
       </ReactFlow>
     </div>
   );
