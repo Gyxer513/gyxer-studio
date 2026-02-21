@@ -46,8 +46,9 @@ export function Canvas() {
         label: `${rel.type}`,
         type: 'smoothstep',
         animated: true,
-        style: { stroke: '#3b82f6', strokeWidth: 2 },
-        labelStyle: { fontSize: 10, fill: '#6b7280' },
+        style: { stroke: '#525252', strokeWidth: 2 },
+        labelStyle: { fontSize: 10, fill: '#737373', fontFamily: 'Inter, sans-serif' },
+        labelBgStyle: { fill: '#f8f9fa', fillOpacity: 0.9 },
       })),
     [relations],
   );
@@ -104,11 +105,11 @@ export function Canvas() {
         fitView
         className="bg-gray-50"
       >
-        <Background variant={BackgroundVariant.Dots} gap={20} size={1} color="#d1d5db" />
+        <Background variant={BackgroundVariant.Dots} gap={24} size={1} color="#d4d4d4" />
         <Controls />
         <MiniMap
-          nodeColor="#3b82f6"
-          maskColor="rgba(0, 0, 0, 0.1)"
+          nodeColor="#C8232C"
+          maskColor="rgba(0, 0, 0, 0.06)"
           className="!bg-white"
         />
       </ReactFlow>
