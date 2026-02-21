@@ -1,0 +1,27 @@
+{
+  "name": "@gyxer/cli",
+  "version": "0.1.0",
+  "description": "Gyxer CLI — generate NestJS projects from the command line",
+  "main": "./dist/index.js",
+  "bin": {
+    "gyxer": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@gyxer/schema": "*",
+    "@gyxer/generator": "*",
+    "commander": "^13.0.0",
+    "chalk": "^5.4.0",
+    "ora": "^8.1.0",
+    "inquirer": "^12.0.0"
+  },
+  "devDependencies": {
+    "@types/inquirer": "^9.0.0",
+    "typescript": "^5.7.0"
+  },
+  "license": "MIT"
+}
