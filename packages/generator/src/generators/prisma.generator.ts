@@ -40,6 +40,14 @@ export function generatePrismaSchema(project: GyxerProject): string {
     lines.push(generateModel(entity, project));
   }
 
+  // Auto-generate User model for auth-jwt when no User entity is defined
+  const hasAuthJwt = project.modules?.some((m) => m.name === 'auth-jwt' && m.enabled !== false);
+  const hasUserEntity = project.entities.some((e) => e.name === 'User');
+  if (hasAuthJwt && !hasUserEntity) {
+    lines.push('');
+    lines.push(generateAuthUserModel());
+  }
+
   return lines.join('\n') + '\n';
 }
 
@@ -251,6 +259,26 @@ function toPrismaAction(action: string): string {
     NO_ACTION: 'NoAction',
   };
   return map[action] || 'Cascade';
+}
+
+/**
+ * Generate a full User model for auth-jwt when no User entity exists in the project.
+ * Provides the minimal fields needed by the auth module: email, name, passwordHash.
+ */
+function generateAuthUserModel(): string {
+  const lines: string[] = [];
+  lines.push('/// Auto-generated User model for auth-jwt module');
+  lines.push('model User {');
+  lines.push('  id            Int      @id @default(autoincrement())');
+  lines.push('  createdAt     DateTime @default(now())');
+  lines.push('  updatedAt     DateTime @updatedAt');
+  lines.push('  email         String   @unique');
+  lines.push('  name          String');
+  lines.push('  passwordHash  String   @map("password_hash")');
+  lines.push('');
+  lines.push('  @@map("user")');
+  lines.push('}');
+  return lines.join('\n');
 }
 
 function capitalize(str: string): string {

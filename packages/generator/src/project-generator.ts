@@ -93,12 +93,12 @@ export async function generateProject(
     // DTOs
     await writeFile(
       path.join(dtoDir, `create-${kebab}.dto.ts`),
-      generateCreateDto(entity),
+      generateCreateDto(entity, project),
       filesCreated,
     );
     await writeFile(
       path.join(dtoDir, `update-${kebab}.dto.ts`),
-      generateUpdateDto(entity),
+      generateUpdateDto(entity, project),
       filesCreated,
     );
 

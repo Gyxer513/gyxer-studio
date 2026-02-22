@@ -1,20 +1,87 @@
-import type { Entity, Field } from '@gyxer/schema';
+import type { Entity, Field, GyxerProject } from '@gyxer/schema';
 import { toCamelCase } from '../utils.js';
+
+/** FK field descriptor for DTO generation. */
+interface FkFieldInfo {
+  name: string;
+  targetEntity: string;
+}
+
+/**
+ * Collect all foreign key fields that this entity needs in its DTO.
+ * Sources:
+ *   1. Entity's own relations that define a foreignKey (explicit FK).
+ *   2. Inverse relations from other entities that create FK on this entity.
+ */
+export function collectFkFields(entity: Entity, project: GyxerProject): FkFieldInfo[] {
+  const fkFields: FkFieldInfo[] = [];
+  const existingNames = new Set(entity.fields.map((f) => f.name));
+
+  // 1. From entity's own relations with foreignKey
+  for (const rel of entity.relations) {
+    if (rel.foreignKey && !existingNames.has(rel.foreignKey)) {
+      fkFields.push({ name: rel.foreignKey, targetEntity: rel.target });
+      existingNames.add(rel.foreignKey);
+    }
+  }
+
+  // 2. From inverse relations (other entities pointing to this one)
+  for (const otherEntity of project.entities) {
+    if (otherEntity.name === entity.name) continue;
+
+    for (const rel of otherEntity.relations) {
+      if (rel.target !== entity.name) continue;
+
+      // Skip if this entity already has a back-reference to otherEntity
+      const hasBackRef = entity.relations.some((r) => r.target === otherEntity.name);
+      if (hasBackRef) continue;
+
+      const sourceName = otherEntity.name.charAt(0).toLowerCase() + otherEntity.name.slice(1);
+
+      if (rel.type === 'one-to-many' && !rel.foreignKey) {
+        // Source is "one" side (array) → this entity is "many" side → needs FK
+        const fk = `${sourceName}Id`;
+        if (!existingNames.has(fk)) {
+          fkFields.push({ name: fk, targetEntity: otherEntity.name });
+          existingNames.add(fk);
+        }
+      } else if (rel.type === 'one-to-one' && !rel.foreignKey) {
+        // Source has optional ref → this entity needs FK
+        const fk = `${sourceName}Id`;
+        if (!existingNames.has(fk)) {
+          fkFields.push({ name: fk, targetEntity: otherEntity.name });
+          existingNames.add(fk);
+        }
+      }
+      // many-to-many → no FK on either side (join table)
+      // one-to-many WITH foreignKey → source is "many" side, not this entity
+      // one-to-one WITH foreignKey → source owns FK, not this entity
+    }
+  }
+
+  return fkFields;
+}
 
 /**
  * Generate Create DTO for an entity.
  */
-export function generateCreateDto(entity: Entity): string {
+export function generateCreateDto(entity: Entity, project: GyxerProject): string {
   const className = `Create${entity.name}Dto`;
+  const fkFields = collectFkFields(entity, project);
   const lines: string[] = [];
 
   lines.push("import { ApiProperty } from '@nestjs/swagger';");
-  lines.push(generateValidatorImports(entity.fields));
+  lines.push(generateValidatorImports(entity.fields, false, fkFields.length > 0));
   lines.push('');
   lines.push(`export class ${className} {`);
 
   for (const field of entity.fields) {
     lines.push(generateDtoField(field, entity, false));
+  }
+
+  // FK fields from relations
+  for (const fk of fkFields) {
+    lines.push(generateFkDtoField(fk, false));
   }
 
   lines.push('}');
@@ -25,17 +92,23 @@ export function generateCreateDto(entity: Entity): string {
 /**
  * Generate Update DTO for an entity (all fields optional).
  */
-export function generateUpdateDto(entity: Entity): string {
+export function generateUpdateDto(entity: Entity, project: GyxerProject): string {
   const className = `Update${entity.name}Dto`;
+  const fkFields = collectFkFields(entity, project);
   const lines: string[] = [];
 
   lines.push("import { ApiPropertyOptional } from '@nestjs/swagger';");
-  lines.push(generateValidatorImports(entity.fields, true));
+  lines.push(generateValidatorImports(entity.fields, true, fkFields.length > 0));
   lines.push('');
   lines.push(`export class ${className} {`);
 
   for (const field of entity.fields) {
     lines.push(generateDtoField(field, entity, true));
+  }
+
+  // FK fields from relations (optional in update)
+  for (const fk of fkFields) {
+    lines.push(generateFkDtoField(fk, true));
   }
 
   lines.push('}');
@@ -80,6 +153,25 @@ function generateDtoField(field: Field, entity: Entity, isUpdate: boolean): stri
   return lines.join('\n');
 }
 
+/**
+ * Generate a DTO field for a foreign key (relation FK).
+ */
+function generateFkDtoField(fk: FkFieldInfo, isUpdate: boolean): string {
+  const lines: string[] = [];
+  const decorator = isUpdate ? 'ApiPropertyOptional' : 'ApiProperty';
+  const questionMark = isUpdate ? '?' : '';
+
+  lines.push(`  @${decorator}({ description: 'FK to ${fk.targetEntity}' })`);
+  if (isUpdate) {
+    lines.push('  @IsOptional()');
+  }
+  lines.push('  @IsInt()');
+  lines.push(`  ${fk.name}${questionMark}: number;`);
+  lines.push('');
+
+  return lines.join('\n');
+}
+
 function getValidators(field: Field, isUpdate: boolean): string[] {
   const validators: string[] = [];
 
@@ -118,10 +210,20 @@ function getValidators(field: Field, isUpdate: boolean): string[] {
   return validators;
 }
 
-function generateValidatorImports(fields: Field[], isUpdate: boolean = false): string {
+function generateValidatorImports(
+  fields: Field[],
+  isUpdate: boolean = false,
+  hasFkFields: boolean = false,
+): string {
   const validators = new Set<string>();
 
   if (isUpdate) validators.add('IsOptional');
+
+  // FK fields always need IsInt (and IsOptional for update)
+  if (hasFkFields) {
+    validators.add('IsInt');
+    if (isUpdate) validators.add('IsOptional');
+  }
 
   for (const field of fields) {
     if (!field.required || isUpdate) validators.add('IsOptional');
