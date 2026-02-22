@@ -1,0 +1,88 @@
+{
+  "name": "shop-api",
+  "version": "0.1.0",
+  "description": "E-commerce API with products, orders, and reviews",
+  "entities": [
+    {
+      "name": "User",
+      "fields": [
+        { "name": "email", "type": "string", "required": true, "unique": true, "index": true },
+        { "name": "name", "type": "string", "required": true, "unique": false, "index": false },
+        { "name": "phone", "type": "string", "required": false, "unique": false, "index": false },
+        { "name": "isActive", "type": "boolean", "required": true, "unique": false, "index": false, "default": true }
+      ],
+      "relations": [
+        { "name": "orders", "type": "one-to-many", "target": "Order", "foreignKey": "userId", "onDelete": "CASCADE" },
+        { "name": "reviews", "type": "one-to-many", "target": "Review", "foreignKey": "userId", "onDelete": "CASCADE" }
+      ]
+    },
+    {
+      "name": "Category",
+      "fields": [
+        { "name": "name", "type": "string", "required": true, "unique": true, "index": true },
+        { "name": "slug", "type": "string", "required": true, "unique": true, "index": true },
+        { "name": "description", "type": "text", "required": false, "unique": false, "index": false }
+      ],
+      "relations": [
+        { "name": "products", "type": "one-to-many", "target": "Product", "foreignKey": "categoryId", "onDelete": "RESTRICT" }
+      ]
+    },
+    {
+      "name": "Product",
+      "fields": [
+        { "name": "name", "type": "string", "required": true, "unique": false, "index": true },
+        { "name": "slug", "type": "string", "required": true, "unique": true, "index": true },
+        { "name": "description", "type": "text", "required": false, "unique": false, "index": false },
+        { "name": "price", "type": "float", "required": true, "unique": false, "index": false },
+        { "name": "stock", "type": "int", "required": true, "unique": false, "index": false, "default": 0 },
+        { "name": "imageUrl", "type": "string", "required": false, "unique": false, "index": false },
+        { "name": "isAvailable", "type": "boolean", "required": true, "unique": false, "index": false, "default": true }
+      ],
+      "relations": [
+        { "name": "orderItems", "type": "one-to-many", "target": "OrderItem", "foreignKey": "productId", "onDelete": "RESTRICT" },
+        { "name": "reviews", "type": "one-to-many", "target": "Review", "foreignKey": "productId", "onDelete": "CASCADE" }
+      ]
+    },
+    {
+      "name": "Order",
+      "fields": [
+        { "name": "status", "type": "enum", "required": true, "unique": false, "index": true, "default": "PENDING", "enumValues": ["PENDING", "PAID", "SHIPPED", "DELIVERED", "CANCELLED"] },
+        { "name": "totalPrice", "type": "float", "required": true, "unique": false, "index": false },
+        { "name": "shippingAddress", "type": "text", "required": true, "unique": false, "index": false },
+        { "name": "note", "type": "text", "required": false, "unique": false, "index": false }
+      ],
+      "relations": [
+        { "name": "items", "type": "one-to-many", "target": "OrderItem", "foreignKey": "orderId", "onDelete": "CASCADE" }
+      ]
+    },
+    {
+      "name": "OrderItem",
+      "fields": [
+        { "name": "quantity", "type": "int", "required": true, "unique": false, "index": false },
+        { "name": "unitPrice", "type": "float", "required": true, "unique": false, "index": false }
+      ],
+      "relations": []
+    },
+    {
+      "name": "Review",
+      "fields": [
+        { "name": "rating", "type": "int", "required": true, "unique": false, "index": false },
+        { "name": "comment", "type": "text", "required": false, "unique": false, "index": false }
+      ],
+      "relations": []
+    }
+  ],
+  "modules": [],
+  "settings": {
+    "port": 3000,
+    "database": "postgresql",
+    "databaseUrl": "postgresql://postgres:postgres@localhost:5432/shop_api",
+    "enableSwagger": true,
+    "enableCors": true,
+    "enableHelmet": true,
+    "enableRateLimit": true,
+    "rateLimitTtl": 60,
+    "rateLimitMax": 100,
+    "docker": true
+  }
+}

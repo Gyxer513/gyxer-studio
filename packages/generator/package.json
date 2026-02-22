@@ -1,16 +1,41 @@
 {
   "name": "@gyxer/generator",
   "version": "0.1.0",
-  "description": "NestJS project code generator",
+  "description": "NestJS project code generator — generates full CRUD APIs from schema",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
     "test": "vitest run"
   },
+  "keywords": [
+    "gyxer",
+    "generator",
+    "nestjs",
+    "codegen",
+    "backend",
+    "prisma",
+    "crud",
+    "api"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Gyxer513/gyxer-studio.git",
+    "directory": "packages/generator"
+  },
+  "homepage": "https://github.com/Gyxer513/gyxer-studio#readme",
+  "bugs": {
+    "url": "https://github.com/Gyxer513/gyxer-studio/issues"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
   "dependencies": {
-    "@gyxer/schema": "*",
+    "@gyxer/schema": "0.1.0",
     "handlebars": "^4.7.8",
     "fs-extra": "^11.2.0"
   },

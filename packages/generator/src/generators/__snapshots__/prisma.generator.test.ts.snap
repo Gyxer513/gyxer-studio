@@ -36,12 +36,13 @@ model Post {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   title          String
-  slug           String @unique @index
+  slug           String @unique
   content        String
   status         PostStatus @default(DRAFT)
   viewCount      Int @default(0) @map("view_count")
   authorId       Int
-  author         User @relation(fields: [authorId], references: [id], onDelete: CASCADE)
+  user           User @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  @@index([slug])
 
   @@map("post")
 }

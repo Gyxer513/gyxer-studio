@@ -2,17 +2,17 @@
 
 Visual backend builder that generates production-ready NestJS applications.
 
-> Design your backend visually. Get clean, readable code. No vendor lock-in.
+> Design your backend visually. Export config. Generate clean code via CLI. No vendor lock-in.
 
 ## What is Gyxer Studio?
 
-Gyxer Studio is a visual tool for building production-ready backends. You design data models and relationships in a drag-and-drop editor, pick the modules you need, and Gyxer generates a complete NestJS project with best practices baked in.
+Gyxer Studio is a visual tool for building production-ready backends. You design data models and relationships in a drag-and-drop editor, export a JSON config, and run a single CLI command to generate a complete NestJS project with best practices baked in.
 
 **Target audience:** Solo developers, indie hackers, and small teams who want to skip boilerplate and ship faster.
 
 ## Quick Start
 
-### Visual Editor
+### 1. Design in the Visual Editor
 
 ```bash
 git clone https://github.com/Gyxer513/gyxer-studio.git
@@ -21,15 +21,26 @@ npm install
 npm run dev
 ```
 
-Open `http://localhost:5173` — add entities, configure fields and relations, then hit **Generate**.
+Open `http://localhost:5173` — add entities, configure fields and relations, then click **Generate** to export a JSON config.
 
-### CLI
+### 2. Generate via CLI
 
 ```bash
+# From exported config
+npx gyxer generate my-app.json -o ./my-app
+
+# Or interactive wizard
 npx gyxer new my-app
 ```
 
-Interactive wizard: choose database, port, Swagger, JWT Auth, Docker, Helmet, Rate Limit — project generated in seconds.
+### 3. Run
+
+```bash
+cd my-app
+docker compose up -d    # starts PostgreSQL + app
+# or
+npm install && npm run start:dev
+```
 
 ## Features
 
@@ -37,10 +48,10 @@ Interactive wizard: choose database, port, Swagger, JWT Auth, Docker, Helmet, Ra
 |---------|------------|
 | **Visual Model Editor** | Drag-and-drop data modeling with React Flow |
 | **Code Generation** | Clean NestJS + Prisma — CRUD, DTOs, Swagger, validation |
-| **Relations** | 1:1, 1:N, N:M with onDelete actions and foreign keys |
+| **Relations** | 1:1, 1:N with onDelete actions and auto-generated foreign keys |
 | **Auth JWT** | Full auth system — register, login, refresh tokens, guards |
 | **Security Report** | Helmet, Rate Limiting, CORS, secrets check on every build |
-| **Docker** | Dockerfile + docker-compose.yml, ready to `docker compose up` |
+| **Docker** | Multi-stage Dockerfile + docker-compose.yml with healthcheck |
 | **HTTP Client** | Built-in Postman-like API tester with auto-generated endpoints |
 | **Import / Export** | Save and load project schemas as JSON |
 | **CLI Wizard** | Interactive `npx gyxer new` with styled terminal output |
@@ -53,16 +64,34 @@ Interactive wizard: choose database, port, Swagger, JWT Auth, Docker, Helmet, Ra
 my-app/
   prisma/schema.prisma          # Models, relations, enums
   src/
-    prisma/                     # PrismaService + PrismaModule
+    prisma/                     # PrismaService + PrismaExceptionFilter
     user/                       # Module, controller, service, DTOs
     post/                       # Module, controller, service, DTOs
     auth/                       # JWT auth (when enabled)
     main.ts                     # Swagger, Helmet, CORS, ValidationPipe
     app.module.ts               # All modules wired together
-  Dockerfile                    # Multi-stage build
-  docker-compose.yml            # App + PostgreSQL
+  Dockerfile                    # Multi-stage build (node:20-alpine)
+  docker-compose.yml            # App + PostgreSQL with healthcheck
   .env / .env.example           # Environment config
   security-report.json          # Security assessment
+  package.json                  # All deps pinned
+  tsconfig.json / tsconfig.build.json
+```
+
+## Example Schemas
+
+Ready-to-use configs in [`examples/`](./examples/):
+
+| Example | Description |
+|---------|-------------|
+| [`blog.json`](./examples/blog.json) | Blog with users, posts, comments |
+| [`blog-with-auth.json`](./examples/blog-with-auth.json) | Same blog + JWT authentication |
+| [`shop.json`](./examples/shop.json) | E-commerce: 6 entities, enums, float prices |
+
+Generate any example:
+
+```bash
+npx gyxer generate examples/shop.json -o ./shop-api
 ```
 
 ## Tech Stack
@@ -74,34 +103,29 @@ my-app/
 | Generator | TypeScript, string-based code generation |
 | CLI | Commander, Inquirer, Chalk, Ora |
 | Generated Backend | NestJS, Prisma, class-validator, Swagger |
-| Database | PostgreSQL, MySQL, SQLite |
-
-## Documentation
-
-Full documentation available at [docs/](./docs/) — run locally:
-
-```bash
-npm run docs:dev
-```
-
-- [Getting Started](./docs/getting-started.md)
-- [Visual Editor Guide](./docs/guide/visual-editor.md)
-- [Field Types](./docs/guide/field-types.md)
-- [Schema Specification](./docs/reference/schema.md)
-- [Security Report](./docs/reference/security.md)
-- [Docker & Deployment](./docs/reference/docker.md)
+| Testing | Vitest — 149 tests (unit + E2E) |
 
 ## Project Structure
 
 ```
 gyxer-studio/
   packages/
-    schema/       # @gyxer/schema  — Zod validation + TypeScript types
-    generator/    # @gyxer/generator — NestJS code generation engine
-    editor/       # @gyxer/editor   — React Flow visual editor
-    cli/          # @gyxer/cli      — CLI wizard
-  examples/       # Example schemas (blog, blog-with-auth)
-  docs/           # VitePress documentation
+    schema/       # @gyxer/schema    — Zod types + validation
+    generator/    # @gyxer/generator  — NestJS code generation engine
+    editor/       # @gyxer/editor     — React Flow visual editor
+    cli/          # @gyxer/cli        — CLI wizard + generate command
+  examples/       # Example schemas (blog, blog-with-auth, shop)
+  .changeset/     # Changesets config (unified versioning)
+  .github/        # CI/CD workflows
+```
+
+## Development
+
+```bash
+npm install          # install all dependencies
+npm run build        # build all packages
+npm test             # run all 149 tests
+npm run dev          # start editor dev server
 ```
 
 ## Philosophy

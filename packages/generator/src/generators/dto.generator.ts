@@ -17,15 +17,17 @@ export function collectFkFields(entity: Entity, project: GyxerProject): FkFieldI
   const fkFields: FkFieldInfo[] = [];
   const existingNames = new Set(entity.fields.map((f) => f.name));
 
-  // 1. From entity's own relations with foreignKey
+  // 1. From entity's own relations with foreignKey (one-to-one only).
+  //    one-to-many: this entity is "one" side, FK goes on the TARGET.
   for (const rel of entity.relations) {
+    if (rel.type === 'one-to-many') continue; // FK is on target, not here
     if (rel.foreignKey && !existingNames.has(rel.foreignKey)) {
       fkFields.push({ name: rel.foreignKey, targetEntity: rel.target });
       existingNames.add(rel.foreignKey);
     }
   }
 
-  // 2. From inverse relations (other entities pointing to this one)
+  // 2. From inverse relations (other entities pointing to this one via one-to-many)
   for (const otherEntity of project.entities) {
     if (otherEntity.name === entity.name) continue;
 
@@ -38,9 +40,9 @@ export function collectFkFields(entity: Entity, project: GyxerProject): FkFieldI
 
       const sourceName = otherEntity.name.charAt(0).toLowerCase() + otherEntity.name.slice(1);
 
-      if (rel.type === 'one-to-many' && !rel.foreignKey) {
-        // Source is "one" side (array) → this entity is "many" side → needs FK
-        const fk = `${sourceName}Id`;
+      if (rel.type === 'one-to-many') {
+        // Source is "one" side → this entity is "many" side → needs FK
+        const fk = rel.foreignKey || `${sourceName}Id`;
         if (!existingNames.has(fk)) {
           fkFields.push({ name: fk, targetEntity: otherEntity.name });
           existingNames.add(fk);
@@ -54,7 +56,6 @@ export function collectFkFields(entity: Entity, project: GyxerProject): FkFieldI
         }
       }
       // many-to-many → no FK on either side (join table)
-      // one-to-many WITH foreignKey → source is "many" side, not this entity
       // one-to-one WITH foreignKey → source owns FK, not this entity
     }
   }
@@ -70,7 +71,23 @@ export function generateCreateDto(entity: Entity, project: GyxerProject): string
   const fkFields = collectFkFields(entity, project);
   const lines: string[] = [];
 
-  lines.push("import { ApiProperty } from '@nestjs/swagger';");
+  // Import ApiPropertyOptional too if any field is optional
+  const hasOptionalFields = entity.fields.some((f) => !f.required);
+  if (hasOptionalFields) {
+    lines.push("import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';");
+  } else {
+    lines.push("import { ApiProperty } from '@nestjs/swagger';");
+  }
+
+  // Import Prisma enums if entity has enum fields
+  const enumFields = entity.fields.filter((f) => f.type === 'enum' && f.enumValues);
+  if (enumFields.length > 0) {
+    const enumNames = enumFields.map(
+      (f) => `${entity.name}${f.name.charAt(0).toUpperCase() + f.name.slice(1)}`,
+    );
+    lines.push(`import { ${enumNames.join(', ')} } from '@prisma/client';`);
+  }
+
   lines.push(generateValidatorImports(entity.fields, false, fkFields.length > 0));
   lines.push('');
   lines.push(`export class ${className} {`);
@@ -82,6 +99,18 @@ export function generateCreateDto(entity: Entity, project: GyxerProject): string
   // FK fields from relations
   for (const fk of fkFields) {
     lines.push(generateFkDtoField(fk, false));
+  }
+
+  // Auth-jwt: add password field to CreateUserDto
+  const hasAuthJwt =
+    entity.name === 'User' &&
+    project.modules?.some((m) => m.name === 'auth-jwt' && m.enabled !== false);
+  if (hasAuthJwt) {
+    lines.push("  @ApiProperty({ description: 'User password (will be hashed)' })");
+    lines.push('  @IsString()');
+    lines.push('  @IsNotEmpty()');
+    lines.push('  password: string;');
+    lines.push('');
   }
 
   lines.push('}');
@@ -98,6 +127,16 @@ export function generateUpdateDto(entity: Entity, project: GyxerProject): string
   const lines: string[] = [];
 
   lines.push("import { ApiPropertyOptional } from '@nestjs/swagger';");
+
+  // Import Prisma enums if entity has enum fields
+  const enumFields = entity.fields.filter((f) => f.type === 'enum' && f.enumValues);
+  if (enumFields.length > 0) {
+    const enumNames = enumFields.map(
+      (f) => `${entity.name}${f.name.charAt(0).toUpperCase() + f.name.slice(1)}`,
+    );
+    lines.push(`import { ${enumNames.join(', ')} } from '@prisma/client';`);
+  }
+
   lines.push(generateValidatorImports(entity.fields, true, fkFields.length > 0));
   lines.push('');
   lines.push(`export class ${className} {`);
@@ -145,7 +184,7 @@ function generateDtoField(field: Field, entity: Entity, isUpdate: boolean): stri
   }
 
   // Property
-  const tsType = mapToTsType(field);
+  const tsType = mapToTsType(field, entity.name);
   const questionMark = optional ? '?' : '';
   lines.push(`  ${field.name}${questionMark}: ${tsType};`);
   lines.push('');
@@ -256,13 +295,17 @@ function generateValidatorImports(
   return `import { ${[...validators].sort().join(', ')} } from 'class-validator';`;
 }
 
-function mapToTsType(field: Field): string {
+function mapToTsType(field: Field, entityName?: string): string {
   switch (field.type) {
     case 'string':
     case 'text':
     case 'uuid':
     case 'datetime':
+      return 'string';
     case 'enum':
+      if (entityName && field.enumValues) {
+        return `${entityName}${field.name.charAt(0).toUpperCase() + field.name.slice(1)}`;
+      }
       return 'string';
     case 'int':
     case 'float':

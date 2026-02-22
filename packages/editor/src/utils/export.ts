@@ -51,10 +51,13 @@ export function exportToSchema(): Record<string, unknown> {
     settings: {
       port: settings.port,
       database: settings.database,
+      databaseUrl: `postgresql://postgres:postgres@localhost:5432/${settings.name.replace(/-/g, '_')}`,
       enableSwagger: settings.enableSwagger,
       enableCors: settings.enableCors,
       enableHelmet: settings.enableHelmet,
       enableRateLimit: settings.enableRateLimit,
+      rateLimitTtl: 60,
+      rateLimitMax: 100,
       docker: settings.docker,
     },
   };

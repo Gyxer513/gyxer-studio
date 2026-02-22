@@ -14,7 +14,7 @@ describe('@gyxer/schema validators', () => {
       const result = validateProject(blogData);
       expect(result.success).toBe(true);
       expect(result.data).toBeDefined();
-      expect(result.data!.name).toBe('my-blog');
+      expect(result.data!.name).toBe('blog-api');
       expect(result.data!.entities).toHaveLength(3);
     });
 
@@ -150,7 +150,7 @@ describe('@gyxer/schema validators', () => {
     it('should parse valid JSON string', () => {
       const result = parseProjectJson(blogJson);
       expect(result.success).toBe(true);
-      expect(result.data!.name).toBe('my-blog');
+      expect(result.data!.name).toBe('blog-api');
     });
 
     it('should reject invalid JSON', () => {

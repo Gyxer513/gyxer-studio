@@ -12,6 +12,7 @@ import {
   generateAppModule,
   generatePrismaService,
   generatePrismaModule,
+  generatePrismaExceptionFilter,
 } from './generators/app.generator.js';
 import {
   generateDockerfile,
@@ -80,8 +81,14 @@ export async function generateProject(
     generatePrismaModule(),
     filesCreated,
   );
+  await writeFile(
+    path.join(srcPrismaDir, 'prisma-exception.filter.ts'),
+    generatePrismaExceptionFilter(),
+    filesCreated,
+  );
   log('  + src/prisma/prisma.service.ts');
   log('  + src/prisma/prisma.module.ts');
+  log('  + src/prisma/prisma-exception.filter.ts');
 
   // ─── Entity modules ───────────────────────────────────
   for (const entity of project.entities) {
@@ -105,14 +112,14 @@ export async function generateProject(
     // Service
     await writeFile(
       path.join(entityDir, `${kebab}.service.ts`),
-      generateService(entity),
+      generateService(entity, project),
       filesCreated,
     );
 
     // Controller
     await writeFile(
       path.join(entityDir, `${kebab}.controller.ts`),
-      generateController(entity),
+      generateController(entity, project),
       filesCreated,
     );
 
@@ -250,6 +257,7 @@ function generatePackageJson(project: GyxerProject): string {
     },
     devDependencies: {
       '@nestjs/cli': '^10.4.0',
+      '@types/express': '^5.0.0',
       '@types/node': '^22.0.0',
       prisma: '^6.0.0',
       typescript: '^5.7.0',

@@ -11,11 +11,11 @@ program
   .description('Gyxer CLI — generate production-ready NestJS backends')
   .version('0.1.0');
 
-// gyxer generate <schema.json> [output]
+// gyxer generate [schema.json] — with or without a config path
 program
-  .command('generate <schema>')
-  .description('Generate a NestJS project from a JSON schema file')
-  .option('-o, --output <dir>', 'Output directory', './output')
+  .command('generate [schema]')
+  .description('Generate a NestJS project from a JSON schema (interactive if omitted)')
+  .option('-o, --output <dir>', 'Output directory (defaults to ./<project-name>)')
   .action(generateCommand);
 
 // gyxer new <name>

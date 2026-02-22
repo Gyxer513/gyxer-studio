@@ -4,10 +4,34 @@
   "description": "Gyxer project schema types and validation",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
     "test": "vitest run"
+  },
+  "keywords": [
+    "gyxer",
+    "schema",
+    "nestjs",
+    "codegen",
+    "backend",
+    "validation",
+    "zod"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Gyxer513/gyxer-studio.git",
+    "directory": "packages/schema"
+  },
+  "homepage": "https://github.com/Gyxer513/gyxer-studio#readme",
+  "bugs": {
+    "url": "https://github.com/Gyxer513/gyxer-studio/issues"
+  },
+  "engines": {
+    "node": ">=20.0.0"
   },
   "dependencies": {
     "zod": "^3.24.0"

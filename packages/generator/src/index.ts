@@ -12,6 +12,7 @@ export {
   generateAppModule,
   generatePrismaService,
   generatePrismaModule,
+  generatePrismaExceptionFilter,
 } from './generators/app.generator.js';
 export {
   generateDockerfile,

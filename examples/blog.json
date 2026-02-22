@@ -1,100 +1,54 @@
 {
-  "name": "my-blog",
+  "name": "blog-api",
   "version": "0.1.0",
-  "description": "A simple blog API with users, posts, and comments",
+  "description": "Blog platform API with users, posts, and comments",
   "entities": [
     {
       "name": "User",
-      "description": "Blog user / author",
       "fields": [
-        { "name": "email", "type": "string", "required": true, "unique": true },
-        { "name": "name", "type": "string", "required": true },
-        { "name": "bio", "type": "text", "required": false },
-        { "name": "avatarUrl", "type": "string", "required": false },
-        { "name": "isActive", "type": "boolean", "required": true, "default": true }
+        { "name": "email", "type": "string", "required": true, "unique": true, "index": true },
+        { "name": "name", "type": "string", "required": true, "unique": false, "index": false },
+        { "name": "bio", "type": "text", "required": false, "unique": false, "index": false },
+        { "name": "isActive", "type": "boolean", "required": true, "unique": false, "index": false, "default": true }
       ],
       "relations": [
-        {
-          "name": "posts",
-          "type": "one-to-many",
-          "target": "Post",
-          "onDelete": "CASCADE"
-        },
-        {
-          "name": "comments",
-          "type": "one-to-many",
-          "target": "Comment",
-          "onDelete": "CASCADE"
-        }
+        { "name": "posts", "type": "one-to-many", "target": "Post", "foreignKey": "authorId", "onDelete": "CASCADE" },
+        { "name": "comments", "type": "one-to-many", "target": "Comment", "foreignKey": "authorId", "onDelete": "CASCADE" }
       ]
     },
     {
       "name": "Post",
-      "description": "Blog post",
       "fields": [
-        { "name": "title", "type": "string", "required": true },
+        { "name": "title", "type": "string", "required": true, "unique": false, "index": true },
         { "name": "slug", "type": "string", "required": true, "unique": true, "index": true },
-        { "name": "content", "type": "text", "required": true },
-        { "name": "excerpt", "type": "text", "required": false },
-        {
-          "name": "status",
-          "type": "enum",
-          "required": true,
-          "default": "DRAFT",
-          "enumValues": ["DRAFT", "PUBLISHED", "ARCHIVED"]
-        },
-        { "name": "publishedAt", "type": "datetime", "required": false },
-        { "name": "viewCount", "type": "int", "required": true, "default": 0 }
+        { "name": "content", "type": "text", "required": true, "unique": false, "index": false },
+        { "name": "published", "type": "boolean", "required": true, "unique": false, "index": false, "default": false },
+        { "name": "views", "type": "int", "required": false, "unique": false, "index": false, "default": 0 }
       ],
       "relations": [
-        {
-          "name": "author",
-          "type": "one-to-many",
-          "target": "User",
-          "foreignKey": "authorId",
-          "onDelete": "CASCADE"
-        },
-        {
-          "name": "comments",
-          "type": "one-to-many",
-          "target": "Comment",
-          "onDelete": "CASCADE"
-        }
+        { "name": "comments", "type": "one-to-many", "target": "Comment", "foreignKey": "postId", "onDelete": "CASCADE" }
       ]
     },
     {
       "name": "Comment",
-      "description": "Comment on a post",
       "fields": [
-        { "name": "body", "type": "text", "required": true },
-        { "name": "isApproved", "type": "boolean", "required": true, "default": false }
+        { "name": "text", "type": "text", "required": true, "unique": false, "index": false },
+        { "name": "rating", "type": "int", "required": false, "unique": false, "index": false }
       ],
-      "relations": [
-        {
-          "name": "post",
-          "type": "one-to-many",
-          "target": "Post",
-          "foreignKey": "postId",
-          "onDelete": "CASCADE"
-        },
-        {
-          "name": "author",
-          "type": "one-to-many",
-          "target": "User",
-          "foreignKey": "authorId",
-          "onDelete": "CASCADE"
-        }
-      ]
+      "relations": []
     }
   ],
   "modules": [],
   "settings": {
     "port": 3000,
     "database": "postgresql",
+    "databaseUrl": "postgresql://postgres:postgres@localhost:5432/blog_api",
     "enableSwagger": true,
     "enableCors": true,
     "enableHelmet": true,
     "enableRateLimit": true,
+    "rateLimitTtl": 60,
+    "rateLimitMax": 100,
     "docker": true
   }
 }

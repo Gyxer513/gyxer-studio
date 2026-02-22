@@ -18,6 +18,7 @@ export function generateMain(project: GyxerProject): string {
   }
 
   lines.push(`import { AppModule } from './app.module';`);
+  lines.push(`import { PrismaExceptionFilter } from './prisma/prisma-exception.filter';`);
   lines.push('');
   lines.push('async function bootstrap() {');
   lines.push('  const app = await NestFactory.create(AppModule);');
@@ -47,11 +48,14 @@ export function generateMain(project: GyxerProject): string {
   lines.push('    }),');
   lines.push('  );');
   lines.push('');
+  lines.push('  // Prisma exception filter — converts DB errors to proper HTTP responses');
+  lines.push('  app.useGlobalFilters(new PrismaExceptionFilter());');
+  lines.push('');
 
   // Swagger
   if (project.settings.enableSwagger) {
     lines.push('  // Swagger API documentation');
-    const hasAuthJwt = project.modules.some((m) => m.name === 'auth-jwt' && m.enabled !== false);
+    const hasAuthJwt = project.modules?.some((m) => m.name === 'auth-jwt' && m.enabled !== false) ?? false;
     lines.push('  const config = new DocumentBuilder()');
     lines.push(`    .setTitle('${project.name}')`);
     lines.push(`    .setDescription('${project.description || 'API documentation'}')`);
@@ -86,7 +90,7 @@ export function generateMain(project: GyxerProject): string {
  * Generate app.module.ts with all entity modules imported.
  */
 export function generateAppModule(project: GyxerProject): string {
-  const hasAuthJwt = project.modules.some((m) => m.name === 'auth-jwt' && m.enabled !== false);
+  const hasAuthJwt = project.modules?.some((m) => m.name === 'auth-jwt' && m.enabled !== false) ?? false;
   const needsAppGuard = project.settings.enableRateLimit || hasAuthJwt;
 
   const imports: string[] = [];
@@ -130,8 +134,8 @@ export function generateAppModule(project: GyxerProject): string {
 
   if (project.settings.enableRateLimit) {
     lines.push('    ThrottlerModule.forRoot([{');
-    lines.push(`      ttl: ${project.settings.rateLimitTtl * 1000},`);
-    lines.push(`      limit: ${project.settings.rateLimitMax},`);
+    lines.push(`      ttl: ${(project.settings.rateLimitTtl ?? 60) * 1000},`);
+    lines.push(`      limit: ${project.settings.rateLimitMax ?? 100},`);
     lines.push('    }]),');
   }
 
@@ -196,5 +200,71 @@ import { PrismaService } from './prisma.service';
   exports: [PrismaService],
 })
 export class PrismaModule {}
+`;
+}
+
+/**
+ * Generate Prisma exception filter that converts Prisma errors to proper HTTP responses.
+ */
+export function generatePrismaExceptionFilter(): string {
+  return `import { ArgumentsHost, Catch, ExceptionFilter, HttpStatus } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
+import { Response } from 'express';
+
+@Catch(Prisma.PrismaClientKnownRequestError)
+export class PrismaExceptionFilter implements ExceptionFilter {
+  catch(exception: Prisma.PrismaClientKnownRequestError, host: ArgumentsHost) {
+    const ctx = host.switchToHttp();
+    const response = ctx.getResponse<Response>();
+
+    switch (exception.code) {
+      case 'P2002': {
+        // Unique constraint violation
+        const fields = (exception.meta?.target as string[]) || [];
+        response.status(HttpStatus.CONFLICT).json({
+          statusCode: HttpStatus.CONFLICT,
+          message: \`Unique constraint violation on: \${fields.join(', ')}\`,
+          error: 'Conflict',
+        });
+        break;
+      }
+      case 'P2003': {
+        // Foreign key constraint violation
+        const field = (exception.meta?.field_name as string) || 'unknown';
+        response.status(HttpStatus.BAD_REQUEST).json({
+          statusCode: HttpStatus.BAD_REQUEST,
+          message: \`Foreign key constraint violated on: \${field}\`,
+          error: 'Bad Request',
+        });
+        break;
+      }
+      case 'P2025': {
+        // Record not found
+        response.status(HttpStatus.NOT_FOUND).json({
+          statusCode: HttpStatus.NOT_FOUND,
+          message: (exception.meta?.cause as string) || 'Record not found',
+          error: 'Not Found',
+        });
+        break;
+      }
+      case 'P2014': {
+        // Required relation violation
+        response.status(HttpStatus.BAD_REQUEST).json({
+          statusCode: HttpStatus.BAD_REQUEST,
+          message: 'Required relation violation',
+          error: 'Bad Request',
+        });
+        break;
+      }
+      default: {
+        response.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+          statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+          message: \`Database error: \${exception.code}\`,
+          error: 'Internal Server Error',
+        });
+      }
+    }
+  }
+}
 `;
 }

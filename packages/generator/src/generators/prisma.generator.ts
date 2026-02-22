@@ -96,7 +96,7 @@ function generateModel(entity: Entity, project: GyxerProject): string {
   }
 
   // Model-level indexes (@@index)
-  const indexedFields = entity.fields.filter((f) => f.index && !f.unique);
+  const indexedFields = entity.fields.filter((f) => f.index);
   for (const field of indexedFields) {
     lines.push(`  @@index([${field.name}])`);
   }
@@ -154,19 +154,9 @@ function generateField(field: Field, entity: Entity): string {
 function generateRelation(relation: Relation, entity: Entity, project: GyxerProject): string {
   const lines: string[] = [];
 
-  if (relation.type === 'one-to-many' && relation.foreignKey) {
-    // This side has the foreign key (many side)
-    const fk = relation.foreignKey;
-    const fkColumn = toSnakeCase(fk);
-    lines.push(`  ${padRight(fk, 14)} Int`);
-    lines.push(
-      `  ${padRight(relation.name, 14)} ${relation.target} @relation(fields: [${fk}], references: [id], onDelete: ${toPrismaAction(relation.onDelete)})`,
-    );
-    if (fk !== fkColumn) {
-      // Already handled by field @map
-    }
-  } else if (relation.type === 'one-to-many') {
-    // This side is the "one" side — just an array relation
+  if (relation.type === 'one-to-many') {
+    // This entity is the "one" side — always an array relation.
+    // foreignKey (if provided) specifies the FK name on the target (many) side.
     lines.push(`  ${padRight(relation.name, 14)} ${relation.target}[]`);
   } else if (relation.type === 'one-to-one') {
     if (relation.foreignKey) {
@@ -194,17 +184,12 @@ function generateInverseRelation(sourceRelation: Relation, sourceEntity: Entity)
   const sourceName = sourceEntity.name.charAt(0).toLowerCase() + sourceEntity.name.slice(1);
 
   if (sourceRelation.type === 'one-to-many') {
-    if (sourceRelation.foreignKey) {
-      // Source is the "many" side with FK → this entity is the "one" side → needs array
-      lines.push(`  ${padRight(sourceName + 's', 14)} ${sourceEntity.name}[]`);
-    } else {
-      // Source is the "one" side with array → this entity is the "many" side → needs FK
-      const fk = `${sourceName}Id`;
-      lines.push(`  ${padRight(fk, 14)} Int`);
-      lines.push(
-        `  ${padRight(sourceName, 14)} ${sourceEntity.name} @relation(fields: [${fk}], references: [id], onDelete: ${toPrismaAction(sourceRelation.onDelete)})`,
-      );
-    }
+    // Source is the "one" side → this entity is the "many" side → needs FK + relation
+    const fk = sourceRelation.foreignKey || `${sourceName}Id`;
+    lines.push(`  ${padRight(fk, 14)} Int`);
+    lines.push(
+      `  ${padRight(sourceName, 14)} ${sourceEntity.name} @relation(fields: [${fk}], references: [id], onDelete: ${toPrismaAction(sourceRelation.onDelete)})`,
+    );
   } else if (sourceRelation.type === 'one-to-one') {
     if (sourceRelation.foreignKey) {
       // Source owns the FK → this entity is the inverse → optional ref

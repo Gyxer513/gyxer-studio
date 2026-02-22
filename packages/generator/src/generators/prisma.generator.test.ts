@@ -15,7 +15,7 @@ const baseProject: GyxerProject = {
         { name: 'isActive', type: 'boolean', required: true, unique: false, index: false, default: true },
       ],
       relations: [
-        { name: 'posts', type: 'one-to-many', target: 'Post', onDelete: 'CASCADE' },
+        { name: 'posts', type: 'one-to-many', target: 'Post', foreignKey: 'authorId', onDelete: 'CASCADE' },
       ],
     },
     {
@@ -36,9 +36,7 @@ const baseProject: GyxerProject = {
         },
         { name: 'viewCount', type: 'int', required: true, unique: false, index: false, default: 0 },
       ],
-      relations: [
-        { name: 'author', type: 'one-to-many', target: 'User', foreignKey: 'authorId', onDelete: 'CASCADE' },
-      ],
+      relations: [],
     },
   ],
   modules: [],

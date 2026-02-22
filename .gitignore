@@ -9,3 +9,15 @@ Thumbs.db
 *.log
 docs/.vitepress/dist/
 docs/.vitepress/cache/
+
+# IDE
+.idea/
+.vscode/
+
+# Claude Code
+.claude/
+
+# Generated output (test artifacts)
+blog-api/
+shop-api*/
+configs/

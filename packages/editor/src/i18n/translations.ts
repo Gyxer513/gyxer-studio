@@ -43,8 +43,12 @@ export interface Translations {
   'node.addField': string;
   'node.remove': string;
 
-  // Export
+  // Export / Generate
   'export.title': string;
+  'generate.configSaved': string;
+  'generate.runCommand': string;
+  'generate.noEntities': string;
+  'generate.validationErrors': string;
 
   // Field types
   'type.string': string;
@@ -141,6 +145,10 @@ export const translations: Record<Locale, Translations> = {
     'node.remove': 'Remove entity',
 
     'export.title': 'Export',
+    'generate.configSaved': 'Config saved as {fileName}!',
+    'generate.runCommand': 'Now generate your project:',
+    'generate.noEntities': 'Add at least one entity!',
+    'generate.validationErrors': 'Validation errors:',
 
     'type.string': 'string',
     'type.text': 'text',
@@ -231,6 +239,10 @@ export const translations: Record<Locale, Translations> = {
     'node.remove': 'Удалить сущность',
 
     'export.title': 'Экспорт',
+    'generate.configSaved': 'Конфиг сохранён как {fileName}!',
+    'generate.runCommand': 'Теперь сгенерируйте проект:',
+    'generate.noEntities': 'Добавьте хотя бы одну сущность!',
+    'generate.validationErrors': 'Ошибки валидации:',
 
     'type.string': 'строка',
     'type.text': 'текст',
