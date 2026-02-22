@@ -1,4 +1,4 @@
-import * as fs from 'fs-extra';
+import fs from 'fs-extra';
 import * as path from 'path';
 import type { GyxerProject } from '@gyxer-studio/schema';
 import { toKebabCase } from './utils.js';
