@@ -4,6 +4,13 @@
   "type": "module",
   "description": "Gyxer CLI — generate production-ready NestJS projects from the command line",
   "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
   "bin": {
     "gyxer": "./dist/index.js"
   },
@@ -13,7 +20,7 @@
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
-    "test": "vitest run"
+    "prepublishOnly": "npm run build"
   },
   "keywords": [
     "gyxer",

@@ -1,16 +1,27 @@
 {
   "name": "@gyxer-studio/generator",
   "version": "0.1.0",
+  "type": "module",
   "description": "NestJS project code generator — generates full CRUD APIs from schema",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./utils": {
+      "types": "./dist/utils.d.ts",
+      "import": "./dist/utils.js"
+    }
+  },
   "files": [
     "dist"
   ],
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
-    "test": "vitest run"
+    "prepublishOnly": "npm run build"
   },
   "keywords": [
     "gyxer",
