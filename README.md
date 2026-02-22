@@ -13,9 +13,12 @@ Gyxer Studio is a visual tool for building production-ready backends. You design
 ## Features
 
 - **Visual Model Editor** — drag-and-drop data modeling with React Flow
+- **Relation Editing** — click edges to edit type (1:1, 1:N, N:M), onDelete, foreign key; delete from edge or sidebar
 - **Code Generation** — clean NestJS + Prisma code you actually want to read
 - **Generate to Folder or ZIP** — write files directly to a directory or download as archive
+- **Import / Export JSON** — save and load project schemas
 - **Module System** — add Auth (JWT), File Storage, Queues, Search with a checkbox
+- **Field Defaults & Enums** — set default values and enum options per field
 - **Security Report** — Helmet, Rate Limiting, CORS, secrets check on every generation
 - **Docker Compose** — generated and ready to `docker compose up`
 - **i18n** — English and Russian interface
@@ -98,7 +101,9 @@ For each entity you create, Gyxer generates:
 - [x] Auth JWT module
 - [x] 59 tests passing
 - [x] UI polish (Gyxer branding, Inter font, dark entity cards)
-- [ ] Relation editing UI (type on edge, delete)
+- [x] Relation editing UI (custom edge, type/onDelete/FK editing, delete)
+- [x] Import / Export JSON schemas
+- [x] Field default values & enum editor
 - [ ] Built-in HTTP client (Postman-like)
 - [ ] Additional modules (cache, queues, file-storage, websockets, search)
 - [ ] CLI wizard (`npx gyxer new`)

@@ -30,6 +30,15 @@ body {
   stroke-width: 2 !important;
 }
 
+.react-flow__edge.selected .react-flow__edge-path {
+  stroke: #C8232C !important;
+  stroke-width: 2.5 !important;
+}
+
+.react-flow__edge:hover .react-flow__edge-path {
+  stroke: #C8232C !important;
+}
+
 .react-flow__controls {
   border-radius: 10px !important;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08) !important;

@@ -1,18 +1,35 @@
 import React from 'react';
-import { useProjectStore, type FieldType } from '../store/project-store';
+import { useProjectStore, type FieldType, type RelationType } from '../store/project-store';
 import { useTranslation } from '../i18n';
 
 const FIELD_TYPES: FieldType[] = [
   'string', 'text', 'int', 'float', 'boolean', 'datetime', 'enum', 'json', 'uuid',
 ];
 
+const RELATION_TYPES: RelationType[] = ['one-to-one', 'one-to-many', 'many-to-many'];
+const ON_DELETE_OPTIONS = ['CASCADE', 'SET_NULL', 'RESTRICT', 'NO_ACTION'] as const;
+
 export function Sidebar() {
   const {
-    entities, selectedEntityId, settings, modules,
-    updateEntity, updateField, removeField, addField, updateSettings, toggleModule,
+    entities, relations,
+    selectedEntityId, selectedRelationId,
+    settings, modules,
+    updateEntity, updateField, removeField, addField,
+    updateRelation, removeRelation,
+    updateSettings, toggleModule,
   } = useProjectStore();
   const { t } = useTranslation();
+
   const selectedEntity = entities.find((e) => e.id === selectedEntityId);
+  const selectedRelation = relations.find((r) => r.id === selectedRelationId);
+
+  // Find source/target entity names for relation display
+  const sourceEntity = selectedRelation
+    ? entities.find((e) => e.id === selectedRelation.sourceEntityId)
+    : null;
+  const targetEntity = selectedRelation
+    ? entities.find((e) => e.id === selectedRelation.targetEntityId)
+    : null;
 
   return (
     <div className="w-80 bg-white border-l border-gray-200/80 h-full overflow-y-auto flex flex-col">
@@ -96,8 +113,82 @@ export function Sidebar() {
         </label>
       </div>
 
-      {/* ─── Selected Entity ─── */}
-      {selectedEntity ? (
+      {/* ─── Selected Relation ─── */}
+      {selectedRelation ? (
+        <div className="p-4 flex-1">
+          <h2 className="text-xs font-semibold text-dark-300 uppercase tracking-wider mb-3">
+            {t('sidebar.relation')}
+          </h2>
+
+          {/* Source → Target */}
+          <div className="mb-4 p-2.5 bg-dark-50/70 rounded-lg border border-gray-100">
+            <div className="flex items-center gap-2 text-sm">
+              <span className="font-semibold text-dark-700">{sourceEntity?.name || '?'}</span>
+              <span className="text-dark-300">→</span>
+              <span className="font-semibold text-dark-700">{targetEntity?.name || '?'}</span>
+            </div>
+          </div>
+
+          {/* Relation Type */}
+          <div className="mb-3">
+            <label className="text-xs text-dark-400 font-medium mb-1 block">
+              {t('sidebar.relationType')}
+            </label>
+            <select
+              value={selectedRelation.type}
+              onChange={(e) => updateRelation(selectedRelation.id, { type: e.target.value as RelationType })}
+              className="w-full px-3 py-1.5 border border-gray-200 rounded-lg text-sm bg-dark-50/50"
+            >
+              {RELATION_TYPES.map((rt) => (
+                <option key={rt} value={rt}>
+                  {t(`relation.${rt === 'one-to-one' ? 'oneToOne' : rt === 'one-to-many' ? 'oneToMany' : 'manyToMany'}` as any)} — {rt}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* onDelete */}
+          <div className="mb-3">
+            <label className="text-xs text-dark-400 font-medium mb-1 block">
+              {t('sidebar.relationOnDelete')}
+            </label>
+            <select
+              value={selectedRelation.onDelete}
+              onChange={(e) => updateRelation(selectedRelation.id, { onDelete: e.target.value as any })}
+              className="w-full px-3 py-1.5 border border-gray-200 rounded-lg text-sm bg-dark-50/50 font-mono"
+            >
+              {ON_DELETE_OPTIONS.map((od) => (
+                <option key={od} value={od}>
+                  {t(`onDelete.${od}` as any)}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Foreign Key */}
+          <div className="mb-4">
+            <label className="text-xs text-dark-400 font-medium mb-1 block">
+              {t('sidebar.relationForeignKey')}
+            </label>
+            <input
+              type="text"
+              value={selectedRelation.foreignKey || ''}
+              onChange={(e) => updateRelation(selectedRelation.id, { foreignKey: e.target.value || undefined })}
+              className="w-full px-3 py-1.5 border border-gray-200 rounded-lg text-sm bg-dark-50/50 font-mono"
+              placeholder={`${(targetEntity?.name || 'target').toLowerCase()}Id`}
+            />
+          </div>
+
+          {/* Delete Relation */}
+          <button
+            onClick={() => removeRelation(selectedRelation.id)}
+            className="w-full py-2 border border-gyxer-200 text-gyxer-600 rounded-lg text-xs font-medium hover:bg-gyxer-50 hover:border-gyxer-400 transition-all"
+          >
+            {t('sidebar.deleteRelation')}
+          </button>
+        </div>
+      ) : selectedEntity ? (
+        /* ─── Selected Entity ─── */
         <div className="p-4 flex-1">
           <h2 className="text-xs font-semibold text-dark-300 uppercase tracking-wider mb-3">
             {t('sidebar.entity')}
@@ -152,6 +243,8 @@ export function Sidebar() {
                     ✕
                   </button>
                 </div>
+
+                {/* Flags row */}
                 <div className="flex gap-4 text-xs text-dark-400 pl-0.5">
                   {[
                     { key: 'required', label: t('sidebar.required') },
@@ -169,6 +262,52 @@ export function Sidebar() {
                     </label>
                   ))}
                 </div>
+
+                {/* Default value (not for json type) */}
+                {field.type !== 'json' && (
+                  <div className="mt-1.5 pl-0.5">
+                    <label className="text-[10px] text-dark-300 block mb-0.5">{t('sidebar.defaultValue')}</label>
+                    {field.type === 'boolean' ? (
+                      <label className="flex items-center gap-1.5 text-xs text-dark-400 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={field.default === true || field.default === 'true'}
+                          onChange={(e) => updateField(selectedEntity.id, i, { default: e.target.checked })}
+                          className="rounded border-gray-300 text-gyxer-500 focus:ring-gyxer-500 w-3 h-3"
+                        />
+                        {field.default === true || field.default === 'true' ? 'true' : 'false'}
+                      </label>
+                    ) : (
+                      <input
+                        type="text"
+                        value={field.default != null ? String(field.default) : ''}
+                        onChange={(e) => updateField(selectedEntity.id, i, { default: e.target.value || undefined })}
+                        className="w-full px-2 py-0.5 border border-gray-200 rounded-md text-[11px] font-mono bg-white text-dark-500"
+                        placeholder="—"
+                      />
+                    )}
+                  </div>
+                )}
+
+                {/* Enum values (only for enum type) */}
+                {field.type === 'enum' && (
+                  <div className="mt-1.5 pl-0.5">
+                    <label className="text-[10px] text-dark-300 block mb-0.5">{t('sidebar.enumValues')}</label>
+                    <input
+                      type="text"
+                      value={(field.enumValues || []).join(', ')}
+                      onChange={(e) => {
+                        const values = e.target.value
+                          .split(',')
+                          .map((v) => v.trim())
+                          .filter(Boolean);
+                        updateField(selectedEntity.id, i, { enumValues: values });
+                      }}
+                      className="w-full px-2 py-0.5 border border-gray-200 rounded-md text-[11px] font-mono bg-white text-dark-500"
+                      placeholder="ACTIVE, INACTIVE, PENDING"
+                    />
+                  </div>
+                )}
               </div>
             ))}
           </div>
@@ -181,10 +320,11 @@ export function Sidebar() {
           </button>
         </div>
       ) : (
+        /* ─── Nothing Selected ─── */
         <div className="p-4 flex-1 flex items-center justify-center">
           <div className="text-center">
             <div className="text-3xl mb-2 opacity-30">🎯</div>
-            <div className="text-dark-300 text-sm">{t('sidebar.selectEntity')}</div>
+            <div className="text-dark-300 text-sm">{t('sidebar.selectElement')}</div>
           </div>
         </div>
       )}

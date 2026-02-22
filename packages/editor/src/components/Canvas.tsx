@@ -4,6 +4,7 @@ import {
   Background,
   Controls,
   type NodeChange,
+  type EdgeChange,
   type Connection,
   type Edge,
   type Node,
@@ -12,11 +13,18 @@ import {
 import '@xyflow/react/dist/style.css';
 import { useProjectStore } from '../store/project-store';
 import { EntityNode } from './EntityNode';
+import { RelationEdge } from './RelationEdge';
 
 const nodeTypes = { entity: EntityNode };
+const edgeTypes = { relation: RelationEdge };
 
 export function Canvas() {
-  const { entities, relations, addRelation, updateEntity, selectEntity } = useProjectStore();
+  const {
+    entities, relations,
+    addRelation, updateEntity, selectEntity,
+    selectRelation, clearSelection, removeRelation,
+    selectedRelationId,
+  } = useProjectStore();
 
   // Convert store entities → React Flow nodes (single source of truth)
   const nodes: Node[] = useMemo(
@@ -41,14 +49,15 @@ export function Canvas() {
         id: rel.id,
         source: rel.sourceEntityId,
         target: rel.targetEntityId,
-        label: `${rel.type}`,
-        type: 'smoothstep',
-        animated: true,
-        style: { stroke: '#525252', strokeWidth: 2 },
-        labelStyle: { fontSize: 10, fill: '#737373', fontFamily: 'Inter, sans-serif' },
-        labelBgStyle: { fill: '#f8f9fa', fillOpacity: 0.9 },
+        type: 'relation',
+        selected: rel.id === selectedRelationId,
+        data: {
+          relationType: rel.type,
+          onDelete: rel.onDelete,
+          relationId: rel.id,
+        },
       })),
-    [relations],
+    [relations, selectedRelationId],
   );
 
   // Handle React Flow node changes (drag, select, etc.) — apply directly to Zustand store
@@ -66,12 +75,10 @@ export function Canvas() {
       }
 
       // For smooth dragging, apply intermediate position changes locally
-      // We compute and let React Flow handle it through the controlled nodes
       const hasDragging = changes.some(
         (c) => c.type === 'position' && c.dragging,
       );
       if (hasDragging) {
-        // Apply drag changes via the store for real-time feedback
         for (const change of changes) {
           if (change.type === 'position' && change.position && change.dragging) {
             updateEntity(change.id, { position: change.position });
@@ -80,6 +87,41 @@ export function Canvas() {
       }
     },
     [updateEntity, selectEntity],
+  );
+
+  // Handle edge changes (selection)
+  const onEdgesChange = useCallback(
+    (changes: EdgeChange[]) => {
+      for (const change of changes) {
+        if (change.type === 'select' && change.selected) {
+          selectRelation(change.id);
+        }
+      }
+    },
+    [selectRelation],
+  );
+
+  // Handle edge click — select relation
+  const onEdgeClick = useCallback(
+    (_event: React.MouseEvent, edge: Edge) => {
+      selectRelation(edge.id);
+    },
+    [selectRelation],
+  );
+
+  // Handle pane click — clear all selection
+  const onPaneClick = useCallback(() => {
+    clearSelection();
+  }, [clearSelection]);
+
+  // Handle edge deletion via keyboard (Backspace/Delete)
+  const onEdgesDelete = useCallback(
+    (deletedEdges: Edge[]) => {
+      for (const edge of deletedEdges) {
+        removeRelation(edge.id);
+      }
+    },
+    [removeRelation],
   );
 
   // Handle new connection (create relation)
@@ -98,8 +140,13 @@ export function Canvas() {
         nodes={nodes}
         edges={edges}
         onNodesChange={onNodesChange}
+        onEdgesChange={onEdgesChange}
+        onEdgeClick={onEdgeClick}
+        onPaneClick={onPaneClick}
+        onEdgesDelete={onEdgesDelete}
         onConnect={onConnect}
         nodeTypes={nodeTypes}
+        edgeTypes={edgeTypes}
         fitView
         className="bg-gray-50"
       >

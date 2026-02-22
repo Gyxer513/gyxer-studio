@@ -66,6 +66,7 @@ interface ProjectStore {
   settings: ProjectSettings;
   modules: ModulesConfig;
   selectedEntityId: string | null;
+  selectedRelationId: string | null;
 
   // Entity actions
   addEntity: (position: { x: number; y: number }) => void;
@@ -82,6 +83,13 @@ interface ProjectStore {
   addRelation: (sourceId: string, targetId: string) => void;
   updateRelation: (id: string, data: Partial<RelationData>) => void;
   removeRelation: (id: string) => void;
+  selectRelation: (id: string | null) => void;
+
+  // Selection
+  clearSelection: () => void;
+
+  // Import
+  importProject: (json: any) => void;
 
   // Settings & modules
   updateSettings: (data: Partial<ProjectSettings>) => void;
@@ -95,6 +103,7 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
   entities: [],
   relations: [],
   selectedEntityId: null,
+  selectedRelationId: null,
   settings: {
     name: 'my-app',
     description: '',
@@ -144,7 +153,7 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
     }));
   },
 
-  selectEntity: (id) => set({ selectedEntityId: id }),
+  selectEntity: (id) => set({ selectedEntityId: id, selectedRelationId: null }),
 
   // ── Fields ──────────────────────────────────────
 
@@ -217,7 +226,114 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
   removeRelation: (id) => {
     set((state) => ({
       relations: state.relations.filter((r) => r.id !== id),
+      selectedRelationId: state.selectedRelationId === id ? null : state.selectedRelationId,
     }));
+  },
+
+  selectRelation: (id) => set({ selectedRelationId: id, selectedEntityId: null }),
+
+  clearSelection: () => set({ selectedEntityId: null, selectedRelationId: null }),
+
+  importProject: (json: any) => {
+    try {
+      const ts = Date.now();
+
+      // Build entities with IDs and positions
+      const entities: EntityData[] = (json.entities || []).map((e: any, i: number) => ({
+        id: e.id || `entity-${ts}-${i}`,
+        name: e.name || `Entity${i + 1}`,
+        fields: (e.fields || []).map((f: any) => ({
+          name: f.name || 'field',
+          type: f.type || 'string',
+          required: f.required ?? true,
+          unique: f.unique ?? false,
+          index: f.index ?? false,
+          default: f.default,
+          enumValues: f.enumValues,
+        })),
+        position: e.position || { x: 100 + (i % 3) * 350, y: 100 + Math.floor(i / 3) * 300 },
+      }));
+
+      // Build a name → id lookup for resolving relations
+      const nameToId: Record<string, string> = {};
+      entities.forEach((e) => { nameToId[e.name] = e.id; });
+
+      // Extract relations — they can be top-level OR embedded in entities
+      const relations: RelationData[] = [];
+      let relCounter = 0;
+
+      if (json.relations && Array.isArray(json.relations)) {
+        // Top-level relations array (store format)
+        for (const r of json.relations) {
+          relCounter++;
+          relations.push({
+            id: r.id || `relation-${ts}-${relCounter}`,
+            name: r.name || '',
+            type: r.type || 'one-to-many',
+            sourceEntityId: r.sourceEntityId || '',
+            targetEntityId: r.targetEntityId || '',
+            foreignKey: r.foreignKey,
+            onDelete: r.onDelete || 'CASCADE',
+          });
+        }
+      } else {
+        // Relations embedded in entities (exported schema format)
+        for (const entity of entities) {
+          const jsonEntity = (json.entities || []).find((e: any) => e.name === entity.name);
+          if (!jsonEntity?.relations) continue;
+          for (const r of jsonEntity.relations) {
+            relCounter++;
+            const targetId = nameToId[r.target] || '';
+            if (!targetId) continue;
+            relations.push({
+              id: `relation-${ts}-${relCounter}`,
+              name: r.name || `${r.target?.toLowerCase() || 'rel'}s`,
+              type: r.type || 'one-to-many',
+              sourceEntityId: entity.id,
+              targetEntityId: targetId,
+              foreignKey: r.foreignKey,
+              onDelete: r.onDelete || 'CASCADE',
+            });
+          }
+        }
+      }
+
+      const settings: ProjectSettings = {
+        name: json.settings?.name || json.name || 'my-app',
+        description: json.settings?.description || json.description || '',
+        port: json.settings?.port || 3000,
+        database: json.settings?.database || 'postgresql',
+        enableSwagger: json.settings?.enableSwagger ?? true,
+        enableCors: json.settings?.enableCors ?? true,
+        enableHelmet: json.settings?.enableHelmet ?? true,
+        enableRateLimit: json.settings?.enableRateLimit ?? true,
+        docker: json.settings?.docker ?? true,
+      };
+
+      // Handle modules — can be array (schema format) or object (store format)
+      let authJwt = false;
+      if (Array.isArray(json.modules)) {
+        authJwt = json.modules.some((m: any) => m.name === 'auth-jwt' && m.enabled);
+      } else if (json.modules && typeof json.modules === 'object') {
+        authJwt = json.modules.authJwt ?? false;
+      }
+      const modules: ModulesConfig = { authJwt };
+
+      // Update counters to avoid ID conflicts
+      entityCounter = entities.length;
+      relationCounter = relCounter;
+
+      set({
+        entities,
+        relations,
+        settings,
+        modules,
+        selectedEntityId: null,
+        selectedRelationId: null,
+      });
+    } catch (err) {
+      console.error('Failed to import project:', err);
+    }
   },
 
   // ── Settings ────────────────────────────────────

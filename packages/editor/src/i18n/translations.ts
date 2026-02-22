@@ -4,6 +4,7 @@ export interface Translations {
   // Toolbar
   'toolbar.addEntity': string;
   'toolbar.exportJson': string;
+  'toolbar.importJson': string;
   'toolbar.generate': string;
   'toolbar.language': string;
 
@@ -20,9 +21,19 @@ export interface Translations {
   'sidebar.fieldPlaceholder': string;
   'sidebar.addField': string;
   'sidebar.selectEntity': string;
+  'sidebar.selectElement': string;
   'sidebar.required': string;
   'sidebar.unique': string;
   'sidebar.index': string;
+  'sidebar.defaultValue': string;
+  'sidebar.enumValues': string;
+
+  // Sidebar — Relation
+  'sidebar.relation': string;
+  'sidebar.relationType': string;
+  'sidebar.relationOnDelete': string;
+  'sidebar.relationForeignKey': string;
+  'sidebar.deleteRelation': string;
 
   // Sidebar — Modules
   'sidebar.modules': string;
@@ -45,12 +56,24 @@ export interface Translations {
   'type.enum': string;
   'type.json': string;
   'type.uuid': string;
+
+  // Relation types
+  'relation.oneToOne': string;
+  'relation.oneToMany': string;
+  'relation.manyToMany': string;
+
+  // onDelete actions
+  'onDelete.CASCADE': string;
+  'onDelete.SET_NULL': string;
+  'onDelete.RESTRICT': string;
+  'onDelete.NO_ACTION': string;
 }
 
 export const translations: Record<Locale, Translations> = {
   en: {
     'toolbar.addEntity': '+ Entity',
     'toolbar.exportJson': 'Export JSON',
+    'toolbar.importJson': 'Import JSON',
     'toolbar.generate': '🚀 Generate',
     'toolbar.language': 'Language',
 
@@ -65,9 +88,18 @@ export const translations: Record<Locale, Translations> = {
     'sidebar.fieldPlaceholder': 'field name',
     'sidebar.addField': '+ Add Field',
     'sidebar.selectEntity': 'Select an entity to edit',
+    'sidebar.selectElement': 'Select an element to edit',
     'sidebar.required': 'req',
     'sidebar.unique': 'unique',
     'sidebar.index': 'index',
+    'sidebar.defaultValue': 'Default',
+    'sidebar.enumValues': 'Enum values (comma-separated)',
+
+    'sidebar.relation': 'Relation',
+    'sidebar.relationType': 'Type',
+    'sidebar.relationOnDelete': 'On Delete',
+    'sidebar.relationForeignKey': 'Foreign Key',
+    'sidebar.deleteRelation': 'Delete Relation',
 
     'sidebar.modules': 'Modules',
     'sidebar.authJwt': 'JWT Auth',
@@ -86,11 +118,21 @@ export const translations: Record<Locale, Translations> = {
     'type.enum': 'enum',
     'type.json': 'json',
     'type.uuid': 'uuid',
+
+    'relation.oneToOne': '1 : 1',
+    'relation.oneToMany': '1 : N',
+    'relation.manyToMany': 'N : M',
+
+    'onDelete.CASCADE': 'CASCADE',
+    'onDelete.SET_NULL': 'SET NULL',
+    'onDelete.RESTRICT': 'RESTRICT',
+    'onDelete.NO_ACTION': 'NO ACTION',
   },
 
   ru: {
     'toolbar.addEntity': '+ Сущность',
     'toolbar.exportJson': 'Экспорт JSON',
+    'toolbar.importJson': 'Импорт JSON',
     'toolbar.generate': '🚀 Сгенерировать',
     'toolbar.language': 'Язык',
 
@@ -105,9 +147,18 @@ export const translations: Record<Locale, Translations> = {
     'sidebar.fieldPlaceholder': 'имя поля',
     'sidebar.addField': '+ Добавить поле',
     'sidebar.selectEntity': 'Выберите сущность для редактирования',
+    'sidebar.selectElement': 'Выберите элемент для редактирования',
     'sidebar.required': 'обяз',
     'sidebar.unique': 'уник',
     'sidebar.index': 'индекс',
+    'sidebar.defaultValue': 'По умолчанию',
+    'sidebar.enumValues': 'Значения enum (через запятую)',
+
+    'sidebar.relation': 'Связь',
+    'sidebar.relationType': 'Тип',
+    'sidebar.relationOnDelete': 'При удалении',
+    'sidebar.relationForeignKey': 'Внешний ключ',
+    'sidebar.deleteRelation': 'Удалить связь',
 
     'sidebar.modules': 'Модули',
     'sidebar.authJwt': 'JWT Авторизация',
@@ -126,5 +177,14 @@ export const translations: Record<Locale, Translations> = {
     'type.enum': 'перечисл.',
     'type.json': 'json',
     'type.uuid': 'uuid',
+
+    'relation.oneToOne': '1 : 1',
+    'relation.oneToMany': '1 : N',
+    'relation.manyToMany': 'N : M',
+
+    'onDelete.CASCADE': 'CASCADE',
+    'onDelete.SET_NULL': 'SET NULL',
+    'onDelete.RESTRICT': 'RESTRICT',
+    'onDelete.NO_ACTION': 'NO ACTION',
   },
 };

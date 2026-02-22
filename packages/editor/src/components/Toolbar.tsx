@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import { useProjectStore } from '../store/project-store';
 import { exportToSchema } from '../utils/export';
 import {
@@ -13,8 +13,9 @@ import type { GyxerProject } from '@gyxer/schema';
 import { GyxerLogoFull } from './GyxerLogo';
 
 export function Toolbar() {
-  const { addEntity, entities } = useProjectStore();
+  const { addEntity, entities, importProject } = useProjectStore();
   const { t, locale } = useTranslation();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const setLocale = useI18nStore((s) => s.setLocale);
   const [generating, setGenerating] = useState(false);
   const [showGenMenu, setShowGenMenu] = useState(false);
@@ -95,6 +96,30 @@ export function Toolbar() {
     }
   }, [validateSchema, locale]);
 
+  const handleImportJson = useCallback(() => {
+    fileInputRef.current?.click();
+  }, []);
+
+  const handleFileSelected = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        try {
+          const json = JSON.parse(event.target?.result as string);
+          importProject(json);
+        } catch {
+          alert(locale === 'ru' ? 'Ошибка: невалидный JSON файл' : 'Error: invalid JSON file');
+        }
+      };
+      reader.readAsText(file);
+      // Reset input so the same file can be re-imported
+      e.target.value = '';
+    },
+    [importProject, locale],
+  );
+
   const handleLocaleChange = useCallback(
     (e: React.ChangeEvent<HTMLSelectElement>) => setLocale(e.target.value as Locale),
     [setLocale],
@@ -143,6 +168,21 @@ export function Toolbar() {
 
       {/* Separator */}
       <div className="w-px h-7 bg-gray-200" />
+
+      {/* Import JSON (hidden input + button) */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".json"
+        onChange={handleFileSelected}
+        className="hidden"
+      />
+      <button
+        onClick={handleImportJson}
+        className="px-3 py-1.5 border border-gray-200 text-dark-500 rounded-lg text-sm font-medium hover:bg-dark-50 hover:border-dark-200 transition-all active:scale-95"
+      >
+        {t('toolbar.importJson')}
+      </button>
 
       {/* Export JSON */}
       <button
