@@ -7,7 +7,7 @@
     "packages/*"
   ],
   "scripts": {
-    "build": "npm run build --workspaces --if-present",
+    "build": "npm run build -w packages/schema && npm run build -w packages/generator && npm run build -w packages/cli && npm run build -w packages/editor",
     "dev": "npm run dev -w packages/editor",
     "test": "vitest run",
     "test:watch": "vitest",
