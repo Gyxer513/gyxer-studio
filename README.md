@@ -94,24 +94,24 @@ For each entity you create, Gyxer generates:
 
 ## Roadmap
 
-- [x] Monorepo setup (npm workspaces, 4 packages)
-- [x] JSON schema contract (@gyxer/schema + Zod)
-- [x] Code generator (Prisma, NestJS CRUD, Docker, Security Report)
-- [x] Visual editor (React Flow, entities, fields, relations)
-- [x] Generate to folder / ZIP from browser
-- [x] i18n (EN/RU)
-- [x] Auth JWT module
-- [x] 59 tests passing
-- [x] UI polish (Gyxer branding, Inter font, dark entity cards)
-- [x] Relation editing UI (custom edge, type/onDelete/FK editing, delete)
-- [x] Import / Export JSON schemas
-- [x] Field default values & enum editor
-- [x] Built-in HTTP client (Postman-like)
-- [ ] Additional modules (cache, queues, file-storage, websockets, search)
-- [x] CLI wizard (`npx gyxer new` interactive, chalk + ora output)
-- [x] Dark theme
-- [ ] Documentation site
-- [ ] Public release
+- ✅ Monorepo setup (npm workspaces, 4 packages)
+- ✅ JSON schema contract (@gyxer/schema + Zod)
+- ✅ Code generator (Prisma, NestJS CRUD, Docker, Security Report)
+- ✅ Visual editor (React Flow, entities, fields, relations)
+- ✅ Generate to folder / ZIP from browser
+- ✅ i18n (EN/RU)
+- ✅ Auth JWT module
+- ✅ 59 tests passing
+- ✅ UI polish (Gyxer branding, Inter font, dark entity cards)
+- ✅ Relation editing UI (custom edge, type/onDelete/FK editing, delete)
+- ✅ Import / Export JSON schemas
+- ✅ Field default values & enum editor
+- ✅ Built-in HTTP client (Postman-like)
+- ✅ CLI wizard (`npx gyxer new` interactive, chalk + ora output)
+- ✅ Dark theme
+- 🔲 Additional modules (cache, queues, file-storage, websockets, search)
+- 🔲 Documentation site
+- 🔲 Public release
 
 ## Philosophy
 
