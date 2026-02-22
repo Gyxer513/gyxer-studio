@@ -1,6 +1,7 @@
 import React from 'react';
 import { useProjectStore, type FieldType, type RelationType } from '../store/project-store';
 import { useTranslation } from '../i18n';
+import { inputCls, labelCls, sectionCls, cardCls, checkboxCls, smallInputCls } from './shared-styles';
 
 const FIELD_TYPES: FieldType[] = [
   'string', 'text', 'int', 'float', 'boolean', 'datetime', 'enum', 'json', 'uuid',
@@ -8,14 +9,6 @@ const FIELD_TYPES: FieldType[] = [
 
 const RELATION_TYPES: RelationType[] = ['one-to-one', 'one-to-many', 'many-to-many'];
 const ON_DELETE_OPTIONS = ['CASCADE', 'SET_NULL', 'RESTRICT', 'NO_ACTION'] as const;
-
-// Common dark-mode-aware class strings
-const inputCls = 'w-full px-3 py-1.5 border border-gray-200 dark:border-dark-600 rounded-lg text-sm bg-dark-50/50 dark:bg-dark-700 dark:text-dark-100';
-const labelCls = 'text-xs text-dark-400 dark:text-dark-300 font-medium mb-1 block';
-const sectionCls = 'text-xs font-semibold text-dark-300 dark:text-dark-400 uppercase tracking-wider mb-3';
-const cardCls = 'p-2.5 bg-dark-50/70 dark:bg-dark-700/70 rounded-lg border border-gray-100 dark:border-dark-600 hover:border-gray-200 dark:hover:border-dark-500 transition-colors';
-const checkboxCls = 'rounded border-gray-300 dark:border-dark-500 text-gyxer-500 focus:ring-gyxer-500';
-const smallInputCls = 'w-full px-2 py-0.5 border border-gray-200 dark:border-dark-600 rounded-md text-[11px] font-mono bg-white dark:bg-dark-700 text-dark-500 dark:text-dark-200';
 
 export function Sidebar() {
   const {
@@ -39,7 +32,7 @@ export function Sidebar() {
     : null;
 
   return (
-    <div className="w-80 bg-white dark:bg-dark-800 border-l border-gray-200/80 dark:border-dark-700 h-full overflow-y-auto flex flex-col transition-colors">
+    <div className="h-full overflow-y-auto flex flex-col">
       {/* ─── Project Settings ─── */}
       <div className="p-4 border-b border-gray-100 dark:border-dark-700">
         <h2 className={sectionCls}>{t('sidebar.project')}</h2>

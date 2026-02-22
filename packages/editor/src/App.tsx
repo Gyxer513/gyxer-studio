@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { ReactFlowProvider } from '@xyflow/react';
 import { Canvas } from './components/Canvas';
-import { Sidebar } from './components/Sidebar';
+import { RightPanel } from './components/RightPanel';
 import { Toolbar } from './components/Toolbar';
 import { useThemeStore } from './store/theme-store';
 
@@ -19,7 +19,7 @@ export default function App() {
         <Toolbar />
         <div className="flex flex-1 overflow-hidden">
           <Canvas />
-          <Sidebar />
+          <RightPanel />
         </div>
       </div>
     </ReactFlowProvider>

@@ -67,6 +67,39 @@ export interface Translations {
   'onDelete.SET_NULL': string;
   'onDelete.RESTRICT': string;
   'onDelete.NO_ACTION': string;
+
+  // Right Panel tabs
+  'panel.schemaTab': string;
+  'panel.httpTab': string;
+
+  // HTTP Client
+  'http.baseUrl': string;
+  'http.send': string;
+  'http.sending': string;
+  'http.headers': string;
+  'http.addHeader': string;
+  'http.body': string;
+  'http.response': string;
+  'http.noResponse': string;
+  'http.status': string;
+  'http.time': string;
+  'http.endpoint': string;
+  'http.selectEndpoint': string;
+  'http.noEntities': string;
+  'http.history': string;
+  'http.clearHistory': string;
+  'http.noHistory': string;
+  'http.corsError': string;
+  'http.networkError': string;
+  'http.create': string;
+  'http.findAll': string;
+  'http.findOne': string;
+  'http.update': string;
+  'http.remove': string;
+  'http.register': string;
+  'http.login': string;
+  'http.refresh': string;
+  'http.profile': string;
 }
 
 export const translations: Record<Locale, Translations> = {
@@ -127,6 +160,37 @@ export const translations: Record<Locale, Translations> = {
     'onDelete.SET_NULL': 'SET NULL',
     'onDelete.RESTRICT': 'RESTRICT',
     'onDelete.NO_ACTION': 'NO ACTION',
+
+    'panel.schemaTab': 'Schema',
+    'panel.httpTab': 'HTTP',
+
+    'http.baseUrl': 'Base URL',
+    'http.send': 'Send',
+    'http.sending': 'Sending...',
+    'http.headers': 'Headers',
+    'http.addHeader': '+ Add Header',
+    'http.body': 'Body',
+    'http.response': 'Response',
+    'http.noResponse': 'Send a request to see the response',
+    'http.status': 'Status',
+    'http.time': 'Time',
+    'http.endpoint': 'Endpoint',
+    'http.selectEndpoint': 'Select an endpoint...',
+    'http.noEntities': 'Add entities to see endpoints',
+    'http.history': 'History',
+    'http.clearHistory': 'Clear',
+    'http.noHistory': 'No requests yet',
+    'http.corsError': 'CORS error — ensure the server has CORS enabled',
+    'http.networkError': 'Network error — is the server running?',
+    'http.create': 'create',
+    'http.findAll': 'list all',
+    'http.findOne': 'get by id',
+    'http.update': 'update',
+    'http.remove': 'delete',
+    'http.register': 'register',
+    'http.login': 'login',
+    'http.refresh': 'refresh token',
+    'http.profile': 'get profile',
   },
 
   ru: {
@@ -186,5 +250,36 @@ export const translations: Record<Locale, Translations> = {
     'onDelete.SET_NULL': 'SET NULL',
     'onDelete.RESTRICT': 'RESTRICT',
     'onDelete.NO_ACTION': 'NO ACTION',
+
+    'panel.schemaTab': 'Схема',
+    'panel.httpTab': 'HTTP',
+
+    'http.baseUrl': 'Базовый URL',
+    'http.send': 'Отправить',
+    'http.sending': 'Отправка...',
+    'http.headers': 'Заголовки',
+    'http.addHeader': '+ Добавить заголовок',
+    'http.body': 'Тело запроса',
+    'http.response': 'Ответ',
+    'http.noResponse': 'Отправьте запрос, чтобы увидеть ответ',
+    'http.status': 'Статус',
+    'http.time': 'Время',
+    'http.endpoint': 'Эндпоинт',
+    'http.selectEndpoint': 'Выберите эндпоинт...',
+    'http.noEntities': 'Добавьте сущности для отображения эндпоинтов',
+    'http.history': 'История',
+    'http.clearHistory': 'Очистить',
+    'http.noHistory': 'Запросов пока нет',
+    'http.corsError': 'Ошибка CORS — убедитесь, что на сервере включен CORS',
+    'http.networkError': 'Ошибка сети — сервер запущен?',
+    'http.create': 'создать',
+    'http.findAll': 'получить все',
+    'http.findOne': 'получить по id',
+    'http.update': 'обновить',
+    'http.remove': 'удалить',
+    'http.register': 'регистрация',
+    'http.login': 'вход',
+    'http.refresh': 'обновить токен',
+    'http.profile': 'профиль',
   },
 };
