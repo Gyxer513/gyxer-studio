@@ -87,8 +87,8 @@ export default defineConfig({
   plugins: [react(), gyxerConfigApi()],
   resolve: {
     alias: {
-      '@gyxer/schema': path.resolve(__dirname, '../schema/src'),
-      '@gyxer/generator': path.resolve(__dirname, '../generator/src'),
+      '@gyxer-studio/schema': path.resolve(__dirname, '../schema/src'),
+      '@gyxer-studio/generator': path.resolve(__dirname, '../generator/src'),
     },
   },
   server: {

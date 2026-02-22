@@ -1,5 +1,5 @@
 {
-  "name": "@gyxer/schema",
+  "name": "@gyxer-studio/schema",
   "version": "0.1.0",
   "description": "Gyxer project schema types and validation",
   "main": "./dist/index.js",

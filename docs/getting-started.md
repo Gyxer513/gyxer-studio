@@ -55,20 +55,20 @@ npm test -w packages/generator
 ```
 gyxer-studio/
   packages/
-    schema/       # @gyxer/schema  — Zod validation + TypeScript types
-    generator/    # @gyxer/generator — NestJS code generation engine
-    editor/       # @gyxer/editor   — React Flow visual editor
-    cli/          # @gyxer/cli      — CLI wizard (inquirer + chalk + ora)
+    schema/       # @gyxer-studio/schema  — Zod validation + TypeScript types
+    generator/    # @gyxer-studio/generator — NestJS code generation engine
+    editor/       # @gyxer-studio/editor   — React Flow visual editor
+    cli/          # @gyxer-studio/cli      — CLI wizard (inquirer + chalk + ora)
   examples/       # Example project schemas
   docs/           # This documentation (VitePress)
 ```
 
 | Package | Description |
 |---------|------------|
-| `@gyxer/schema` | Project schema types + Zod validation |
-| `@gyxer/generator` | NestJS + Prisma code generator |
-| `@gyxer/editor` | Visual drag-and-drop editor |
-| `@gyxer/cli` | Command-line interface |
+| `@gyxer-studio/schema` | Project schema types + Zod validation |
+| `@gyxer-studio/generator` | NestJS + Prisma code generator |
+| `@gyxer-studio/editor` | Visual drag-and-drop editor |
+| `@gyxer-studio/cli` | Command-line interface |
 
 ## Next Steps
 

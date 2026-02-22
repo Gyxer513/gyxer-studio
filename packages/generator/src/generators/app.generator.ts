@@ -1,4 +1,4 @@
-import type { GyxerProject } from '@gyxer/schema';
+import type { GyxerProject } from '@gyxer-studio/schema';
 import { toKebabCase } from '../utils.js';
 
 /**

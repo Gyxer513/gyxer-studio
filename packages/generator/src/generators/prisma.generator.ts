@@ -1,4 +1,4 @@
-import type { GyxerProject, Entity, Field, Relation } from '@gyxer/schema';
+import type { GyxerProject, Entity, Field, Relation } from '@gyxer-studio/schema';
 import { toSnakeCase } from '../utils.js';
 
 /**

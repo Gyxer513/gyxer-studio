@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-// ─── Types (local, matching @gyxer/schema) ─────────
+// ─── Types (local, matching @gyxer-studio/schema) ─────────
 
 export type FieldType =
   | 'string'

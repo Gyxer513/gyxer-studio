@@ -1,6 +1,6 @@
 import type { EntityData, FieldData, ModulesConfig } from '../store/project-store';
 import type { HttpMethod } from '../store/http-store';
-import { toKebabCase, pluralize } from '@gyxer/generator/utils';
+import { toKebabCase, pluralize } from '@gyxer-studio/generator/utils';
 
 export interface EndpointSuggestion {
   label: string;

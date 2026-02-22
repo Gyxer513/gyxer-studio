@@ -1,6 +1,6 @@
 import * as fs from 'fs-extra';
 import * as path from 'path';
-import type { GyxerProject } from '@gyxer/schema';
+import type { GyxerProject } from '@gyxer-studio/schema';
 import { toKebabCase } from './utils.js';
 import { generatePrismaSchema } from './generators/prisma.generator.js';
 import { generateCreateDto, generateUpdateDto } from './generators/dto.generator.js';

@@ -3,7 +3,7 @@ import * as fs from 'fs-extra';
 import * as path from 'path';
 import * as os from 'os';
 import { generateProject } from './project-generator.js';
-import type { GyxerProject } from '@gyxer/schema';
+import type { GyxerProject } from '@gyxer-studio/schema';
 
 let tmpDir: string;
 

@@ -1,5 +1,5 @@
 {
-  "name": "@gyxer/cli",
+  "name": "@gyxer-studio/cli",
   "version": "0.1.0",
   "type": "module",
   "description": "Gyxer CLI — generate production-ready NestJS projects from the command line",
@@ -38,8 +38,8 @@
     "node": ">=20.0.0"
   },
   "dependencies": {
-    "@gyxer/schema": "0.1.0",
-    "@gyxer/generator": "0.1.0",
+    "@gyxer-studio/schema": "0.1.0",
+    "@gyxer-studio/generator": "0.1.0",
     "commander": "^13.0.0",
     "chalk": "^5.4.0",
     "ora": "^8.1.0",

@@ -14,9 +14,9 @@
     "noEmit": true,
     "baseUrl": ".",
     "paths": {
-      "@gyxer/schema": ["../schema/src"],
-      "@gyxer/schema/*": ["../schema/src/*"],
-      "@gyxer/generator/*": ["../generator/src/*"]
+      "@gyxer-studio/schema": ["../schema/src"],
+      "@gyxer-studio/schema/*": ["../schema/src/*"],
+      "@gyxer-studio/generator/*": ["../generator/src/*"]
     }
   },
   "include": ["src"]

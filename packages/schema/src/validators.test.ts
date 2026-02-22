@@ -8,7 +8,7 @@ const blogJsonPath = path.resolve(__dirname, '../../../examples/blog.json');
 const blogJson = fs.readFileSync(blogJsonPath, 'utf-8');
 const blogData = JSON.parse(blogJson);
 
-describe('@gyxer/schema validators', () => {
+describe('@gyxer-studio/schema validators', () => {
   describe('validateProject', () => {
     it('should validate a correct project', () => {
       const result = validateProject(blogData);

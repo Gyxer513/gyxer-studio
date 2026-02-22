@@ -1,4 +1,4 @@
-import type { Entity, Field, GyxerProject } from '@gyxer/schema';
+import type { Entity, Field, GyxerProject } from '@gyxer-studio/schema';
 import { toCamelCase } from '../utils.js';
 
 /** FK field descriptor for DTO generation. */

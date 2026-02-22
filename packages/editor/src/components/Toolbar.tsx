@@ -1,10 +1,10 @@
 import React, { useCallback, useRef, useState } from 'react';
 import { useProjectStore } from '../store/project-store';
 import { exportToSchema } from '../utils/export';
-import { validateProject } from '@gyxer/schema';
+import { validateProject } from '@gyxer-studio/schema';
 import { useTranslation } from '../i18n';
 import { useI18nStore, type Locale } from '../i18n';
-import type { GyxerProject } from '@gyxer/schema';
+import type { GyxerProject } from '@gyxer-studio/schema';
 import { GyxerLogoFull } from './GyxerLogo';
 import { useThemeStore } from '../store/theme-store';
 

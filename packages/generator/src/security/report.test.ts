@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { generateSecurityReport } from './report.js';
-import type { GyxerProject } from '@gyxer/schema';
+import type { GyxerProject } from '@gyxer-studio/schema';
 
 const fullSecurityProject: GyxerProject = {
   name: 'secure-app',

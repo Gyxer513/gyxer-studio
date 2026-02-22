@@ -1,4 +1,4 @@
-import type { GyxerProject } from '@gyxer/schema';
+import type { GyxerProject } from '@gyxer-studio/schema';
 
 export interface SecurityCheck {
   name: string;

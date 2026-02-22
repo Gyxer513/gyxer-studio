@@ -3,8 +3,8 @@ import * as path from 'path';
 import chalk from 'chalk';
 import ora from 'ora';
 import inquirer from 'inquirer';
-import { parseProjectJson } from '@gyxer/schema';
-import { generateProject } from '@gyxer/generator';
+import { parseProjectJson } from '@gyxer-studio/schema';
+import { generateProject } from '@gyxer-studio/generator';
 
 interface GenerateOptions {
   output?: string;

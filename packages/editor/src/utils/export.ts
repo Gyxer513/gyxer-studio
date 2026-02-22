@@ -1,7 +1,7 @@
 import { useProjectStore } from '../store/project-store';
 
 /**
- * Export the current editor state to a @gyxer/schema-compatible JSON object.
+ * Export the current editor state to a @gyxer-studio/schema-compatible JSON object.
  */
 export function exportToSchema(): Record<string, unknown> {
   const { entities, relations, settings, modules } = useProjectStore.getState();

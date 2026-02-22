@@ -1,5 +1,5 @@
 {
-  "name": "@gyxer/editor",
+  "name": "@gyxer-studio/editor",
   "version": "0.1.0",
   "private": true,
   "description": "Visual model editor for Gyxer Studio",
@@ -10,7 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@gyxer/schema": "*",
+    "@gyxer-studio/schema": "*",
     "@xyflow/react": "^12.0.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",

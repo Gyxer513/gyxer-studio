@@ -3,8 +3,8 @@ import * as path from 'path';
 import inquirer from 'inquirer';
 import chalk from 'chalk';
 import ora from 'ora';
-import { generateProject } from '@gyxer/generator';
-import type { GyxerProject, ModuleConfig } from '@gyxer/schema';
+import { generateProject } from '@gyxer-studio/generator';
+import type { GyxerProject, ModuleConfig } from '@gyxer-studio/schema';
 
 /** Build a database URL based on database type and project name. */
 function buildDatabaseUrl(db: string, projectName: string): string {

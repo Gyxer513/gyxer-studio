@@ -64,7 +64,7 @@ See [Relations](/guide/relations) for details.
 
 ### Export JSON
 
-Click **Export JSON** in the toolbar to download the current project as a `.json` file compatible with `@gyxer/schema`.
+Click **Export JSON** in the toolbar to download the current project as a `.json` file compatible with `@gyxer-studio/schema`.
 
 ### Import JSON
 

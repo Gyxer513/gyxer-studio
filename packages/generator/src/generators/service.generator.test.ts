@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { generateService } from './service.generator.js';
-import type { GyxerProject, Entity } from '@gyxer/schema';
+import type { GyxerProject, Entity } from '@gyxer-studio/schema';
 
 const baseProject: GyxerProject = {
   name: 'test-app',

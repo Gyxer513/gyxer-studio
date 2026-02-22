@@ -1,4 +1,4 @@
-import type { Entity, GyxerProject } from '@gyxer/schema';
+import type { Entity, GyxerProject } from '@gyxer-studio/schema';
 import { toCamelCase, toKebabCase } from '../utils.js';
 
 /**

@@ -2,10 +2,10 @@
   "$schema": "https://unpkg.com/@changesets/config@3.1.2/schema.json",
   "changelog": "@changesets/cli/changelog",
   "commit": false,
-  "fixed": [["@gyxer/schema", "@gyxer/generator", "@gyxer/cli"]],
+  "fixed": [["@gyxer-studio/schema", "@gyxer-studio/generator", "@gyxer-studio/cli"]],
   "linked": [],
   "access": "public",
   "baseBranch": "master",
   "updateInternalDependencies": "patch",
-  "ignore": ["@gyxer/editor"]
+  "ignore": ["@gyxer-studio/editor"]
 }

@@ -110,10 +110,10 @@ npx gyxer generate examples/shop.json -o ./shop-api
 ```
 gyxer-studio/
   packages/
-    schema/       # @gyxer/schema    — Zod types + validation
-    generator/    # @gyxer/generator  — NestJS code generation engine
-    editor/       # @gyxer/editor     — React Flow visual editor
-    cli/          # @gyxer/cli        — CLI wizard + generate command
+    schema/       # @gyxer-studio/schema    — Zod types + validation
+    generator/    # @gyxer-studio/generator  — NestJS code generation engine
+    editor/       # @gyxer-studio/editor     — React Flow visual editor
+    cli/          # @gyxer-studio/cli        — CLI wizard + generate command
   examples/       # Example schemas (blog, blog-with-auth, shop)
   .changeset/     # Changesets config (unified versioning)
   .github/        # CI/CD workflows
