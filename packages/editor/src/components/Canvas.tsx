@@ -12,6 +12,7 @@ import {
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { useProjectStore } from '../store/project-store';
+import { useThemeStore } from '../store/theme-store';
 import { EntityNode } from './EntityNode';
 import { RelationEdge } from './RelationEdge';
 
@@ -25,6 +26,8 @@ export function Canvas() {
     selectRelation, clearSelection, removeRelation,
     selectedRelationId,
   } = useProjectStore();
+  const theme = useThemeStore((s) => s.theme);
+  const isDark = theme === 'dark';
 
   // Convert store entities → React Flow nodes (single source of truth)
   const nodes: Node[] = useMemo(
@@ -148,9 +151,9 @@ export function Canvas() {
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
         fitView
-        className="bg-gray-50"
+        className="bg-gray-50 dark:bg-dark-900"
       >
-        <Background variant={BackgroundVariant.Dots} gap={24} size={1} color="#d4d4d4" />
+        <Background variant={BackgroundVariant.Dots} gap={24} size={1} color={isDark ? '#2a2a2a' : '#d4d4d4'} />
         <Controls />
       </ReactFlow>
     </div>

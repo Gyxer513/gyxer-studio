@@ -21,6 +21,7 @@ Gyxer Studio is a visual tool for building production-ready backends. You design
 - **Field Defaults & Enums** — set default values and enum options per field
 - **Security Report** — Helmet, Rate Limiting, CORS, secrets check on every generation
 - **Docker Compose** — generated and ready to `docker compose up`
+- **Dark Theme** — toggle between light and dark mode with localStorage persistence
 - **i18n** — English and Russian interface
 - **CLI** — `npx gyxer new`, `generate`, `studio`
 
@@ -107,7 +108,7 @@ For each entity you create, Gyxer generates:
 - [ ] Built-in HTTP client (Postman-like)
 - [ ] Additional modules (cache, queues, file-storage, websockets, search)
 - [ ] CLI wizard (`npx gyxer new`)
-- [ ] Dark theme
+- [x] Dark theme
 - [ ] Documentation site
 - [ ] Public release
 

@@ -15,6 +15,11 @@ body {
   background: #f8f9fa;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.2s ease;
+}
+
+.dark body {
+  background: #0f0f0f;
 }
 
 /* React Flow overrides */
@@ -49,6 +54,33 @@ body {
   border-bottom: 1px solid #f3f4f6 !important;
 }
 
+/* Dark mode — React Flow controls */
+.dark .react-flow__controls {
+  background: #1f1f1f !important;
+  border-color: #3a3a3a !important;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3) !important;
+}
+
+.dark .react-flow__controls-button {
+  background: #1f1f1f !important;
+  border-bottom-color: #2a2a2a !important;
+  fill: #a3a3a3 !important;
+}
+
+.dark .react-flow__controls-button:hover {
+  background: #2a2a2a !important;
+  fill: #e8e8e8 !important;
+}
+
+/* Dark mode — React Flow attribution */
+.dark .react-flow__attribution {
+  background: rgba(20, 20, 20, 0.7) !important;
+}
+
+.dark .react-flow__attribution a {
+  color: #737373 !important;
+}
+
 /* Custom scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
@@ -67,6 +99,15 @@ body {
   background: #9ca3af;
 }
 
+/* Dark mode — scrollbar */
+.dark ::-webkit-scrollbar-thumb {
+  background: #3a3a3a;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #525252;
+}
+
 /* Smooth transitions for inputs */
 input, select {
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
@@ -76,4 +117,14 @@ input:focus, select:focus {
   outline: none;
   border-color: #C8232C;
   box-shadow: 0 0 0 3px rgba(200, 35, 44, 0.1);
+}
+
+/* Dark mode — input text colors */
+.dark input,
+.dark select {
+  color: #e8e8e8;
+}
+
+.dark input::placeholder {
+  color: #525252;
 }

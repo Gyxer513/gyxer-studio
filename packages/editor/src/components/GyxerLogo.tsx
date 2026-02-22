@@ -1,4 +1,5 @@
 import React from 'react';
+import { useThemeStore } from '../store/theme-store';
 
 interface GyxerLogoProps {
   size?: number;
@@ -7,8 +8,15 @@ interface GyxerLogoProps {
 
 /**
  * Gyxer brand logo — three curved blades (red, dark, grey)
+ * Adapts fills for dark mode so blades remain visible.
  */
 export function GyxerLogo({ size = 28, className = '' }: GyxerLogoProps) {
+  const isDark = useThemeStore((s) => s.theme) === 'dark';
+
+  const darkBlade = isDark ? '#E5E5E5' : '#1A1A1A';
+  const greyBlade = isDark ? '#BBBBBB' : '#999999';
+  const centerInner = isDark ? '#1f1f1f' : '#ffffff';
+
   return (
     <svg
       width={size}
@@ -33,39 +41,39 @@ export function GyxerLogo({ size = 28, className = '' }: GyxerLogoProps) {
         opacity="0.9"
       />
 
-      {/* Dark blade — bottom right */}
+      {/* Dark blade — bottom right (inverted in dark mode) */}
       <path
         d="M50 50 C60 55, 75 70, 75 92 C68 75, 58 62, 50 50Z"
-        fill="#1A1A1A"
+        fill={darkBlade}
       />
       <path
         d="M50 50 C55 60, 55 80, 42 95 C50 78, 52 62, 50 50Z"
-        fill="#1A1A1A"
+        fill={darkBlade}
       />
       <path
         d="M50 50 C65 62, 75 82, 42 95 C70 85, 60 65, 50 50Z"
-        fill="#1A1A1A"
+        fill={darkBlade}
         opacity="0.9"
       />
 
-      {/* Grey blade — left */}
+      {/* Grey blade — left (lighter in dark mode) */}
       <path
         d="M50 50 C40 48, 22 42, 8 50 C22 44, 38 46, 50 50Z"
-        fill="#999999"
+        fill={greyBlade}
       />
       <path
         d="M50 50 C42 42, 28 25, 15 18 C25 32, 38 42, 50 50Z"
-        fill="#999999"
+        fill={greyBlade}
       />
       <path
         d="M50 50 C30 38, 12 25, 8 50 C10 30, 32 30, 50 50Z"
-        fill="#999999"
+        fill={greyBlade}
         opacity="0.9"
       />
 
       {/* Center circle */}
       <circle cx="50" cy="50" r="6" fill="#C8232C" />
-      <circle cx="50" cy="50" r="3" fill="white" />
+      <circle cx="50" cy="50" r="3" fill={centerInner} />
     </svg>
   );
 }
