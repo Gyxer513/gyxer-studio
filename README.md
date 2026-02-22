@@ -24,7 +24,7 @@ Gyxer Studio is a visual tool for building production-ready backends. You design
 - **Built-in HTTP Client** — Postman-like API tester with auto-generated endpoints from your entities
 - **Dark Theme** — toggle between light and dark mode with localStorage persistence
 - **i18n** — English and Russian interface
-- **CLI** — `npx gyxer new`, `generate`, `studio`
+- **CLI Wizard** — interactive `npx gyxer new` with inquirer, chalk & ora styling
 
 ## Tech Stack
 
@@ -108,7 +108,7 @@ For each entity you create, Gyxer generates:
 - [x] Field default values & enum editor
 - [x] Built-in HTTP client (Postman-like)
 - [ ] Additional modules (cache, queues, file-storage, websockets, search)
-- [ ] CLI wizard (`npx gyxer new`)
+- [x] CLI wizard (`npx gyxer new` interactive, chalk + ora output)
 - [x] Dark theme
 - [ ] Documentation site
 - [ ] Public release
