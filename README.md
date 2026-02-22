@@ -110,7 +110,7 @@ For each entity you create, Gyxer generates:
 - ✅ CLI wizard (`npx gyxer new` interactive, chalk + ora output)
 - ✅ Dark theme
 - 🔲 Additional modules (cache, queues, file-storage, websockets, search)
-- 🔲 Documentation site
+- ✅ Documentation site (VitePress)
 - 🔲 Public release
 
 ## Philosophy

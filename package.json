@@ -12,7 +12,10 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "lint": "eslint packages/*/src --ext .ts,.tsx",
-    "format": "prettier --write \"packages/*/src/**/*.{ts,tsx}\""
+    "format": "prettier --write \"packages/*/src/**/*.{ts,tsx}\"",
+    "docs:dev": "vitepress dev docs",
+    "docs:build": "vitepress build docs",
+    "docs:preview": "vitepress preview docs"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^8.0.0",
@@ -20,6 +23,7 @@
     "eslint": "^9.0.0",
     "prettier": "^3.4.0",
     "typescript": "^5.7.0",
+    "vitepress": "^1.6.4",
     "vitest": "^3.0.0"
   },
   "engines": {
