@@ -2,7 +2,17 @@
 
 CLI tool for generating production-ready NestJS projects from Gyxer schema configs.
 
-## Usage
+## Commands
+
+### Visual Editor
+
+```bash
+npx @gyxer-studio/cli editor
+```
+
+Opens the visual schema editor at `http://localhost:4200`. Design your data models, configure relations, then click **Generate** — the config saves to `./configs/`.
+
+Options: `--port <number>` (default: 4200)
 
 ### Generate from config
 
@@ -34,12 +44,26 @@ The wizard walks you through choosing:
 
 The `generate` command automatically searches for config files in:
 - `./configs/`
-- `./examples/`
 - Current directory
 
 ```bash
-# If my-app.json exists in ./configs/
-gyxer generate my-app
+gyxer generate
+# shows a list of found configs to choose from
+```
+
+## Full Workflow
+
+```bash
+# 1. Open editor — design your schema visually
+npx @gyxer-studio/cli editor
+
+# 2. Click Generate in the editor → saves to ./configs/my-app.json
+
+# 3. Generate the NestJS project
+npx @gyxer-studio/cli generate configs/my-app.json -o ./my-app
+
+# 4. Run
+cd my-app && npm install && npm run start:dev
 ```
 
 ## Global Installation

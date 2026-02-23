@@ -12,34 +12,31 @@ Gyxer Studio is a visual tool for building production-ready backends. You design
 
 ## Quick Start
 
-### 1. Design in the Visual Editor
+### 1. Open the Visual Editor
 
 ```bash
-git clone https://github.com/Gyxer513/gyxer-studio.git
-cd gyxer-studio
-npm install
-npm run dev
+npx @gyxer-studio/cli editor
 ```
 
-Open `http://localhost:5173` — add entities, configure fields and relations, then click **Generate** to export a JSON config.
+Opens `http://localhost:4200` — add entities, configure fields and relations, then click **Generate**. The config saves to `./configs/`.
 
 ### 2. Generate via CLI
 
 ```bash
-# From exported config
-npx gyxer generate my-app.json -o ./my-app
+# From saved config
+npx @gyxer-studio/cli generate configs/my-app.json -o ./my-app
 
-# Or interactive wizard
-npx gyxer new my-app
+# Or interactive wizard (no editor needed)
+npx @gyxer-studio/cli new my-app
 ```
 
 ### 3. Run
 
 ```bash
 cd my-app
-docker compose up -d    # starts PostgreSQL + app
-# or
 npm install && npm run start:dev
+# or with Docker
+docker compose up -d
 ```
 
 ## Features
@@ -91,7 +88,7 @@ Ready-to-use configs in [`examples/`](./examples/):
 Generate any example:
 
 ```bash
-npx gyxer generate examples/shop.json -o ./shop-api
+npx @gyxer-studio/cli generate examples/shop.json -o ./shop-api
 ```
 
 ## Tech Stack
