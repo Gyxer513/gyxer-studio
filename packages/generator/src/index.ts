@@ -19,6 +19,7 @@ export {
   generateDockerCompose,
   generateEnvFile,
   generateEnvExample,
+  buildDatabaseUrl,
 } from './generators/docker.generator.js';
 
 // Modules

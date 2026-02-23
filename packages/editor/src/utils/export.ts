@@ -1,5 +1,18 @@
 import { useProjectStore } from '../store/project-store';
 
+/** Build DATABASE_URL based on the chosen database type. */
+function buildDatabaseUrl(db: string, dbName: string): string {
+  switch (db) {
+    case 'sqlite':
+      return 'file:./prisma/dev.db';
+    case 'mysql':
+      return `mysql://root:root@localhost:3306/${dbName}`;
+    case 'postgresql':
+    default:
+      return `postgresql://postgres:postgres@localhost:5432/${dbName}`;
+  }
+}
+
 /**
  * Export the current editor state to a @gyxer-studio/schema-compatible JSON object.
  */
@@ -51,7 +64,7 @@ export function exportToSchema(): Record<string, unknown> {
     settings: {
       port: settings.port,
       database: settings.database,
-      databaseUrl: `postgresql://postgres:postgres@localhost:5432/${settings.name.replace(/-/g, '_')}`,
+      databaseUrl: buildDatabaseUrl(settings.database, settings.name.replace(/-/g, '_')),
       enableSwagger: settings.enableSwagger,
       enableCors: settings.enableCors,
       enableHelmet: settings.enableHelmet,

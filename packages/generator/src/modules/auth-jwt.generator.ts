@@ -6,13 +6,19 @@ import type { GyxerProject } from '@gyxer-studio/schema';
 export function generateAuthJwtFiles(project: GyxerProject): Map<string, string> {
   const files = new Map<string, string>();
 
+  // Collect required User fields without defaults (except email — already handled)
+  const userEntity = project.entities.find((e) => e.name === 'User');
+  const extraFields = (userEntity?.fields ?? []).filter(
+    (f) => f.required && f.name !== 'email' && f.default === undefined,
+  );
+
   // Auth module
   files.set('src/auth/auth.module.ts', generateAuthModule());
-  files.set('src/auth/auth.service.ts', generateAuthService());
+  files.set('src/auth/auth.service.ts', generateAuthService(extraFields));
   files.set('src/auth/auth.controller.ts', generateAuthController());
 
   // DTOs
-  files.set('src/auth/dto/register.dto.ts', generateRegisterDto());
+  files.set('src/auth/dto/register.dto.ts', generateRegisterDto(extraFields));
   files.set('src/auth/dto/login.dto.ts', generateLoginDto());
   files.set('src/auth/dto/auth-response.dto.ts', generateAuthResponseDto());
   files.set('src/auth/dto/refresh-token.dto.ts', generateRefreshTokenDto());
@@ -56,7 +62,19 @@ export class AuthModule {}
 
 // ─── Auth Service ───────────────────────────────────────────
 
-function generateAuthService(): string {
+function generateAuthService(extraFields: { name: string }[]): string {
+  // Build the spread of extra fields into prisma create data
+  const extraSpread = extraFields.length > 0 ? ', ...rest' : '';
+  const destructure =
+    extraFields.length > 0
+      ? `const { email, password${extraSpread} } = dto;`
+      : `const { email, password } = dto;`;
+
+  const createData =
+    extraFields.length > 0
+      ? '{ email, passwordHash, ...rest }'
+      : '{ email, passwordHash }';
+
   return `import {
   Injectable,
   UnauthorizedException,
@@ -65,6 +83,7 @@ function generateAuthService(): string {
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../prisma/prisma.service';
+import { RegisterDto } from './dto/register.dto';
 
 interface JwtPayload {
   sub: number;
@@ -78,7 +97,9 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) {}
 
-  async register(email: string, password: string) {
+  async register(dto: RegisterDto) {
+    ${destructure}
+
     // Check if user already exists
     const existing = await this.prisma.user.findUnique({ where: { email } });
     if (existing) {
@@ -88,9 +109,9 @@ export class AuthService {
     // Hash password
     const passwordHash = await bcrypt.hash(password, 12);
 
-    // Create user (additional fields can be set via PATCH /users/:id)
+    // Create user
     const user = await this.prisma.user.create({
-      data: { email, passwordHash } as any,
+      data: ${createData} as any,
     });
 
     return this.generateTokens(user.id, user.email);
@@ -197,7 +218,7 @@ export class AuthController {
   @ApiResponse({ status: 201, description: 'User registered', type: AuthResponseDto })
   @ApiResponse({ status: 409, description: 'Email already taken' })
   async register(@Body() dto: RegisterDto) {
-    return this.authService.register(dto.email, dto.password);
+    return this.authService.register(dto);
   }
 
   @Public()
@@ -235,9 +256,33 @@ export class AuthController {
 
 // ─── DTOs ───────────────────────────────────────────────────
 
-function generateRegisterDto(): string {
+function generateRegisterDto(
+  extraFields: { name: string; type: string }[],
+): string {
+  // Build extra field declarations for the DTO
+  const extraDeclarations = extraFields
+    .map((f) => {
+      const tsType = f.type === 'boolean' ? 'boolean' : 'string';
+      const decorator =
+        f.type === 'boolean'
+          ? `@ApiProperty({ example: true })\n  @IsBoolean()`
+          : `@ApiProperty({ example: '${f.name}' })\n  @IsString()\n  @IsNotEmpty()`;
+      return `  ${decorator}\n  ${f.name}: ${tsType};`;
+    })
+    .join('\n\n');
+
+  // Collect extra validators needed
+  const needsIsNotEmpty = extraFields.some((f) => f.type !== 'boolean');
+  const needsIsBoolean = extraFields.some((f) => f.type === 'boolean');
+
+  const validators = ['IsEmail', 'IsString', 'MinLength'];
+  if (needsIsNotEmpty) validators.push('IsNotEmpty');
+  if (needsIsBoolean) validators.push('IsBoolean');
+
+  const extraBlock = extraDeclarations ? `\n\n${extraDeclarations}` : '';
+
   return `import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsString, MinLength } from 'class-validator';
+import { ${validators.join(', ')} } from 'class-validator';
 
 export class RegisterDto {
   @ApiProperty({ example: 'user@example.com' })
@@ -247,7 +292,7 @@ export class RegisterDto {
   @ApiProperty({ example: 'strongPassword123' })
   @IsString()
   @MinLength(8)
-  password: string;
+  password: string;${extraBlock}
 }
 `;
 }
