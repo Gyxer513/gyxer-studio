@@ -1,5 +1,10 @@
 # Gyxer Studio
 
+[![npm version](https://img.shields.io/npm/v/@gyxer-studio/cli?color=blue)](https://www.npmjs.com/package/@gyxer-studio/cli)
+[![CI](https://github.com/Gyxer513/gyxer-studio/actions/workflows/ci.yml/badge.svg)](https://github.com/Gyxer513/gyxer-studio/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Node.js](https://img.shields.io/node/v/@gyxer-studio/cli)](https://nodejs.org)
+
 Visual backend builder that generates production-ready NestJS applications.
 
 > Design your backend visually. Export config. Generate clean code via CLI. No vendor lock-in.

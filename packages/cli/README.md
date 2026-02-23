@@ -1,5 +1,8 @@
 # @gyxer-studio/cli
 
+[![npm version](https://img.shields.io/npm/v/@gyxer-studio/cli?color=blue)](https://www.npmjs.com/package/@gyxer-studio/cli)
+[![CI](https://github.com/Gyxer513/gyxer-studio/actions/workflows/ci.yml/badge.svg)](https://github.com/Gyxer513/gyxer-studio/actions/workflows/ci.yml)
+
 CLI tool for generating production-ready NestJS projects from Gyxer schema configs.
 
 ## Commands
