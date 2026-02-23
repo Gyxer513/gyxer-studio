@@ -1,5 +1,16 @@
 # @gyxer-studio/generator
 
+## 0.3.0
+
+### Minor Changes
+
+- d5d1772: Add validate command, FK fields editor, dynamic auth-jwt, multi-db support, social-network example
+
+### Patch Changes
+
+- Updated dependencies [d5d1772]
+  - @gyxer-studio/schema@0.3.0
+
 ## 0.2.0
 
 ### Minor Changes
