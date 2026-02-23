@@ -1,7 +1,8 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { Handle, Position, type NodeProps } from '@xyflow/react';
 import { useProjectStore, type FieldData } from '../store/project-store';
 import { useTranslation } from '../i18n';
+import { computeFkFields } from '../utils/fk-fields';
 
 const FIELD_TYPE_ICONS: Record<string, { icon: string; color: string }> = {
   string: { icon: 'Aa', color: '#C8232C' },
@@ -23,8 +24,14 @@ interface EntityNodeData {
 
 export function EntityNode({ data, selected }: NodeProps) {
   const nodeData = data as unknown as EntityNodeData;
-  const { selectEntity, removeEntity, addField } = useProjectStore();
+  const { selectEntity, removeEntity, addField, entities, relations } = useProjectStore();
   const { t } = useTranslation();
+
+  // Compute FK fields derived from relations
+  const fkFields = useMemo(
+    () => computeFkFields(nodeData.entityId, entities, relations),
+    [nodeData.entityId, entities, relations],
+  );
 
   const handleSelect = useCallback(() => {
     selectEntity(nodeData.entityId);
@@ -107,6 +114,22 @@ export function EntityNode({ data, selected }: NodeProps) {
             </div>
           );
         })}
+
+        {/* FK fields from relations (auto-computed) */}
+        {fkFields.map((fk, i) => (
+          <div
+            key={`fk-${i}`}
+            className="flex items-center px-2 py-1.5 text-xs bg-blue-50/50 dark:bg-blue-900/10 rounded-md"
+          >
+            <span className="w-7 text-center font-mono font-bold text-[11px] text-blue-500 dark:text-blue-400">
+              FK
+            </span>
+            <span className="ml-1 text-dark-500 dark:text-dark-300 font-mono">{fk.name}</span>
+            <span className="ml-auto text-[10px] text-blue-400 dark:text-blue-500 bg-blue-50 dark:bg-blue-900/30 px-1.5 py-0.5 rounded font-medium">
+              {fk.targetEntityName}
+            </span>
+          </div>
+        ))}
 
         {/* Add field button */}
         <button

@@ -1,6 +1,7 @@
-import type { EntityData, FieldData, ModulesConfig } from '../store/project-store';
+import type { EntityData, FieldData, RelationData, ModulesConfig } from '../store/project-store';
 import type { HttpMethod } from '../store/http-store';
 import { toKebabCase, pluralize } from '@gyxer-studio/generator/utils';
+import { computeFkFields } from './fk-fields';
 
 export interface EndpointSuggestion {
   label: string;
@@ -34,12 +35,26 @@ function defaultForType(field: FieldData): unknown {
   }
 }
 
-/** Build a JSON body template from entity fields. */
-function buildBodyTemplate(fields: FieldData[]): string {
+/** Build a JSON body template from entity fields + FK fields from relations. */
+function buildBodyTemplate(
+  fields: FieldData[],
+  entityId: string,
+  entities: EntityData[],
+  relations: RelationData[],
+): string {
   const obj: Record<string, unknown> = {};
   for (const field of fields) {
     obj[field.name] = defaultForType(field);
   }
+
+  // Add FK fields derived from relations
+  const fkFields = computeFkFields(entityId, entities, relations);
+  for (const fk of fkFields) {
+    if (!(fk.name in obj)) {
+      obj[fk.name] = 0;
+    }
+  }
+
   return JSON.stringify(obj, null, 2);
 }
 
@@ -50,6 +65,7 @@ function buildBodyTemplate(fields: FieldData[]): string {
 export function generateEndpoints(
   entities: EntityData[],
   modules: ModulesConfig,
+  relations: RelationData[] = [],
 ): EndpointSuggestion[] {
   const suggestions: EndpointSuggestion[] = [];
 
@@ -57,7 +73,7 @@ export function generateEndpoints(
     const kebab = toKebabCase(entity.name);
     const route = `/${pluralize(kebab)}`;
     const group = entity.name;
-    const body = buildBodyTemplate(entity.fields);
+    const body = buildBodyTemplate(entity.fields, entity.id, entities, relations);
 
     suggestions.push(
       {

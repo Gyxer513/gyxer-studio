@@ -14,13 +14,13 @@ const METHOD_COLORS: Record<string, string> = {
 };
 
 export function EndpointPicker() {
-  const { entities, modules } = useProjectStore();
+  const { entities, relations, modules } = useProjectStore();
   const { loadRequest } = useHttpStore();
   const { t } = useTranslation();
 
   const endpoints = useMemo(
-    () => generateEndpoints(entities, modules),
-    [entities, modules],
+    () => generateEndpoints(entities, modules, relations),
+    [entities, modules, relations],
   );
 
   // Group by entity name
