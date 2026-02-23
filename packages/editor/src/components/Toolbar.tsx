@@ -63,7 +63,7 @@ export function Toolbar() {
 
       if (res.ok) {
         // Saved to configs/ — show CLI command
-        const command = `npx gyxer generate configs/${fileName} -o ./${projectName}`;
+        const command = `npx @gyxer-studio/cli generate configs/${fileName} -o ./${projectName}`;
         setShowSuccess({ fileName, command });
         return;
       }
@@ -81,7 +81,7 @@ export function Toolbar() {
     a.click();
     URL.revokeObjectURL(url);
 
-    const command = `npx gyxer generate ${fileName} -o ./${projectName}`;
+    const command = `npx @gyxer-studio/cli generate ${fileName} -o ./${projectName}`;
     setShowSuccess({ fileName, command });
   }, [entities, t]);
 
