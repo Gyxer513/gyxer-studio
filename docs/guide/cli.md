@@ -1,23 +1,39 @@
 # CLI
 
-The Gyxer CLI provides two commands for project generation from the terminal.
+The Gyxer CLI provides commands for visual editing, project generation, and schema validation.
 
-## Installation
+## Quick Start
 
-The CLI is part of the monorepo. From the project root:
+No installation needed — run directly with `npx`:
 
 ```bash
-npm run build -w packages/cli
+npx @gyxer-studio/cli editor      # visual editor
+npx @gyxer-studio/cli new my-app  # interactive wizard
+npx @gyxer-studio/cli generate config.json -o ./out  # generate from config
+npx @gyxer-studio/cli validate config.json  # validate schema
 ```
 
 ## Commands
+
+### `gyxer editor`
+
+Opens the visual schema editor in your browser.
+
+```bash
+npx @gyxer-studio/cli editor
+npx @gyxer-studio/cli editor --port 3000  # custom port
+```
+
+- Serves the editor at `http://localhost:4200`
+- Configs save to `./configs/` in your working directory
+- Auto-opens the browser
 
 ### `gyxer new <name>`
 
 Interactive wizard for creating a new project.
 
 ```bash
-npx gyxer new my-app
+npx @gyxer-studio/cli new my-app
 ```
 
 The wizard asks 7 questions:
@@ -83,24 +99,25 @@ Auto-generated based on database type and project name:
 
 Hyphens in project name are replaced with underscores for the database name.
 
-### `gyxer generate <schema>`
+### `gyxer generate [schema]`
 
-Generate a project from an existing JSON schema file.
+Generate a project from a JSON schema file. If no path is provided, the CLI searches for configs in `./configs/` and the current directory and offers interactive selection.
 
 ```bash
-npx gyxer generate schema.json -o ./output
+npx @gyxer-studio/cli generate configs/blog.json -o my-blog
+npx @gyxer-studio/cli generate   # interactive file selection
 ```
 
 Options:
 
 | Flag | Default | Description |
 |------|---------|-------------|
-| `-o, --output <dir>` | `./output` | Output directory |
+| `-o, --output <dir>` | `./<project-name>` | Output directory |
 
 #### Example
 
 ```bash
-npx gyxer generate examples/blog-with-auth.json -o my-blog
+npx @gyxer-studio/cli generate examples/blog-with-auth.json -o my-blog
 ```
 
 ```
@@ -108,8 +125,8 @@ npx gyxer generate examples/blog-with-auth.json -o my-blog
   ═════════════════
 
   Schema: /path/to/examples/blog-with-auth.json
-  Project: my-blog-auth
-  Entities: 2
+  Project: blog-api
+  Entities: 3
 
 ✔ Project generated!
 
@@ -117,9 +134,48 @@ npx gyxer generate examples/blog-with-auth.json -o my-blog
   🛡️  Security: 100%
 ```
 
-### `gyxer studio`
+### `gyxer validate <schema>`
 
-Opens the visual editor (coming soon — currently shows a placeholder message).
+Validate a JSON schema file without generating any code. Useful for checking configs before generation or in CI pipelines.
+
+```bash
+npx @gyxer-studio/cli validate configs/my-app.json
+```
+
+#### Valid schema
+
+```
+  🔍 Gyxer Validator
+  ═════════════════
+
+  File: configs/my-app.json
+
+  ✔ Schema is valid!
+
+    Project:   my-app v0.1.0
+    Entities:  3
+    Fields:    12
+    Relations: 3
+    Modules:   auth-jwt
+    Database:  postgresql
+    Docker:    yes
+```
+
+#### Invalid schema
+
+```
+  🔍 Gyxer Validator
+  ═════════════════
+
+  File: bad-config.json
+
+  ✖ Validation failed (2 errors):
+
+    • entities.User.fields.status — Enum field "status" must have enumValues
+    • entities.Order.relations.items — Relation "items" targets unknown entity "LineItem"
+```
+
+Exit codes: `0` = valid, `1` = invalid or file not found.
 
 ## Technology
 
@@ -128,3 +184,4 @@ The CLI uses:
 - [Inquirer](https://github.com/SBoudrias/Inquirer.js) — interactive prompts
 - [Chalk](https://github.com/chalk/chalk) — styled terminal output
 - [Ora](https://github.com/sindresorhus/ora) — loading spinners
+- [sirv](https://github.com/lukeed/sirv) — static file serving (editor command)

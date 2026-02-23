@@ -28,7 +28,7 @@ features:
     details: Multi-stage Dockerfile and docker-compose.yml generated automatically.
   - icon: "\U0001F4E6"
     title: CLI & Editor
-    details: Use the visual editor in the browser or npx gyxer new from the terminal.
+    details: Use the visual editor in the browser or npx @gyxer-studio/cli new from the terminal.
   - icon: "\U0001F9E9"
     title: Module System
     details: Add JWT auth, file storage, queues, caching, and more as plug-in modules.

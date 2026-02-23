@@ -4,51 +4,57 @@
 
 - **Node.js** >= 20.0.0
 - **npm** >= 9
-- **Git**
 
-## Installation
+## Quick Start
+
+### 1. Open the Visual Editor
 
 ```bash
-git clone https://github.com/Gyxer513/gyxer-studio.git
-cd gyxer-studio
+npx @gyxer-studio/cli editor
+```
+
+Opens `http://localhost:4200` — add entities, configure fields and relations, then click **Generate**. Configs save to `./configs/`.
+
+### 2. Generate from Config
+
+```bash
+npx @gyxer-studio/cli generate configs/my-app.json -o ./my-app
+```
+
+### 3. Run
+
+```bash
+cd my-app
 npm install
+npx prisma migrate dev --name init
+npm run start:dev
 ```
-
-## Running the Visual Editor
-
-```bash
-npm run dev
-```
-
-Opens the editor at `http://localhost:5173`.
-
-## Quick Workflow
-
-1. Click **Add Entity** in the toolbar
-2. Name your entity (PascalCase, e.g. `Product`)
-3. Add fields — choose type, set required/unique/index
-4. Drag entities on the canvas to arrange them
-5. Connect entities by dragging from handle to handle to create relations
-6. Click **Generate** — choose "To folder..." or "Download ZIP"
 
 ## CLI Alternative
 
-Create a project without the editor:
+Create a project without the editor using the interactive wizard:
 
 ```bash
-npx gyxer new my-app
+npx @gyxer-studio/cli new my-app
 ```
 
-The interactive wizard will ask you about database, port, modules, and security settings.
+The wizard asks about database, port, modules, and security settings.
 
-## Running Tests
+## Validate a Config
+
+Check a schema without generating code:
 
 ```bash
-npm test -w packages/schema
-npm test -w packages/generator
+npx @gyxer-studio/cli validate configs/my-app.json
 ```
 
-59 tests across schema validation and code generation.
+## Running Tests (Development)
+
+```bash
+npm test                         # all 149 tests
+npm test -w packages/schema      # schema validation tests
+npm test -w packages/generator   # code generation tests
+```
 
 ## Project Structure
 
@@ -58,7 +64,7 @@ gyxer-studio/
     schema/       # @gyxer-studio/schema  — Zod validation + TypeScript types
     generator/    # @gyxer-studio/generator — NestJS code generation engine
     editor/       # @gyxer-studio/editor   — React Flow visual editor
-    cli/          # @gyxer-studio/cli      — CLI wizard (inquirer + chalk + ora)
+    cli/          # @gyxer-studio/cli      — CLI commands
   examples/       # Example project schemas
   docs/           # This documentation (VitePress)
 ```
@@ -74,4 +80,5 @@ gyxer-studio/
 
 - [Visual Editor Guide](/guide/visual-editor) — learn the editor interface
 - [Field Types](/guide/field-types) — all 9 supported field types
+- [CLI Commands](/guide/cli) — editor, generate, new, validate
 - [Schema Specification](/reference/schema) — full JSON schema reference
