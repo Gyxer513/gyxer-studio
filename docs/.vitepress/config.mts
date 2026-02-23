@@ -3,6 +3,7 @@ import { defineConfig } from 'vitepress'
 export default defineConfig({
   title: 'Gyxer Studio',
   description: 'Visual backend builder that generates production-ready NestJS applications',
+  base: '/gyxer-studio/',
 
   head: [
     ['link', { rel: 'icon', href: '/favicon.svg', type: 'image/svg+xml' }],

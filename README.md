@@ -4,6 +4,7 @@
 [![CI](https://github.com/Gyxer513/gyxer-studio/actions/workflows/ci.yml/badge.svg)](https://github.com/Gyxer513/gyxer-studio/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Node.js](https://img.shields.io/node/v/@gyxer-studio/cli)](https://nodejs.org)
+[![Docs](https://img.shields.io/badge/docs-Website-blue)](https://gyxer513.github.io/gyxer-studio/)
 
 Visual backend builder that generates production-ready NestJS applications.
 
