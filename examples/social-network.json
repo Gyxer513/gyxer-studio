@@ -1,0 +1,75 @@
+{
+  "name": "social-api",
+  "version": "0.1.0",
+  "description": "Mini social network API with posts, comments, likes and notifications",
+  "entities": [
+    {
+      "name": "User",
+      "fields": [
+        { "name": "email", "type": "string", "required": true, "unique": true, "index": true },
+        { "name": "username", "type": "string", "required": true, "unique": true, "index": true },
+        { "name": "displayName", "type": "string", "required": true, "unique": false, "index": false },
+        { "name": "bio", "type": "text", "required": false, "unique": false, "index": false },
+        { "name": "avatarUrl", "type": "string", "required": false, "unique": false, "index": false },
+        { "name": "isVerified", "type": "boolean", "required": true, "unique": false, "index": false, "default": false }
+      ],
+      "relations": [
+        { "name": "posts", "type": "one-to-many", "target": "Post", "foreignKey": "authorId", "onDelete": "CASCADE" },
+        { "name": "comments", "type": "one-to-many", "target": "Comment", "foreignKey": "authorId", "onDelete": "CASCADE" },
+        { "name": "likes", "type": "one-to-many", "target": "Like", "foreignKey": "userId", "onDelete": "CASCADE" },
+        { "name": "notifications", "type": "one-to-many", "target": "Notification", "foreignKey": "userId", "onDelete": "CASCADE" }
+      ]
+    },
+    {
+      "name": "Post",
+      "fields": [
+        { "name": "content", "type": "text", "required": true, "unique": false, "index": false },
+        { "name": "imageUrl", "type": "string", "required": false, "unique": false, "index": false },
+        { "name": "visibility", "type": "enum", "required": true, "unique": false, "index": true, "default": "PUBLIC", "enumValues": ["PUBLIC", "FRIENDS", "PRIVATE"] }
+      ],
+      "relations": [
+        { "name": "comments", "type": "one-to-many", "target": "Comment", "foreignKey": "postId", "onDelete": "CASCADE" },
+        { "name": "likes", "type": "one-to-many", "target": "Like", "foreignKey": "postId", "onDelete": "CASCADE" }
+      ]
+    },
+    {
+      "name": "Comment",
+      "fields": [
+        { "name": "text", "type": "text", "required": true, "unique": false, "index": false }
+      ],
+      "relations": []
+    },
+    {
+      "name": "Like",
+      "fields": [
+        { "name": "reaction", "type": "enum", "required": true, "unique": false, "index": false, "default": "LIKE", "enumValues": ["LIKE", "LOVE", "HAHA", "WOW", "SAD", "ANGRY"] }
+      ],
+      "relations": []
+    },
+    {
+      "name": "Notification",
+      "fields": [
+        { "name": "type", "type": "enum", "required": true, "unique": false, "index": true, "enumValues": ["LIKE", "COMMENT", "FOLLOW", "MENTION"] },
+        { "name": "message", "type": "string", "required": true, "unique": false, "index": false },
+        { "name": "isRead", "type": "boolean", "required": true, "unique": false, "index": true, "default": false },
+        { "name": "linkUrl", "type": "string", "required": false, "unique": false, "index": false }
+      ],
+      "relations": []
+    }
+  ],
+  "modules": [
+    { "name": "auth-jwt", "enabled": true }
+  ],
+  "settings": {
+    "port": 3000,
+    "database": "postgresql",
+    "databaseUrl": "postgresql://postgres:postgres@localhost:5432/social_api",
+    "enableSwagger": true,
+    "enableCors": true,
+    "enableHelmet": true,
+    "enableRateLimit": true,
+    "rateLimitTtl": 60,
+    "rateLimitMax": 100,
+    "docker": true
+  }
+}

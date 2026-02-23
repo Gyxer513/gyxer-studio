@@ -117,23 +117,20 @@ describe('Service Generator', () => {
       expect(svc).toContain('const { password, ...rest } = dto');
     });
 
-    it('should exclude passwordHash from findAll select', () => {
+    it('should exclude passwordHash from findAll via excludeSensitive', () => {
       const svc = generateService(userEntity, projectWithAuth);
 
-      expect(svc).toContain('select:');
-      expect(svc).toContain('email: true');
-      expect(svc).toContain('name: true');
-      // Should NOT include passwordHash in select
-      expect(svc).not.toContain('passwordHash: true');
+      expect(svc).toContain('excludeSensitive');
+      expect(svc).toContain('const { passwordHash, ...safe } = user');
+      // findAll should map through excludeSensitive
+      expect(svc).toContain('users.map((u) => this.excludeSensitive(u))');
     });
 
-    it('should exclude passwordHash from findOne select', () => {
+    it('should exclude passwordHash from findOne via excludeSensitive', () => {
       const svc = generateService(userEntity, projectWithAuth);
 
-      // findOne should also use select to exclude password
-      const findOneMatch = svc.match(/findOne[\s\S]*?findUnique\(\{[\s\S]*?\}\)/);
-      expect(findOneMatch).not.toBeNull();
-      expect(findOneMatch![0]).toContain('select:');
+      // findOne should use excludeSensitive
+      expect(svc).toContain('return this.excludeSensitive(user)');
     });
   });
 

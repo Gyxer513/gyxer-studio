@@ -13,7 +13,7 @@ export function generateService(entity: Entity, project: GyxerProject): string {
     name === 'User' &&
     project.modules?.some((m) => m.name === 'auth-jwt' && m.enabled !== false);
 
-  // User + auth-jwt: create method hashes password
+  // User + auth-jwt: create method hashes password, findAll/findOne exclude passwordHash
   if (hasAuthJwt) {
     return `import { Injectable, NotFoundException } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
@@ -29,34 +29,40 @@ export class ${className} {
   async create(dto: Create${name}Dto) {
     const { password, ...rest } = dto;
     const passwordHash = await bcrypt.hash(password, 12);
-    return this.prisma.${camel}.create({ data: { ...rest, passwordHash } as Prisma.${name}UncheckedCreateInput });
+    return this.excludeSensitive(
+      await this.prisma.${camel}.create({ data: { ...rest, passwordHash } as Prisma.${name}UncheckedCreateInput }),
+    );
   }
 
   async findAll() {
-    return this.prisma.${camel}.findMany({
-      select: { id: true, email: true, name: true, createdAt: true, updatedAt: true },
-    });
+    const users = await this.prisma.${camel}.findMany();
+    return users.map((u) => this.excludeSensitive(u));
   }
 
   async findOne(id: number) {
-    const ${camel} = await this.prisma.${camel}.findUnique({
-      where: { id },
-      select: { id: true, email: true, name: true, createdAt: true, updatedAt: true },
-    });
+    const ${camel} = await this.prisma.${camel}.findUnique({ where: { id } });
     if (!${camel}) {
       throw new NotFoundException(\`${name} with id \${id} not found\`);
     }
-    return ${camel};
+    return this.excludeSensitive(${camel});
   }
 
   async update(id: number, data: Update${name}Dto) {
     await this.findOne(id);
-    return this.prisma.${camel}.update({ where: { id }, data: data as Prisma.${name}UncheckedUpdateInput });
+    return this.excludeSensitive(
+      await this.prisma.${camel}.update({ where: { id }, data: data as Prisma.${name}UncheckedUpdateInput }),
+    );
   }
 
   async remove(id: number) {
     await this.findOne(id);
     return this.prisma.${camel}.delete({ where: { id } });
+  }
+
+  /** Strip passwordHash from response objects. */
+  private excludeSensitive(user: any) {
+    const { passwordHash, ...safe } = user;
+    return safe;
   }
 }
 `;

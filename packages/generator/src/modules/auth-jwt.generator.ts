@@ -78,7 +78,7 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) {}
 
-  async register(email: string, password: string, name: string) {
+  async register(email: string, password: string) {
     // Check if user already exists
     const existing = await this.prisma.user.findUnique({ where: { email } });
     if (existing) {
@@ -88,9 +88,9 @@ export class AuthService {
     // Hash password
     const passwordHash = await bcrypt.hash(password, 12);
 
-    // Create user
+    // Create user (additional fields can be set via PATCH /users/:id)
     const user = await this.prisma.user.create({
-      data: { email, name, passwordHash },
+      data: { email, passwordHash } as any,
     });
 
     return this.generateTokens(user.id, user.email);
@@ -133,20 +133,15 @@ export class AuthService {
   async getProfile(userId: number) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        createdAt: true,
-        updatedAt: true,
-      },
     });
 
     if (!user) {
       throw new UnauthorizedException('User not found');
     }
 
-    return user;
+    // Exclude sensitive fields
+    const { passwordHash, ...profile } = user as any;
+    return profile;
   }
 
   private generateTokens(userId: number, email: string) {
@@ -202,7 +197,7 @@ export class AuthController {
   @ApiResponse({ status: 201, description: 'User registered', type: AuthResponseDto })
   @ApiResponse({ status: 409, description: 'Email already taken' })
   async register(@Body() dto: RegisterDto) {
-    return this.authService.register(dto.email, dto.password, dto.name);
+    return this.authService.register(dto.email, dto.password);
   }
 
   @Public()
@@ -242,7 +237,7 @@ export class AuthController {
 
 function generateRegisterDto(): string {
   return `import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsString, IsNotEmpty, MinLength } from 'class-validator';
+import { IsEmail, IsString, MinLength } from 'class-validator';
 
 export class RegisterDto {
   @ApiProperty({ example: 'user@example.com' })
@@ -253,11 +248,6 @@ export class RegisterDto {
   @IsString()
   @MinLength(8)
   password: string;
-
-  @ApiProperty({ example: 'John Doe' })
-  @IsString()
-  @IsNotEmpty()
-  name: string;
 }
 `;
 }
