@@ -10,7 +10,7 @@ const program = new Command();
 program
   .name('gyxer')
   .description('Gyxer CLI — generate production-ready NestJS backends')
-  .version('0.1.1');
+  .version('0.2.0');
 
 // gyxer generate [schema.json] — with or without a config path
 program

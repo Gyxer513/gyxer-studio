@@ -1,5 +1,17 @@
 # @gyxer-studio/cli
 
+## 0.2.0
+
+### Minor Changes
+
+- feat: add `gyxer editor` command — local visual schema editor with config saving
+
+### Patch Changes
+
+- Updated dependencies
+  - @gyxer-studio/schema@0.2.0
+  - @gyxer-studio/generator@0.2.0
+
 ## 0.1.1
 
 ### Patch Changes
