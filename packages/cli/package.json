@@ -18,7 +18,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && node -e \"require('fs').cpSync('../editor/dist','./dist/editor-dist',{recursive:true})\"",
     "dev": "tsc --watch",
     "prepublishOnly": "npm run build"
   },
@@ -45,12 +45,14 @@
     "node": ">=20.0.0"
   },
   "dependencies": {
-    "@gyxer-studio/schema": "0.1.1",
     "@gyxer-studio/generator": "0.1.1",
-    "commander": "^13.0.0",
+    "@gyxer-studio/schema": "0.1.1",
     "chalk": "^5.4.0",
+    "commander": "^13.0.0",
+    "inquirer": "^12.0.0",
+    "open": "^11.0.0",
     "ora": "^8.1.0",
-    "inquirer": "^12.0.0"
+    "sirv": "^3.0.2"
   },
   "devDependencies": {
     "typescript": "^5.7.0"
