@@ -4,6 +4,7 @@ import { Command } from 'commander';
 import { generateCommand } from './commands/generate.js';
 import { newCommand } from './commands/new.js';
 import { editorCommand } from './commands/editor.js';
+import { validateCommand } from './commands/validate.js';
 
 const program = new Command();
 
@@ -31,5 +32,11 @@ program
   .description('Open the visual schema editor in your browser')
   .option('-p, --port <number>', 'Port to run on', '4200')
   .action(editorCommand);
+
+// gyxer validate <schema.json>
+program
+  .command('validate <schema>')
+  .description('Validate a JSON schema without generating code')
+  .action(validateCommand);
 
 program.parse();
