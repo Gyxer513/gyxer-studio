@@ -42,7 +42,7 @@ function buildSampleDto(entity: Entity, project: GyxerProject): string {
     .map((f) => `      ${f.name}: ${sampleValue(f)},`);
 
   if (hasAuthJwt) {
-    lines.push(`      password: 'StrongP@ss1',`);
+    lines.push(`      password: 'StrongP@ss1',`); // pragma: allowlist secret
   }
 
   return `{\n${lines.join('\n')}\n    }`;
@@ -64,14 +64,14 @@ export function generateServiceSpec(entity: Entity, project: GyxerProject): stri
   const sampleDto = buildSampleDto(entity, project);
 
   const bcryptMock = hasAuthJwt
-    ? `\njest.mock('bcrypt', () => ({\n  hash: jest.fn().mockResolvedValue('hashed-password'),\n}));\n`
+    ? `\njest.mock('bcrypt', () => ({\n  hash: jest.fn().mockResolvedValue('hashed-password'),\n}));\n` // pragma: allowlist secret
     : '';
 
   const authCreateTests = hasAuthJwt
     ? `
     it('should hash password on create', async () => {
       const dto = ${sampleDto};
-      mockPrisma.${camel}.create.mockResolvedValue({ id: 1, email: dto.email, passwordHash: 'hashed-password' });
+      mockPrisma.${camel}.create.mockResolvedValue({ id: 1, email: dto.email, passwordHash: 'hashed-password' }); // pragma: allowlist secret
       await service.create(dto as any);
       const callArgs = mockPrisma.${camel}.create.mock.calls[0][0];
       expect(callArgs.data.passwordHash).toBeDefined();
@@ -83,7 +83,7 @@ export function generateServiceSpec(entity: Entity, project: GyxerProject): stri
     ? `
     it('should exclude passwordHash from results', async () => {
       mockPrisma.${camel}.findMany.mockResolvedValue([
-        { id: 1, email: 'a@b.com', passwordHash: 'secret' },
+        { id: 1, email: 'a@b.com', passwordHash: 'secret' }, // pragma: allowlist secret
       ]);
       const result = await service.findAll();
       expect(result[0]).not.toHaveProperty('passwordHash');

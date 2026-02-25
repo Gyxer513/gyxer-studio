@@ -14,7 +14,7 @@ function makeProject(overrides: Partial<GyxerProject> = {}): GyxerProject {
     settings: {
       port: 3000,
       database: 'postgresql',
-      databaseUrl: 'postgresql://postgres:postgres@localhost:5432/test_app',
+      databaseUrl: 'postgresql://postgres:postgres@localhost:5432/test_app', // pragma: allowlist secret
       enableSwagger: true,
       enableCors: true,
       enableHelmet: true,
@@ -121,7 +121,7 @@ describe('generateServiceSpec', () => {
     expect(spec).toContain("jest.mock('bcrypt'");
     expect(spec).toContain('should hash password on create');
     expect(spec).toContain('should exclude passwordHash from results');
-    expect(spec).toContain("password: 'StrongP@ss1'");
+    expect(spec).toContain("password: 'StrongP@ss1'"); // pragma: allowlist secret
   });
 
   it('does NOT add auth tests for User without auth-jwt', () => {

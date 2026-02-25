@@ -118,8 +118,8 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
     database: 'postgresql',
     dbHost: 'localhost',
     dbPort: 5432,
-    dbUser: 'postgres',
-    dbPassword: 'postgres',
+    dbUser: 'postgres', // pragma: allowlist secret
+    dbPassword: 'postgres', // pragma: allowlist secret
     enableSwagger: true,
     enableCors: true,
     enableHelmet: true,
@@ -336,8 +336,8 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
         database: db,
         dbHost: json.settings?.dbHost || (db === 'sqlite' ? '' : 'localhost'),
         dbPort: json.settings?.dbPort || (db === 'mysql' ? 3306 : db === 'sqlite' ? 0 : 5432),
-        dbUser: json.settings?.dbUser || (db === 'mysql' ? 'root' : db === 'sqlite' ? '' : 'postgres'),
-        dbPassword: json.settings?.dbPassword || (db === 'mysql' ? 'root' : db === 'sqlite' ? '' : 'postgres'),
+        dbUser: json.settings?.dbUser || (db === 'mysql' ? 'root' : db === 'sqlite' ? '' : 'postgres'), // pragma: allowlist secret
+        dbPassword: json.settings?.dbPassword || (db === 'mysql' ? 'root' : db === 'sqlite' ? '' : 'postgres'), // pragma: allowlist secret
         enableSwagger: json.settings?.enableSwagger ?? true,
         enableCors: json.settings?.enableCors ?? true,
         enableHelmet: json.settings?.enableHelmet ?? true,
@@ -380,8 +380,8 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
       // When database type changes, set sensible defaults
       if (data.database && data.database !== state.settings.database) {
         const dbDefaults: Record<string, { dbHost: string; dbPort: number; dbUser: string; dbPassword: string }> = {
-          postgresql: { dbHost: 'localhost', dbPort: 5432, dbUser: 'postgres', dbPassword: 'postgres' },
-          mysql: { dbHost: 'localhost', dbPort: 3306, dbUser: 'root', dbPassword: 'root' },
+          postgresql: { dbHost: 'localhost', dbPort: 5432, dbUser: 'postgres', dbPassword: 'postgres' }, // pragma: allowlist secret
+          mysql: { dbHost: 'localhost', dbPort: 3306, dbUser: 'root', dbPassword: 'root' }, // pragma: allowlist secret
           sqlite: { dbHost: '', dbPort: 0, dbUser: '', dbPassword: '' },
         };
         merged = { ...merged, ...dbDefaults[data.database] };
