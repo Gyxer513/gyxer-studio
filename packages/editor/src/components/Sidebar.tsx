@@ -2,6 +2,7 @@ import React from 'react';
 import { useProjectStore, type FieldType, type RelationType } from '../store/project-store';
 import { useTranslation } from '../i18n';
 import { inputCls, labelCls, sectionCls, cardCls, checkboxCls, smallInputCls } from './shared-styles';
+import { toPascalCase, toProjectKebab } from '../utils/naming';
 
 const FIELD_TYPES: FieldType[] = [
   'string', 'text', 'int', 'float', 'boolean', 'datetime', 'enum', 'json', 'uuid',
@@ -18,6 +19,7 @@ export function Sidebar() {
     updateEntity, updateField, removeField, addField,
     updateRelation, removeRelation,
     updateSettings, toggleModule,
+    addUserEntity,
   } = useProjectStore();
   const { t } = useTranslation();
 
@@ -43,31 +45,21 @@ export function Sidebar() {
               type="text"
               value={settings.name}
               onChange={(e) => updateSettings({ name: e.target.value })}
+              onBlur={() => {
+                const fixed = toProjectKebab(settings.name);
+                if (fixed && fixed !== settings.name) updateSettings({ name: fixed });
+              }}
               className={inputCls}
             />
           </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className={labelCls}>{t('sidebar.port')}</label>
-              <input
-                type="number"
-                value={settings.port}
-                onChange={(e) => updateSettings({ port: parseInt(e.target.value) || 3000 })}
-                className={`${inputCls} font-mono`}
-              />
-            </div>
-            <div>
-              <label className={labelCls}>{t('sidebar.database')}</label>
-              <select
-                value={settings.database}
-                onChange={(e) => updateSettings({ database: e.target.value as any })}
-                className={inputCls.replace('px-3', 'px-2')}
-              >
-                <option value="postgresql">PostgreSQL</option>
-                <option value="mysql">MySQL</option>
-                <option value="sqlite">SQLite</option>
-              </select>
-            </div>
+          <div>
+            <label className={labelCls}>{t('sidebar.port')}</label>
+            <input
+              type="number"
+              value={settings.port}
+              onChange={(e) => updateSettings({ port: parseInt(e.target.value) || 3000 })}
+              className={`${inputCls} font-mono w-28`}
+            />
           </div>
           <div className="flex flex-wrap gap-x-4 gap-y-1.5 pt-1">
             {[
@@ -90,6 +82,67 @@ export function Sidebar() {
         </div>
       </div>
 
+      {/* ─── Database ─── */}
+      <div className="p-4 border-b border-gray-100 dark:border-dark-700">
+        <h2 className={sectionCls}>{t('sidebar.database')}</h2>
+        <div className="space-y-3">
+          <div>
+            <select
+              value={settings.database}
+              onChange={(e) => updateSettings({ database: e.target.value as any })}
+              className={inputCls.replace('px-3', 'px-2')}
+            >
+              <option value="postgresql">PostgreSQL</option>
+              <option value="mysql">MySQL</option>
+              <option value="sqlite">SQLite</option>
+            </select>
+          </div>
+          {settings.database !== 'sqlite' && (
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className={labelCls}>{t('sidebar.dbHost')}</label>
+                <input
+                  type="text"
+                  value={settings.dbHost}
+                  onChange={(e) => updateSettings({ dbHost: e.target.value })}
+                  className={`${inputCls} font-mono text-xs`}
+                  placeholder="localhost"
+                />
+              </div>
+              <div>
+                <label className={labelCls}>{t('sidebar.dbPort')}</label>
+                <input
+                  type="number"
+                  value={settings.dbPort}
+                  onChange={(e) => updateSettings({ dbPort: parseInt(e.target.value) || 0 })}
+                  className={`${inputCls} font-mono text-xs`}
+                />
+              </div>
+              <div>
+                <label className={labelCls}>{t('sidebar.dbUser')}</label>
+                <input
+                  type="text"
+                  value={settings.dbUser}
+                  onChange={(e) => updateSettings({ dbUser: e.target.value })}
+                  className={`${inputCls} font-mono text-xs`}
+                  placeholder="postgres"
+                />
+              </div>
+              <div>
+                <label className={labelCls}>{t('sidebar.dbPassword')}</label>
+                <input
+                  type="text"
+                  value={settings.dbPassword}
+                  onChange={(e) => updateSettings({ dbPassword: e.target.value })}
+                  className={`${inputCls} font-mono text-xs`}
+                  placeholder="postgres"
+                />
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
       {/* ─── Modules ─── */}
       <div className="p-4 border-b border-gray-100 dark:border-dark-700">
         <h2 className={sectionCls}>{t('sidebar.modules')}</h2>
@@ -107,6 +160,30 @@ export function Sidebar() {
             </span>
           </div>
         </label>
+
+        {modules.authJwt && (
+          <div className="mt-3 ml-7 space-y-2">
+            {entities.some((e) => e.name === 'User') ? (
+              <div className="flex items-center gap-1.5 text-xs text-green-600 dark:text-green-400">
+                <span>✅</span>
+                <span>{t('sidebar.authUserExists')}</span>
+              </div>
+            ) : (
+              <>
+                <div className="text-xs text-dark-400 dark:text-dark-300 leading-relaxed">
+                  <span className="mr-1">ℹ️</span>
+                  {t('sidebar.authInfo')}
+                </div>
+                <button
+                  onClick={addUserEntity}
+                  className="px-3 py-1.5 border border-dashed border-gyxer-300 dark:border-gyxer-700 text-gyxer-600 dark:text-gyxer-400 rounded-lg text-xs font-medium hover:bg-gyxer-50 dark:hover:bg-gyxer-900/30 hover:border-gyxer-400 transition-all"
+                >
+                  {t('sidebar.authAddUser')}
+                </button>
+              </>
+            )}
+          </div>
+        )}
       </div>
 
       {/* ─── Selected Relation ─── */}
@@ -179,6 +256,10 @@ export function Sidebar() {
               type="text"
               value={selectedEntity.name}
               onChange={(e) => updateEntity(selectedEntity.id, { name: e.target.value })}
+              onBlur={() => {
+                const fixed = toPascalCase(selectedEntity.name);
+                if (fixed && fixed !== selectedEntity.name) updateEntity(selectedEntity.id, { name: fixed });
+              }}
               className={`${inputCls} font-semibold`}
             />
           </div>

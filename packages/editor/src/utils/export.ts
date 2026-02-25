@@ -1,15 +1,23 @@
 import { useProjectStore } from '../store/project-store';
 
-/** Build DATABASE_URL based on the chosen database type. */
-function buildDatabaseUrl(db: string, dbName: string): string {
-  switch (db) {
+/** Build DATABASE_URL from project settings. */
+function buildDatabaseUrl(settings: {
+  database: string;
+  name: string;
+  dbHost: string;
+  dbPort: number;
+  dbUser: string;
+  dbPassword: string;
+}): string {
+  const dbName = settings.name.replace(/-/g, '_');
+  switch (settings.database) {
     case 'sqlite':
       return 'file:./prisma/dev.db';
     case 'mysql':
-      return `mysql://root:root@localhost:3306/${dbName}`;
+      return `mysql://${settings.dbUser}:${settings.dbPassword}@${settings.dbHost}:${settings.dbPort}/${dbName}`;
     case 'postgresql':
     default:
-      return `postgresql://postgres:postgres@localhost:5432/${dbName}`;
+      return `postgresql://${settings.dbUser}:${settings.dbPassword}@${settings.dbHost}:${settings.dbPort}/${dbName}`;
   }
 }
 
@@ -64,7 +72,7 @@ export function exportToSchema(): Record<string, unknown> {
     settings: {
       port: settings.port,
       database: settings.database,
-      databaseUrl: buildDatabaseUrl(settings.database, settings.name.replace(/-/g, '_')),
+      databaseUrl: buildDatabaseUrl(settings),
       enableSwagger: settings.enableSwagger,
       enableCors: settings.enableCors,
       enableHelmet: settings.enableHelmet,
