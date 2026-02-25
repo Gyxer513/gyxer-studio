@@ -35,9 +35,18 @@ export interface Translations {
   'sidebar.relationForeignKey': string;
   'sidebar.deleteRelation': string;
 
+  // Sidebar — Database
+  'sidebar.dbHost': string;
+  'sidebar.dbPort': string;
+  'sidebar.dbUser': string;
+  'sidebar.dbPassword': string;
+
   // Sidebar — Modules
   'sidebar.modules': string;
   'sidebar.authJwt': string;
+  'sidebar.authInfo': string;
+  'sidebar.authAddUser': string;
+  'sidebar.authUserExists': string;
 
   // Entity Node
   'node.addField': string;
@@ -138,8 +147,16 @@ export const translations: Record<Locale, Translations> = {
     'sidebar.relationForeignKey': 'Foreign Key',
     'sidebar.deleteRelation': 'Delete Relation',
 
+    'sidebar.dbHost': 'Host',
+    'sidebar.dbPort': 'Port',
+    'sidebar.dbUser': 'User',
+    'sidebar.dbPassword': 'Password',
+
     'sidebar.modules': 'Modules',
     'sidebar.authJwt': 'JWT Auth',
+    'sidebar.authInfo': 'User entity with email + password will be auto-generated. Add User to canvas to customize fields.',
+    'sidebar.authAddUser': '+ Add User Entity',
+    'sidebar.authUserExists': 'Using your custom User entity',
 
     'node.addField': '+ add field',
     'node.remove': 'Remove entity',
@@ -232,8 +249,16 @@ export const translations: Record<Locale, Translations> = {
     'sidebar.relationForeignKey': 'Внешний ключ',
     'sidebar.deleteRelation': 'Удалить связь',
 
+    'sidebar.dbHost': 'Хост',
+    'sidebar.dbPort': 'Порт',
+    'sidebar.dbUser': 'Пользователь',
+    'sidebar.dbPassword': 'Пароль',
+
     'sidebar.modules': 'Модули',
     'sidebar.authJwt': 'JWT Авторизация',
+    'sidebar.authInfo': 'Сущность User с email + password будет создана автоматически. Добавьте User на канву для кастомизации.',
+    'sidebar.authAddUser': '+ Добавить User',
+    'sidebar.authUserExists': 'Используется ваша сущность User',
 
     'node.addField': '+ добавить поле',
     'node.remove': 'Удалить сущность',

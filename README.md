@@ -5,6 +5,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Node.js](https://img.shields.io/node/v/@gyxer-studio/cli)](https://nodejs.org)
 [![Docs](https://img.shields.io/badge/docs-Website-blue)](https://gyxer513.github.io/gyxer-studio/)
+[![Docker](https://img.shields.io/docker/v/gyxer513/studio?label=docker&color=blue)](https://hub.docker.com/r/gyxer513/studio)
 
 Visual backend builder that generates production-ready NestJS applications.
 
@@ -18,10 +19,16 @@ Gyxer Studio is a visual tool for building production-ready backends. You design
 
 ## Quick Start
 
-### 1. Open the Visual Editor
+### Option A: Via npx (recommended)
 
 ```bash
 npx @gyxer-studio/cli editor
+```
+
+### Option B: Via Docker (no Node.js required)
+
+```bash
+docker run -p 4200:4200 gyxer513/studio
 ```
 
 Opens `http://localhost:4200` — add entities, configure fields and relations, then click **Generate**. The config saves to `./configs/`.
@@ -56,8 +63,10 @@ docker compose up -d
 | **Security Report** | Helmet, Rate Limiting, CORS, secrets check on every build |
 | **Docker** | Multi-stage Dockerfile + docker-compose.yml with healthcheck |
 | **HTTP Client** | Built-in Postman-like API tester with auto-generated endpoints |
+| **Generated Tests** | Service and controller spec files with full mocking |
 | **Import / Export** | Save and load project schemas as JSON |
 | **CLI Wizard** | Interactive `npx gyxer new` with styled terminal output |
+| **Docker Image** | `docker run -p 4200:4200 gyxer513/studio` — no Node.js needed |
 | **Dark Theme** | Light/dark mode with localStorage persistence |
 | **i18n** | English and Russian interface |
 
@@ -68,8 +77,8 @@ my-app/
   prisma/schema.prisma          # Models, relations, enums
   src/
     prisma/                     # PrismaService + PrismaExceptionFilter
-    user/                       # Module, controller, service, DTOs
-    post/                       # Module, controller, service, DTOs
+    user/                       # Module, controller, service, DTOs, specs
+    post/                       # Module, controller, service, DTOs, specs
     auth/                       # JWT auth (when enabled)
     main.ts                     # Swagger, Helmet, CORS, ValidationPipe
     app.module.ts               # All modules wired together
@@ -106,7 +115,7 @@ npx @gyxer-studio/cli generate examples/shop.json -o ./shop-api
 | Generator | TypeScript, string-based code generation |
 | CLI | Commander, Inquirer, Chalk, Ora |
 | Generated Backend | NestJS, Prisma, class-validator, Swagger |
-| Testing | Vitest — 149 tests (unit + E2E) |
+| Testing | Vitest — 190+ tests (unit + E2E) |
 
 ## Project Structure
 
@@ -127,7 +136,7 @@ gyxer-studio/
 ```bash
 npm install          # install all dependencies
 npm run build        # build all packages
-npm test             # run all 149 tests
+npm test             # run all 190+ tests
 npm run dev          # start editor dev server
 ```
 

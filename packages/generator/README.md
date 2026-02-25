@@ -39,6 +39,7 @@ for (const [path, content] of files) {
 - **Prisma schema** with models, relations, and enums
 - **NestJS modules** with controllers, services, and DTOs
 - **CRUD endpoints** with Swagger decorators and validation
+- **Test specs** — service and controller specs with mocked Prisma/service
 - **JWT auth** (when `auth-jwt` module is enabled)
 - **Docker** files (Dockerfile + docker-compose.yml)
 - **Security report** with best practices assessment
@@ -53,6 +54,8 @@ import {
   generateController,
   generateService,
   generateModule,
+  generateServiceSpec,
+  generateControllerSpec,
   generateDockerfile,
   generateDockerCompose,
 } from '@gyxer-studio/generator';

@@ -7,6 +7,7 @@ import { generateCreateDto, generateUpdateDto } from './generators/dto.generator
 import { generateService } from './generators/service.generator.js';
 import { generateController } from './generators/controller.generator.js';
 import { generateModule } from './generators/module.generator.js';
+import { generateServiceSpec, generateControllerSpec } from './generators/test.generator.js';
 import {
   generateMain,
   generateAppModule,
@@ -130,7 +131,19 @@ export async function generateProject(
       filesCreated,
     );
 
-    log(`  + src/${kebab}/ (module, controller, service, DTOs)`);
+    // Spec files
+    await writeFile(
+      path.join(entityDir, `${kebab}.service.spec.ts`),
+      generateServiceSpec(entity, project),
+      filesCreated,
+    );
+    await writeFile(
+      path.join(entityDir, `${kebab}.controller.spec.ts`),
+      generateControllerSpec(entity, project),
+      filesCreated,
+    );
+
+    log(`  + src/${kebab}/ (module, controller, service, DTOs, specs)`);
   }
 
   // ─── Auth JWT module ────────────────────────────────────
@@ -238,6 +251,9 @@ function generatePackageJson(project: GyxerProject): string {
       'start:debug': 'nest start --debug --watch',
       'start:prod': 'node dist/main',
       lint: 'eslint "{src,apps,libs,test}/**/*.ts" --fix',
+      test: 'jest',
+      'test:watch': 'jest --watch',
+      'test:cov': 'jest --coverage',
     },
     dependencies: {
       '@nestjs/common': '^10.4.0',
@@ -257,12 +273,25 @@ function generatePackageJson(project: GyxerProject): string {
     },
     devDependencies: {
       '@nestjs/cli': '^10.4.0',
+      '@nestjs/testing': '^10.4.0',
       '@types/express': '^5.0.0',
+      '@types/jest': '^29.5.0',
       '@types/node': '^22.0.0',
+      jest: '^29.7.0',
       prisma: '^6.0.0',
+      'ts-jest': '^29.2.0',
       typescript: '^5.7.0',
       prettier: '^3.4.0',
       ...(hasAuthJwt ? getAuthDevDependencies() : {}),
+    },
+    jest: {
+      moduleFileExtensions: ['js', 'json', 'ts'],
+      rootDir: 'src',
+      testRegex: '.*\\.spec\\.ts$',
+      transform: { '^.+\\.(t|j)s$': 'ts-jest' },
+      collectCoverageFrom: ['**/*.(t|j)s'],
+      coverageDirectory: '../coverage',
+      testEnvironment: 'node',
     },
   };
 

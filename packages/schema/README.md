@@ -49,6 +49,8 @@ const jsonResult = parseProjectJson(fs.readFileSync('my-app.json', 'utf-8'));
 | `boolean` | `boolean` | `Boolean` |
 | `datetime` | `Date` | `DateTime` |
 | `enum` | `enum` | `enum` |
+| `json` | `object` | `Json` |
+| `uuid` | `string` | `String @default(uuid())` |
 
 ## Relation Types
 

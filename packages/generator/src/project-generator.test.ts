@@ -195,6 +195,27 @@ describe('E2E: generateProject', () => {
       expect(await fs.pathExists(path.join(tmpDir, 'src', 'post', 'dto', 'update-post.dto.ts'))).toBe(true);
     });
 
+    it('should generate spec files for each entity', async () => {
+      await generateProject(minimalProject, { outputDir: tmpDir, silent: true });
+
+      expect(await fs.pathExists(path.join(tmpDir, 'src', 'post', 'post.service.spec.ts'))).toBe(true);
+      expect(await fs.pathExists(path.join(tmpDir, 'src', 'post', 'post.controller.spec.ts'))).toBe(true);
+    });
+
+    it('should include jest config and test deps in package.json', async () => {
+      await generateProject(minimalProject, { outputDir: tmpDir, silent: true });
+
+      const pkg = JSON.parse(await fs.readFile(path.join(tmpDir, 'package.json'), 'utf-8'));
+      expect(pkg.scripts.test).toBe('jest');
+      expect(pkg.scripts['test:cov']).toBe('jest --coverage');
+      expect(pkg.devDependencies['jest']).toBeDefined();
+      expect(pkg.devDependencies['ts-jest']).toBeDefined();
+      expect(pkg.devDependencies['@nestjs/testing']).toBeDefined();
+      expect(pkg.devDependencies['@types/jest']).toBeDefined();
+      expect(pkg.jest).toBeDefined();
+      expect(pkg.jest.testRegex).toContain('spec');
+    });
+
     it('should NOT generate Docker files when docker is false', async () => {
       await generateProject(minimalProject, { outputDir: tmpDir, silent: true });
 
@@ -341,6 +362,23 @@ describe('E2E: generateProject', () => {
       const ctrl = await fs.readFile(path.join(tmpDir, 'src', 'post', 'post.controller.ts'), 'utf-8');
       expect(ctrl).toContain('@Public()');
       expect(ctrl).toContain('@ApiBearerAuth()');
+    });
+
+    it('should generate spec files for all entities', async () => {
+      await generateProject(blogProject, { outputDir: tmpDir, silent: true });
+
+      for (const entity of ['user', 'post', 'comment']) {
+        expect(await fs.pathExists(path.join(tmpDir, 'src', entity, `${entity}.service.spec.ts`))).toBe(true);
+        expect(await fs.pathExists(path.join(tmpDir, 'src', entity, `${entity}.controller.spec.ts`))).toBe(true);
+      }
+    });
+
+    it('should generate User spec with bcrypt mock', async () => {
+      await generateProject(blogProject, { outputDir: tmpDir, silent: true });
+
+      const spec = await fs.readFile(path.join(tmpDir, 'src', 'user', 'user.service.spec.ts'), 'utf-8');
+      expect(spec).toContain("jest.mock('bcrypt'");
+      expect(spec).toContain('passwordHash');
     });
 
     it('should include security report', async () => {

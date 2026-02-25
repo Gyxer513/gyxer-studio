@@ -47,6 +47,10 @@ export interface ProjectSettings {
   description: string;
   port: number;
   database: 'postgresql' | 'mysql' | 'sqlite';
+  dbHost: string;
+  dbPort: number;
+  dbUser: string;
+  dbPassword: string;
   enableSwagger: boolean;
   enableCors: boolean;
   enableHelmet: boolean;
@@ -88,6 +92,9 @@ interface ProjectStore {
   // Selection
   clearSelection: () => void;
 
+  // Auth helper
+  addUserEntity: () => void;
+
   // Import
   importProject: (json: any) => void;
 
@@ -109,6 +116,10 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
     description: '',
     port: 3000,
     database: 'postgresql',
+    dbHost: 'localhost',
+    dbPort: 5432,
+    dbUser: 'postgres', // pragma: allowlist secret
+    dbPassword: 'postgres', // pragma: allowlist secret
     enableSwagger: true,
     enableCors: true,
     enableHelmet: true,
@@ -234,6 +245,25 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
 
   clearSelection: () => set({ selectedEntityId: null, selectedRelationId: null }),
 
+  addUserEntity: () => {
+    const state = get();
+    if (state.entities.some((e) => e.name === 'User')) return;
+    entityCounter++;
+    const newEntity: EntityData = {
+      id: `entity-${entityCounter}`,
+      name: 'User',
+      fields: [
+        { name: 'email', type: 'string', required: true, unique: true, index: true },
+        { name: 'name', type: 'string', required: true, unique: false, index: false },
+      ],
+      position: { x: 100 + Math.random() * 200, y: 100 + Math.random() * 200 },
+    };
+    set((s) => ({
+      entities: [...s.entities, newEntity],
+      selectedEntityId: newEntity.id,
+    }));
+  },
+
   importProject: (json: any) => {
     try {
       const ts = Date.now();
@@ -298,11 +328,16 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
         }
       }
 
+      const db = json.settings?.database || 'postgresql';
       const settings: ProjectSettings = {
         name: json.settings?.name || json.name || 'my-app',
         description: json.settings?.description || json.description || '',
         port: json.settings?.port || 3000,
-        database: json.settings?.database || 'postgresql',
+        database: db,
+        dbHost: json.settings?.dbHost || (db === 'sqlite' ? '' : 'localhost'),
+        dbPort: json.settings?.dbPort || (db === 'mysql' ? 3306 : db === 'sqlite' ? 0 : 5432),
+        dbUser: json.settings?.dbUser || (db === 'mysql' ? 'root' : db === 'sqlite' ? '' : 'postgres'), // pragma: allowlist secret
+        dbPassword: json.settings?.dbPassword || (db === 'mysql' ? 'root' : db === 'sqlite' ? '' : 'postgres'), // pragma: allowlist secret
         enableSwagger: json.settings?.enableSwagger ?? true,
         enableCors: json.settings?.enableCors ?? true,
         enableHelmet: json.settings?.enableHelmet ?? true,
@@ -339,9 +374,21 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
   // ── Settings ────────────────────────────────────
 
   updateSettings: (data) => {
-    set((state) => ({
-      settings: { ...state.settings, ...data },
-    }));
+    set((state) => {
+      let merged = { ...state.settings, ...data };
+
+      // When database type changes, set sensible defaults
+      if (data.database && data.database !== state.settings.database) {
+        const dbDefaults: Record<string, { dbHost: string; dbPort: number; dbUser: string; dbPassword: string }> = {
+          postgresql: { dbHost: 'localhost', dbPort: 5432, dbUser: 'postgres', dbPassword: 'postgres' }, // pragma: allowlist secret
+          mysql: { dbHost: 'localhost', dbPort: 3306, dbUser: 'root', dbPassword: 'root' }, // pragma: allowlist secret
+          sqlite: { dbHost: '', dbPort: 0, dbUser: '', dbPassword: '' },
+        };
+        merged = { ...merged, ...dbDefaults[data.database] };
+      }
+
+      return { settings: merged };
+    });
   },
 
   toggleModule: (module, enabled) => {

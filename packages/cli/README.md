@@ -83,6 +83,20 @@ See [examples/](https://github.com/Gyxer513/gyxer-studio/tree/master/examples) f
 - `blog-with-auth.json` — Same blog + JWT authentication
 - `shop.json` — E-commerce with 6 entities and enums
 
+## Docker Alternative
+
+Run the editor without installing Node.js:
+
+```bash
+docker run -p 4200:4200 gyxer513/studio
+```
+
+With persistent configs:
+
+```bash
+docker run -p 4200:4200 -v gyxer-configs:/data/configs gyxer513/studio
+```
+
 ## Part of [Gyxer Studio](https://github.com/Gyxer513/gyxer-studio)
 
 MIT License

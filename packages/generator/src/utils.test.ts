@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { toKebabCase, toCamelCase, toSnakeCase, toScreamingSnake, pluralize } from './utils.js';
+import { toKebabCase, toCamelCase, toSnakeCase, toScreamingSnake, pluralize, toPascalCase } from './utils.js';
 
 describe('utils', () => {
   describe('toKebabCase', () => {
@@ -21,6 +21,17 @@ describe('utils', () => {
 
   describe('toScreamingSnake', () => {
     it('converts PascalCase', () => expect(toScreamingSnake('BlogPost')).toBe('BLOG_POST'));
+  });
+
+  describe('toPascalCase', () => {
+    it('converts space-separated', () => expect(toPascalCase('my entity')).toBe('MyEntity'));
+    it('converts snake_case', () => expect(toPascalCase('blog_post')).toBe('BlogPost'));
+    it('converts camelCase', () => expect(toPascalCase('blogPost')).toBe('BlogPost'));
+    it('keeps valid PascalCase', () => expect(toPascalCase('BlogPost')).toBe('BlogPost'));
+    it('handles single word', () => expect(toPascalCase('user')).toBe('User'));
+    it('handles kebab-case', () => expect(toPascalCase('blog-post')).toBe('BlogPost'));
+    it('handles empty string', () => expect(toPascalCase('')).toBe(''));
+    it('handles SCREAMING_SNAKE', () => expect(toPascalCase('BLOG_POST')).toBe('BlogPost'));
   });
 
   describe('pluralize', () => {
