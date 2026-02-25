@@ -1,5 +1,14 @@
 # @gyxer-studio/cli
 
+## 0.4.1
+
+### Patch Changes
+
+- b3a8bcc: Bearer token auto-save in HTTP client, docs link in CLI output, http-store tests
+- Updated dependencies [b3a8bcc]
+  - @gyxer-studio/generator@0.4.1
+  - @gyxer-studio/schema@0.4.1
+
 ## 0.4.0
 
 ### Minor Changes
