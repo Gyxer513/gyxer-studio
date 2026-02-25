@@ -181,6 +181,7 @@ export async function generateCommand(schemaPath: string | undefined, options: G
     console.log(chalk.cyan('    npx prisma migrate dev --name init'));
     console.log(chalk.cyan('    npm run start:dev'));
     console.log('');
+    console.log(chalk.dim(`  📖 Docs: ${chalk.blue('https://gyxer513.github.io/gyxer-studio/')}`));
   } catch (error) {
     spinner.fail(chalk.red('Generation failed'));
     console.error(chalk.red(`  ${error instanceof Error ? error.message : String(error)}`));

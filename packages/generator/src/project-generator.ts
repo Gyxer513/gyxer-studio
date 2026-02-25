@@ -229,6 +229,8 @@ export async function generateProject(
   log('  npm install');
   log('  npx prisma migrate dev --name init');
   log('  npm run start:dev');
+  log('');
+  log('Docs: https://gyxer513.github.io/gyxer-studio/');
 
   return { outputDir, filesCreated, securityReport };
 }

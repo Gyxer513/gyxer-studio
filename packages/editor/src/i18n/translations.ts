@@ -113,6 +113,11 @@ export interface Translations {
   'http.login': string;
   'http.refresh': string;
   'http.profile': string;
+  'http.auth': string;
+  'http.bearerToken': string;
+  'http.clearToken': string;
+  'http.tokenHint': string;
+  'http.tokenSaved': string;
 }
 
 export const translations: Record<Locale, Translations> = {
@@ -216,6 +221,11 @@ export const translations: Record<Locale, Translations> = {
     'http.login': 'login',
     'http.refresh': 'refresh token',
     'http.profile': 'get profile',
+    'http.auth': 'Auth',
+    'http.bearerToken': 'Bearer Token',
+    'http.clearToken': 'Clear',
+    'http.tokenHint': 'Login to /auth/login to get token automatically',
+    'http.tokenSaved': 'Token saved from login response',
   },
 
   ru: {
@@ -318,5 +328,10 @@ export const translations: Record<Locale, Translations> = {
     'http.login': 'вход',
     'http.refresh': 'обновить токен',
     'http.profile': 'профиль',
+    'http.auth': 'Авторизация',
+    'http.bearerToken': 'Bearer токен',
+    'http.clearToken': 'Очистить',
+    'http.tokenHint': 'Войдите через /auth/login для автоматического получения токена',
+    'http.tokenSaved': 'Токен сохранён из ответа login',
   },
 };
