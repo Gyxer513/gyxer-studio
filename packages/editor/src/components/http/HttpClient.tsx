@@ -9,10 +9,12 @@ import { RequestHistory } from './RequestHistory';
 export function HttpClient() {
   const {
     baseUrl,
+    bearerToken,
     activeRequest,
     isLoading,
     setLoading,
     setResponse,
+    setToken,
     pushHistory,
   } = useHttpStore();
   const { t } = useTranslation();
@@ -31,6 +33,11 @@ export function HttpClient() {
       if (h.enabled && h.key.trim()) {
         headers[h.key.trim()] = h.value;
       }
+    }
+
+    // Auto-inject bearer token if set and no Authorization header already exists
+    if (bearerToken && !headers['Authorization'] && !headers['authorization']) {
+      headers['Authorization'] = `Bearer ${bearerToken}`;
     }
 
     const startTime = performance.now();
@@ -66,6 +73,23 @@ export function HttpClient() {
 
       setResponse(response);
 
+      // Auto-extract bearer token from login response
+      if (
+        activeRequest.path.includes('/auth/login') &&
+        res.status >= 200 &&
+        res.status < 300
+      ) {
+        try {
+          const json = JSON.parse(bodyText);
+          const token = json.access_token || json.accessToken || json.token;
+          if (token && typeof token === 'string') {
+            setToken(token);
+          }
+        } catch {
+          // Not JSON — ignore
+        }
+      }
+
       // Push to history
       pushHistory({
         id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
@@ -92,7 +116,7 @@ export function HttpClient() {
 
       setResponse(errorResponse);
     }
-  }, [baseUrl, activeRequest, isLoading, setLoading, setResponse, pushHistory, t]);
+  }, [baseUrl, bearerToken, activeRequest, isLoading, setLoading, setResponse, setToken, pushHistory, t]);
 
   return (
     <div className="flex flex-col h-full">

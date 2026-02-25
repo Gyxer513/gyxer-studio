@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useHttpStore, type HttpMethod } from '../../store/http-store';
+import { useProjectStore } from '../../store/project-store';
 import { useTranslation } from '../../i18n';
 import { inputCls, labelCls } from '../shared-styles';
 
@@ -16,16 +17,20 @@ const METHOD_COLORS: Record<HttpMethod, string> = {
 export function RequestBuilder({ onSend }: { onSend: () => void }) {
   const {
     baseUrl, setBaseUrl,
+    bearerToken, setToken, clearToken,
     activeRequest,
     setMethod, setPath, setBody,
     addHeader, removeHeader, toggleHeader, updateHeader,
     isLoading,
   } = useHttpStore();
+  const { modules } = useProjectStore();
   const { t } = useTranslation();
 
   const [showHeaders, setShowHeaders] = useState(false);
   const [showBody, setShowBody] = useState(true);
+  const [showAuth, setShowAuth] = useState(false);
   const hasBody = ['POST', 'PATCH', 'PUT'].includes(activeRequest.method);
+  const hasToken = bearerToken.length > 0;
 
   return (
     <div className="px-3 py-2.5 space-y-2.5 border-b border-gray-100 dark:border-dark-700">
@@ -39,6 +44,54 @@ export function RequestBuilder({ onSend }: { onSend: () => void }) {
           placeholder="http://localhost:3000"
           className={`${inputCls} font-mono text-xs`}
         />
+      </div>
+
+      {/* Auth / Bearer Token */}
+      <div>
+        <button
+          onClick={() => setShowAuth(!showAuth)}
+          className="flex items-center gap-1 text-xs font-medium text-dark-400 dark:text-dark-300 hover:text-dark-600 dark:hover:text-dark-100 transition-colors"
+        >
+          <span className={`transition-transform ${showAuth ? 'rotate-90' : ''}`}>▸</span>
+          {t('http.auth')}
+          <span className={`ml-1 text-[10px] ${hasToken ? 'text-green-500' : 'text-dark-300 dark:text-dark-500'}`}>
+            {hasToken ? '🔒' : '🔓'}
+          </span>
+        </button>
+
+        {showAuth && (
+          <div className="mt-1.5 space-y-1.5">
+            <div className="flex items-center gap-1">
+              <span className="text-[11px] font-medium text-dark-400 dark:text-dark-300 shrink-0">Bearer</span>
+              <input
+                type="text"
+                value={bearerToken}
+                onChange={(e) => setToken(e.target.value)}
+                placeholder="Paste token or login to /auth/login"
+                className={`flex-1 px-1.5 py-0.5 border border-gray-200 dark:border-dark-600 rounded text-[11px] font-mono bg-white dark:bg-dark-700 dark:text-dark-200 ${inputCls}`}
+              />
+              {hasToken && (
+                <button
+                  onClick={clearToken}
+                  className="w-4 h-4 flex items-center justify-center text-dark-300 hover:text-gyxer-500 rounded text-[10px] shrink-0"
+                  title={t('http.clearToken')}
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+            {!hasToken && modules.authJwt && (
+              <p className="text-[10px] text-dark-300 dark:text-dark-500">
+                {t('http.tokenHint')}
+              </p>
+            )}
+            {hasToken && (
+              <p className="text-[10px] text-green-500 dark:text-green-400">
+                ✓ {t('http.tokenSaved')}
+              </p>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Method + Path + Send */}

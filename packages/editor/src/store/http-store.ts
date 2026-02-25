@@ -45,6 +45,7 @@ function defaultRequest(): HttpRequest {
 interface HttpStore {
   // Persisted
   baseUrl: string;
+  bearerToken: string;
   history: HistoryEntry[];
 
   // Session
@@ -54,6 +55,10 @@ interface HttpStore {
 
   // Actions — base URL
   setBaseUrl: (url: string) => void;
+
+  // Actions — bearer token
+  setToken: (token: string) => void;
+  clearToken: () => void;
 
   // Actions — request building
   setMethod: (method: HttpMethod) => void;
@@ -78,6 +83,7 @@ export const useHttpStore = create<HttpStore>()(
     (set) => ({
       // Persisted defaults
       baseUrl: 'http://localhost:3000',
+      bearerToken: '',
       history: [],
 
       // Session defaults
@@ -87,6 +93,10 @@ export const useHttpStore = create<HttpStore>()(
 
       // Base URL
       setBaseUrl: (baseUrl) => set({ baseUrl }),
+
+      // Bearer token
+      setToken: (bearerToken) => set({ bearerToken }),
+      clearToken: () => set({ bearerToken: '' }),
 
       // Request building
       setMethod: (method) =>
@@ -156,6 +166,7 @@ export const useHttpStore = create<HttpStore>()(
       name: 'gyxer-http',
       partialize: (state) => ({
         baseUrl: state.baseUrl,
+        bearerToken: state.bearerToken,
         history: state.history,
       }),
     },
