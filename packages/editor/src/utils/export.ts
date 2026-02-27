@@ -54,13 +54,22 @@ export function exportToSchema(): Record<string, unknown> {
         ...(f.enumValues ? { enumValues: f.enumValues } : {}),
       })),
       relations: entityRelations,
+      ...(entity.authOverride && entity.authOverride !== 'default' ? { authOverride: entity.authOverride } : {}),
     };
   });
 
   // Build modules array from toggle flags
   const schemaModules: Array<{ name: string; enabled: boolean; options: Record<string, unknown> }> = [];
   if (modules.authJwt) {
-    schemaModules.push({ name: 'auth-jwt', enabled: true, options: {} });
+    const options: Record<string, unknown> = {};
+    if (modules.seedUsers?.length) {
+      options.seedUsers = modules.seedUsers.map((u) => ({
+        email: u.email,
+        password: u.password,
+        ...(Object.keys(u.extraFields).length > 0 ? u.extraFields : {}),
+      }));
+    }
+    schemaModules.push({ name: 'auth-jwt', enabled: true, options });
   }
 
   return {

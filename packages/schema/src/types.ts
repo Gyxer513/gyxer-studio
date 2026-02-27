@@ -52,6 +52,11 @@ export const RelationSchema = z.object({
 });
 export type Relation = z.infer<typeof RelationSchema>;
 
+// ─── Auth Override ────────────────────────────────────────────
+
+export const AuthOverride = z.enum(['default', 'public', 'protected']);
+export type AuthOverride = z.infer<typeof AuthOverride>;
+
 // ─── Entity ───────────────────────────────────────────────────
 
 export const EntitySchema = z.object({
@@ -62,6 +67,7 @@ export const EntitySchema = z.object({
   description: z.string().optional(),
   fields: z.array(FieldSchema).min(1, 'Entity must have at least one field'),
   relations: z.array(RelationSchema).default([]),
+  authOverride: AuthOverride.optional(),
 });
 export type Entity = z.infer<typeof EntitySchema>;
 

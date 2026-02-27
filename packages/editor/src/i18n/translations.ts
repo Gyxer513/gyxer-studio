@@ -82,8 +82,29 @@ export interface Translations {
   'onDelete.NO_ACTION': string;
 
   // Right Panel tabs
-  'panel.schemaTab': string;
+  'panel.projectTab': string;
+  'panel.databaseTab': string;
+  'panel.modulesTab': string;
   'panel.httpTab': string;
+
+  // Auth module details
+  'sidebar.authGenerates': string;
+  'sidebar.authSeedInfo': string;
+  'sidebar.authPasswordField': string;
+
+  // Auth override per entity
+  'sidebar.authOverride': string;
+  'sidebar.authDefault': string;
+  'sidebar.authPublic': string;
+  'sidebar.authProtected': string;
+  'sidebar.authDefaultHint': string;
+  'sidebar.authPublicHint': string;
+  'sidebar.authProtectedHint': string;
+
+  // Seed users
+  'sidebar.seedUsers': string;
+  'sidebar.addSeedUser': string;
+  'sidebar.removeSeedUser': string;
 
   // HTTP Client
   'http.baseUrl': string;
@@ -191,8 +212,26 @@ export const translations: Record<Locale, Translations> = {
     'onDelete.RESTRICT': 'RESTRICT',
     'onDelete.NO_ACTION': 'NO ACTION',
 
-    'panel.schemaTab': 'Schema',
+    'panel.projectTab': 'Project',
+    'panel.databaseTab': 'DB',
+    'panel.modulesTab': 'Modules',
     'panel.httpTab': 'HTTP',
+
+    'sidebar.authGenerates': 'Auth generates:',
+    'sidebar.authSeedInfo': 'Test user admin@example.com will be seeded',
+    'sidebar.authPasswordField': 'passwordHash auto-added to User',
+
+    'sidebar.authOverride': 'Auth Protection',
+    'sidebar.authDefault': 'Default (GET public, others protected)',
+    'sidebar.authPublic': 'Public (all endpoints open)',
+    'sidebar.authProtected': 'Protected (all require JWT)',
+    'sidebar.authDefaultHint': 'GET public, POST/PATCH/DELETE require JWT',
+    'sidebar.authPublicHint': 'All endpoints open — no auth',
+    'sidebar.authProtectedHint': 'All endpoints require JWT',
+
+    'sidebar.seedUsers': 'Seed Users',
+    'sidebar.addSeedUser': '+ Add User',
+    'sidebar.removeSeedUser': 'Remove',
 
     'http.baseUrl': 'Base URL',
     'http.send': 'Send',
@@ -298,8 +337,26 @@ export const translations: Record<Locale, Translations> = {
     'onDelete.RESTRICT': 'RESTRICT',
     'onDelete.NO_ACTION': 'NO ACTION',
 
-    'panel.schemaTab': 'Схема',
+    'panel.projectTab': 'Проект',
+    'panel.databaseTab': 'БД',
+    'panel.modulesTab': 'Модули',
     'panel.httpTab': 'HTTP',
+
+    'sidebar.authGenerates': 'Auth генерирует:',
+    'sidebar.authSeedInfo': 'Тестовый пользователь admin@example.com будет создан',
+    'sidebar.authPasswordField': 'passwordHash добавлено в User автоматически',
+
+    'sidebar.authOverride': 'Защита авторизации',
+    'sidebar.authDefault': 'По умолчанию (GET публичные, остальные защищены)',
+    'sidebar.authPublic': 'Публичный (все эндпоинты открыты)',
+    'sidebar.authProtected': 'Защищённый (все требуют JWT)',
+    'sidebar.authDefaultHint': 'GET публичные, POST/PATCH/DELETE требуют JWT',
+    'sidebar.authPublicHint': 'Все эндпоинты открыты — авторизация не нужна',
+    'sidebar.authProtectedHint': 'Все эндпоинты требуют валидный JWT',
+
+    'sidebar.seedUsers': 'Тестовые пользователи',
+    'sidebar.addSeedUser': '+ Добавить',
+    'sidebar.removeSeedUser': 'Удалить',
 
     'http.baseUrl': 'Базовый URL',
     'http.send': 'Отправить',

@@ -19,6 +19,24 @@ export function generateController(entity: Entity, project: GyxerProject): strin
   const hasAuthJwt =
     project.modules?.some((m) => m.name === 'auth-jwt' && m.enabled !== false) ?? false;
 
+  const authOverride = entity.authOverride ?? 'default';
+
+  /** Return the auth decorator for a given method category. */
+  function getDecorator(method: 'GET' | 'MUTATE'): string {
+    if (!hasAuthJwt) return '';
+    switch (authOverride) {
+      case 'public':
+        return '\n  @Public()';
+      case 'protected':
+        return '\n  @ApiBearerAuth()';
+      default: // 'default'
+        return method === 'GET' ? '\n  @Public()' : '\n  @ApiBearerAuth()';
+    }
+  }
+
+  const needsPublicImport = hasAuthJwt && authOverride !== 'protected';
+  const needsBearerImport = hasAuthJwt && authOverride !== 'public';
+
   const importLines = [
     'import {',
     '  Controller,',
@@ -32,21 +50,17 @@ export function generateController(entity: Entity, project: GyxerProject): strin
     "} from '@nestjs/common';",
   ];
 
-  const swaggerImports = hasAuthJwt
-    ? "import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';"
-    : "import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';";
-  importLines.push(swaggerImports);
+  const swaggerParts = ['ApiTags', 'ApiOperation', 'ApiResponse'];
+  if (needsBearerImport) swaggerParts.push('ApiBearerAuth');
+  importLines.push(`import { ${swaggerParts.join(', ')} } from '@nestjs/swagger';`);
 
-  if (hasAuthJwt) {
+  if (needsPublicImport) {
     importLines.push("import { Public } from '../auth/decorators/public.decorator';");
   }
 
   importLines.push(`import { ${name}Service } from './${kebab}.service';`);
   importLines.push(`import { Create${name}Dto } from './dto/create-${kebab}.dto';`);
   importLines.push(`import { Update${name}Dto } from './dto/update-${kebab}.dto';`);
-
-  const protectedDecorator = hasAuthJwt ? '\n  @ApiBearerAuth()' : '';
-  const publicDecorator = hasAuthJwt ? '\n  @Public()' : '';
 
   return `${importLines.join('\n')}
 
@@ -55,21 +69,21 @@ export function generateController(entity: Entity, project: GyxerProject): strin
 export class ${className} {
   constructor(private readonly ${serviceName}: ${name}Service) {}
 
-  @Post()${protectedDecorator}
+  @Post()${getDecorator('MUTATE')}
   @ApiOperation({ summary: 'Create a new ${camel}' })
   @ApiResponse({ status: 201, description: '${name} created successfully' })
   create(@Body() dto: Create${name}Dto) {
     return this.${serviceName}.create(dto);
   }
 
-  @Get()${publicDecorator}
+  @Get()${getDecorator('GET')}
   @ApiOperation({ summary: 'Get all ${pluralize(camel)}' })
   @ApiResponse({ status: 200, description: 'List of ${pluralize(camel)}' })
   findAll() {
     return this.${serviceName}.findAll();
   }
 
-  @Get(':id')${publicDecorator}
+  @Get(':id')${getDecorator('GET')}
   @ApiOperation({ summary: 'Get a ${camel} by id' })
   @ApiResponse({ status: 200, description: '${name} found' })
   @ApiResponse({ status: 404, description: '${name} not found' })
@@ -77,7 +91,7 @@ export class ${className} {
     return this.${serviceName}.findOne(id);
   }
 
-  @Patch(':id')${protectedDecorator}
+  @Patch(':id')${getDecorator('MUTATE')}
   @ApiOperation({ summary: 'Update a ${camel}' })
   @ApiResponse({ status: 200, description: '${name} updated successfully' })
   @ApiResponse({ status: 404, description: '${name} not found' })
@@ -85,7 +99,7 @@ export class ${className} {
     return this.${serviceName}.update(id, dto);
   }
 
-  @Delete(':id')${protectedDecorator}
+  @Delete(':id')${getDecorator('MUTATE')}
   @ApiOperation({ summary: 'Delete a ${camel}' })
   @ApiResponse({ status: 200, description: '${name} deleted successfully' })
   @ApiResponse({ status: 404, description: '${name} not found' })

@@ -29,6 +29,7 @@ import {
   getAuthDependencies,
   getAuthDevDependencies,
 } from './modules/auth-jwt.generator.js';
+import { generateSeedFile } from './modules/seed.generator.js';
 
 export interface GenerateOptions {
   outputDir: string;
@@ -156,6 +157,11 @@ export async function generateProject(
       await writeFile(fullPath, content, filesCreated);
     }
     log('  + src/auth/ (module, controller, service, DTOs, JWT strategy, guards, decorators)');
+
+    // Seed file for test user
+    const seedContent = generateSeedFile(project);
+    await writeFile(path.join(prismaDir, 'seed.ts'), seedContent, filesCreated);
+    log('  + prisma/seed.ts');
   }
 
   // ─── App bootstrap ─────────────────────────────────────
@@ -228,6 +234,9 @@ export async function generateProject(
   log(`  cd ${outputDir}`);
   log('  npm install');
   log('  npx prisma migrate dev --name init');
+  if (hasAuthJwt) {
+    log('  npx prisma db seed');
+  }
   log('  npm run start:dev');
   log('');
   log('Docs: https://gyxer513.github.io/gyxer-studio/');
@@ -284,7 +293,7 @@ function generatePackageJson(project: GyxerProject): string {
       'ts-jest': '^29.2.0',
       typescript: '^5.7.0',
       prettier: '^3.4.0',
-      ...(hasAuthJwt ? getAuthDevDependencies() : {}),
+      ...(hasAuthJwt ? { 'ts-node': '^10.9.0', ...getAuthDevDependencies() } : {}),
     },
     jest: {
       moduleFileExtensions: ['js', 'json', 'ts'],
@@ -295,6 +304,9 @@ function generatePackageJson(project: GyxerProject): string {
       coverageDirectory: '../coverage',
       testEnvironment: 'node',
     },
+    ...(hasAuthJwt
+      ? { prisma: { seed: 'ts-node prisma/seed.ts' } }
+      : {}),
   };
 
   return JSON.stringify(pkg, null, 2) + '\n';

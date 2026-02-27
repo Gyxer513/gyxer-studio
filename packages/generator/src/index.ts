@@ -24,6 +24,7 @@ export {
 
 // Modules
 export { generateAuthJwtFiles } from './modules/auth-jwt.generator.js';
+export { generateSeedFile } from './modules/seed.generator.js';
 
 // Security
 export { generateSecurityReport, formatSecurityReport } from './security/report.js';
