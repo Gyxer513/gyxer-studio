@@ -395,5 +395,12 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
     set((state) => ({
       modules: { ...state.modules, [module]: enabled },
     }));
+    // Auto-create User entity when auth-jwt is enabled
+    if (module === 'authJwt' && enabled) {
+      const state = get();
+      if (!state.entities.some((e) => e.name === 'User')) {
+        state.addUserEntity();
+      }
+    }
   },
 }));

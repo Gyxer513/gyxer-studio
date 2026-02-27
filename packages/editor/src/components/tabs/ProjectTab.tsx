@@ -1,8 +1,8 @@
 import React from 'react';
-import { useProjectStore, type FieldType, type RelationType } from '../store/project-store';
-import { useTranslation } from '../i18n';
-import { inputCls, labelCls, sectionCls, cardCls, checkboxCls, smallInputCls } from './shared-styles';
-import { toPascalCase, toProjectKebab } from '../utils/naming';
+import { useProjectStore, type FieldType, type RelationType } from '../../store/project-store';
+import { useTranslation } from '../../i18n';
+import { inputCls, labelCls, sectionCls, cardCls, checkboxCls, smallInputCls } from '../shared-styles';
+import { toPascalCase, toProjectKebab } from '../../utils/naming';
 
 const FIELD_TYPES: FieldType[] = [
   'string', 'text', 'int', 'float', 'boolean', 'datetime', 'enum', 'json', 'uuid',
@@ -11,15 +11,14 @@ const FIELD_TYPES: FieldType[] = [
 const RELATION_TYPES: RelationType[] = ['one-to-one', 'one-to-many', 'many-to-many'];
 const ON_DELETE_OPTIONS = ['CASCADE', 'SET_NULL', 'RESTRICT', 'NO_ACTION'] as const;
 
-export function Sidebar() {
+export function ProjectTab() {
   const {
     entities, relations,
     selectedEntityId, selectedRelationId,
-    settings, modules,
+    settings,
     updateEntity, updateField, removeField, addField,
     updateRelation, removeRelation,
-    updateSettings, toggleModule,
-    addUserEntity,
+    updateSettings,
   } = useProjectStore();
   const { t } = useTranslation();
 
@@ -82,110 +81,6 @@ export function Sidebar() {
         </div>
       </div>
 
-      {/* ─── Database ─── */}
-      <div className="p-4 border-b border-gray-100 dark:border-dark-700">
-        <h2 className={sectionCls}>{t('sidebar.database')}</h2>
-        <div className="space-y-3">
-          <div>
-            <select
-              value={settings.database}
-              onChange={(e) => updateSettings({ database: e.target.value as any })}
-              className={inputCls.replace('px-3', 'px-2')}
-            >
-              <option value="postgresql">PostgreSQL</option>
-              <option value="mysql">MySQL</option>
-              <option value="sqlite">SQLite</option>
-            </select>
-          </div>
-          {settings.database !== 'sqlite' && (
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className={labelCls}>{t('sidebar.dbHost')}</label>
-                <input
-                  type="text"
-                  value={settings.dbHost}
-                  onChange={(e) => updateSettings({ dbHost: e.target.value })}
-                  className={`${inputCls} font-mono text-xs`}
-                  placeholder="localhost"
-                />
-              </div>
-              <div>
-                <label className={labelCls}>{t('sidebar.dbPort')}</label>
-                <input
-                  type="number"
-                  value={settings.dbPort}
-                  onChange={(e) => updateSettings({ dbPort: parseInt(e.target.value) || 0 })}
-                  className={`${inputCls} font-mono text-xs`}
-                />
-              </div>
-              <div>
-                <label className={labelCls}>{t('sidebar.dbUser')}</label>
-                <input
-                  type="text"
-                  value={settings.dbUser}
-                  onChange={(e) => updateSettings({ dbUser: e.target.value })}
-                  className={`${inputCls} font-mono text-xs`}
-                  placeholder="postgres"
-                />
-              </div>
-              <div>
-                <label className={labelCls}>{t('sidebar.dbPassword')}</label>
-                <input
-                  type="text"
-                  value={settings.dbPassword}
-                  onChange={(e) => updateSettings({ dbPassword: e.target.value })}
-                  className={`${inputCls} font-mono text-xs`}
-                  placeholder="postgres"
-                />
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* ─── Modules ─── */}
-      <div className="p-4 border-b border-gray-100 dark:border-dark-700">
-        <h2 className={sectionCls}>{t('sidebar.modules')}</h2>
-        <label className="flex items-center gap-2.5 cursor-pointer group">
-          <input
-            type="checkbox"
-            checked={modules.authJwt}
-            onChange={(e) => toggleModule('authJwt', e.target.checked)}
-            className={checkboxCls}
-          />
-          <div className="flex items-center gap-2">
-            <span className="w-6 h-6 bg-gyxer-50 dark:bg-gyxer-900/40 rounded flex items-center justify-center text-xs">🔐</span>
-            <span className="text-sm text-dark-600 dark:text-dark-200 group-hover:text-dark-800 dark:group-hover:text-white transition-colors">
-              {t('sidebar.authJwt')}
-            </span>
-          </div>
-        </label>
-
-        {modules.authJwt && (
-          <div className="mt-3 ml-7 space-y-2">
-            {entities.some((e) => e.name === 'User') ? (
-              <div className="flex items-center gap-1.5 text-xs text-green-600 dark:text-green-400">
-                <span>✅</span>
-                <span>{t('sidebar.authUserExists')}</span>
-              </div>
-            ) : (
-              <>
-                <div className="text-xs text-dark-400 dark:text-dark-300 leading-relaxed">
-                  <span className="mr-1">ℹ️</span>
-                  {t('sidebar.authInfo')}
-                </div>
-                <button
-                  onClick={addUserEntity}
-                  className="px-3 py-1.5 border border-dashed border-gyxer-300 dark:border-gyxer-700 text-gyxer-600 dark:text-gyxer-400 rounded-lg text-xs font-medium hover:bg-gyxer-50 dark:hover:bg-gyxer-900/30 hover:border-gyxer-400 transition-all"
-                >
-                  {t('sidebar.authAddUser')}
-                </button>
-              </>
-            )}
-          </div>
-        )}
-      </div>
-
       {/* ─── Selected Relation ─── */}
       {selectedRelation ? (
         <div className="p-4 flex-1">
@@ -194,7 +89,7 @@ export function Sidebar() {
           <div className={`mb-4 ${cardCls}`}>
             <div className="flex items-center gap-2 text-sm">
               <span className="font-semibold text-dark-700 dark:text-dark-100">{sourceEntity?.name || '?'}</span>
-              <span className="text-dark-300">→</span>
+              <span className="text-dark-300">&rarr;</span>
               <span className="font-semibold text-dark-700 dark:text-dark-100">{targetEntity?.name || '?'}</span>
             </div>
           </div>

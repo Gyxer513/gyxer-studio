@@ -229,6 +229,19 @@ describe('E2E: generateProject', () => {
       expect(await fs.pathExists(path.join(tmpDir, 'src', 'auth'))).toBe(false);
     });
 
+    it('should NOT generate prisma/seed.ts without auth', async () => {
+      await generateProject(minimalProject, { outputDir: tmpDir, silent: true });
+
+      expect(await fs.pathExists(path.join(tmpDir, 'prisma', 'seed.ts'))).toBe(false);
+    });
+
+    it('should NOT include prisma seed config in package.json without auth', async () => {
+      await generateProject(minimalProject, { outputDir: tmpDir, silent: true });
+
+      const pkg = JSON.parse(await fs.readFile(path.join(tmpDir, 'package.json'), 'utf-8'));
+      expect(pkg.prisma).toBeUndefined();
+    });
+
     it('should generate Prisma infrastructure', async () => {
       await generateProject(minimalProject, { outputDir: tmpDir, silent: true });
 
@@ -379,6 +392,33 @@ describe('E2E: generateProject', () => {
       const spec = await fs.readFile(path.join(tmpDir, 'src', 'user', 'user.service.spec.ts'), 'utf-8');
       expect(spec).toContain("jest.mock('bcrypt'");
       expect(spec).toContain('passwordHash');
+    });
+
+    it('should generate prisma/seed.ts when auth is enabled', async () => {
+      await generateProject(blogProject, { outputDir: tmpDir, silent: true });
+
+      expect(await fs.pathExists(path.join(tmpDir, 'prisma', 'seed.ts'))).toBe(true);
+
+      const seed = await fs.readFile(path.join(tmpDir, 'prisma', 'seed.ts'), 'utf-8');
+      expect(seed).toContain('bcrypt');
+      expect(seed).toContain("admin@example.com");
+      expect(seed).toContain('passwordHash');
+      expect(seed).toContain('prisma.user.upsert');
+    });
+
+    it('should include prisma seed config in package.json when auth is enabled', async () => {
+      await generateProject(blogProject, { outputDir: tmpDir, silent: true });
+
+      const pkg = JSON.parse(await fs.readFile(path.join(tmpDir, 'package.json'), 'utf-8'));
+      expect(pkg.prisma).toBeDefined();
+      expect(pkg.prisma.seed).toBe('ts-node prisma/seed.ts');
+    });
+
+    it('should include ts-node in devDependencies when auth is enabled', async () => {
+      await generateProject(blogProject, { outputDir: tmpDir, silent: true });
+
+      const pkg = JSON.parse(await fs.readFile(path.join(tmpDir, 'package.json'), 'utf-8'));
+      expect(pkg.devDependencies['ts-node']).toBeDefined();
     });
 
     it('should include security report', async () => {

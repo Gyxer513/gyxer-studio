@@ -82,8 +82,15 @@ export interface Translations {
   'onDelete.NO_ACTION': string;
 
   // Right Panel tabs
-  'panel.schemaTab': string;
+  'panel.projectTab': string;
+  'panel.databaseTab': string;
+  'panel.modulesTab': string;
   'panel.httpTab': string;
+
+  // Auth module details
+  'sidebar.authGenerates': string;
+  'sidebar.authSeedInfo': string;
+  'sidebar.authPasswordField': string;
 
   // HTTP Client
   'http.baseUrl': string;
@@ -191,8 +198,14 @@ export const translations: Record<Locale, Translations> = {
     'onDelete.RESTRICT': 'RESTRICT',
     'onDelete.NO_ACTION': 'NO ACTION',
 
-    'panel.schemaTab': 'Schema',
+    'panel.projectTab': 'Project',
+    'panel.databaseTab': 'DB',
+    'panel.modulesTab': 'Modules',
     'panel.httpTab': 'HTTP',
+
+    'sidebar.authGenerates': 'Auth generates:',
+    'sidebar.authSeedInfo': 'Test user admin@example.com will be seeded',
+    'sidebar.authPasswordField': 'passwordHash auto-added to User',
 
     'http.baseUrl': 'Base URL',
     'http.send': 'Send',
@@ -298,8 +311,14 @@ export const translations: Record<Locale, Translations> = {
     'onDelete.RESTRICT': 'RESTRICT',
     'onDelete.NO_ACTION': 'NO ACTION',
 
-    'panel.schemaTab': 'Схема',
+    'panel.projectTab': 'Проект',
+    'panel.databaseTab': 'БД',
+    'panel.modulesTab': 'Модули',
     'panel.httpTab': 'HTTP',
+
+    'sidebar.authGenerates': 'Auth генерирует:',
+    'sidebar.authSeedInfo': 'Тестовый пользователь admin@example.com будет создан',
+    'sidebar.authPasswordField': 'passwordHash добавлено в User автоматически',
 
     'http.baseUrl': 'Базовый URL',
     'http.send': 'Отправить',
