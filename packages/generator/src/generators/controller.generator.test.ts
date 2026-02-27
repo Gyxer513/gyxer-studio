@@ -128,4 +128,59 @@ describe('Controller Generator', () => {
       expect(ctrl).not.toContain('@ApiBearerAuth()');
     });
   });
+
+  describe('authOverride', () => {
+    const projectWithAuth: GyxerProject = {
+      ...baseProject,
+      modules: [{ name: 'auth-jwt', enabled: true, options: {} }],
+    };
+
+    it('authOverride=public → all endpoints @Public(), no @ApiBearerAuth', () => {
+      const entity: Entity = { ...userEntity, authOverride: 'public' };
+      const ctrl = generateController(entity, projectWithAuth);
+
+      expect(ctrl).toContain('@Public()');
+      expect(ctrl).not.toContain('@ApiBearerAuth()');
+      expect(ctrl).not.toContain('ApiBearerAuth');
+    });
+
+    it('authOverride=public → no ApiBearerAuth in swagger import', () => {
+      const entity: Entity = { ...userEntity, authOverride: 'public' };
+      const ctrl = generateController(entity, projectWithAuth);
+
+      expect(ctrl).toContain("ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger'");
+    });
+
+    it('authOverride=protected → all endpoints @ApiBearerAuth(), no @Public', () => {
+      const entity: Entity = { ...userEntity, authOverride: 'protected' };
+      const ctrl = generateController(entity, projectWithAuth);
+
+      expect(ctrl).toContain('@ApiBearerAuth()');
+      expect(ctrl).not.toContain('@Public()');
+      expect(ctrl).not.toContain('public.decorator');
+    });
+
+    it('authOverride=protected → no public decorator import', () => {
+      const entity: Entity = { ...userEntity, authOverride: 'protected' };
+      const ctrl = generateController(entity, projectWithAuth);
+
+      expect(ctrl).not.toContain("from '../auth/decorators/public.decorator'");
+    });
+
+    it('authOverride=default → same as no override (GET public, mutations protected)', () => {
+      const entity: Entity = { ...userEntity, authOverride: 'default' };
+      const ctrl = generateController(entity, projectWithAuth);
+      const ctrlNoOverride = generateController(userEntity, projectWithAuth);
+
+      expect(ctrl).toBe(ctrlNoOverride);
+    });
+
+    it('authOverride without auth-jwt → no decorators regardless', () => {
+      const entity: Entity = { ...userEntity, authOverride: 'protected' };
+      const ctrl = generateController(entity, baseProject);
+
+      expect(ctrl).not.toContain('@Public()');
+      expect(ctrl).not.toContain('@ApiBearerAuth()');
+    });
+  });
 });

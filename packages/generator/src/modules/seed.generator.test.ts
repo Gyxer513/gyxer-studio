@@ -161,4 +161,80 @@ describe('generateSeedFile', () => {
     const result = generateSeedFile(makeProject());
     expect(result).toContain('prisma.$disconnect()');
   });
+
+  describe('custom seedUsers from module options', () => {
+    it('should use seedUsers from auth-jwt module options', () => {
+      const project = makeProject({
+        modules: [{
+          name: 'auth-jwt',
+          enabled: true,
+          options: {
+            seedUsers: [
+              { email: 'custom@test.com', password: 'mypass' },
+            ],
+          },
+        }],
+      });
+      const result = generateSeedFile(project);
+      expect(result).toContain("email: 'custom@test.com'");
+      expect(result).toContain("bcrypt.hash('mypass', 12)");
+      expect(result).not.toContain('admin@example.com');
+    });
+
+    it('should generate multiple seed users', () => {
+      const project = makeProject({
+        modules: [{
+          name: 'auth-jwt',
+          enabled: true,
+          options: {
+            seedUsers: [
+              { email: 'alice@test.com', password: 'pass1' },
+              { email: 'bob@test.com', password: 'pass2' },
+            ],
+          },
+        }],
+      });
+      const result = generateSeedFile(project);
+      expect(result).toContain("email: 'alice@test.com'");
+      expect(result).toContain("email: 'bob@test.com'");
+      expect(result).toContain("bcrypt.hash('pass1', 12)");
+      expect(result).toContain("bcrypt.hash('pass2', 12)");
+    });
+
+    it('should fall back to default admin when seedUsers is empty', () => {
+      const project = makeProject({
+        modules: [{
+          name: 'auth-jwt',
+          enabled: true,
+          options: { seedUsers: [] },
+        }],
+      });
+      const result = generateSeedFile(project);
+      expect(result).toContain("email: 'admin@example.com'");
+    });
+
+    it('should use extraFields from seedUser when provided', () => {
+      const project = makeProject({
+        entities: [{
+          name: 'User',
+          fields: [
+            { name: 'email', type: 'string', required: true, unique: true, index: true },
+            { name: 'name', type: 'string', required: true, unique: false, index: false },
+          ],
+          relations: [],
+        }],
+        modules: [{
+          name: 'auth-jwt',
+          enabled: true,
+          options: {
+            seedUsers: [
+              { email: 'admin@test.com', password: 'pass', name: 'Admin' },
+            ],
+          },
+        }],
+      });
+      const result = generateSeedFile(project);
+      expect(result).toContain("name: 'Admin',");
+    });
+  });
 });

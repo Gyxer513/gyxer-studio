@@ -15,6 +15,14 @@ export type FieldType =
 
 export type RelationType = 'one-to-one' | 'one-to-many' | 'many-to-many';
 
+export type AuthOverride = 'default' | 'public' | 'protected';
+
+export interface SeedUser {
+  email: string;
+  password: string;
+  extraFields: Record<string, string | number | boolean>;
+}
+
 export interface FieldData {
   name: string;
   type: FieldType;
@@ -30,6 +38,7 @@ export interface EntityData {
   name: string;
   fields: FieldData[];
   position: { x: number; y: number };
+  authOverride?: AuthOverride;
 }
 
 export interface RelationData {
@@ -60,6 +69,7 @@ export interface ProjectSettings {
 
 export interface ModulesConfig {
   authJwt: boolean;
+  seedUsers: SeedUser[];
 }
 
 // ─── Store ──────────────────────────────────────────
@@ -101,6 +111,12 @@ interface ProjectStore {
   // Settings & modules
   updateSettings: (data: Partial<ProjectSettings>) => void;
   toggleModule: (module: keyof ModulesConfig, enabled: boolean) => void;
+
+  // Seed users
+  addSeedUser: () => void;
+  updateSeedUser: (index: number, data: Partial<SeedUser>) => void;
+  removeSeedUser: (index: number) => void;
+  updateSeedUserExtra: (index: number, field: string, value: string | number | boolean) => void;
 }
 
 let entityCounter = 0;
@@ -128,6 +144,7 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
   },
   modules: {
     authJwt: false,
+    seedUsers: [{ email: 'admin@example.com', password: 'password123', extraFields: {} }], // pragma: allowlist secret
   },
 
   // ── Entity ──────────────────────────────────────
@@ -282,6 +299,7 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
           enumValues: f.enumValues,
         })),
         position: e.position || { x: 100 + (i % 3) * 350, y: 100 + Math.floor(i / 3) * 300 },
+        ...(e.authOverride ? { authOverride: e.authOverride } : {}),
       }));
 
       // Build a name → id lookup for resolving relations
@@ -347,12 +365,24 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
 
       // Handle modules — can be array (schema format) or object (store format)
       let authJwt = false;
+      let seedUsers: SeedUser[] = [{ email: 'admin@example.com', password: 'password123', extraFields: {} }]; // pragma: allowlist secret
       if (Array.isArray(json.modules)) {
-        authJwt = json.modules.some((m: any) => m.name === 'auth-jwt' && m.enabled);
+        const authMod = json.modules.find((m: any) => m.name === 'auth-jwt' && m.enabled);
+        authJwt = !!authMod;
+        if (authMod?.options?.seedUsers?.length) {
+          seedUsers = (authMod.options.seedUsers as any[]).map((u: any) => ({
+            email: u.email || '',
+            password: u.password || '',
+            extraFields: u.extraFields || {},
+          }));
+        }
       } else if (json.modules && typeof json.modules === 'object') {
         authJwt = json.modules.authJwt ?? false;
+        if (json.modules.seedUsers?.length) {
+          seedUsers = json.modules.seedUsers;
+        }
       }
-      const modules: ModulesConfig = { authJwt };
+      const modules: ModulesConfig = { authJwt, seedUsers };
 
       // Update counters to avoid ID conflicts
       entityCounter = entities.length;
@@ -402,5 +432,45 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
         state.addUserEntity();
       }
     }
+  },
+
+  // ── Seed Users ────────────────────────────────
+
+  addSeedUser: () => {
+    set((state) => ({
+      modules: {
+        ...state.modules,
+        seedUsers: [...state.modules.seedUsers, { email: '', password: '', extraFields: {} }],
+      },
+    }));
+  },
+
+  updateSeedUser: (index, data) => {
+    set((state) => ({
+      modules: {
+        ...state.modules,
+        seedUsers: state.modules.seedUsers.map((u, i) => (i === index ? { ...u, ...data } : u)),
+      },
+    }));
+  },
+
+  removeSeedUser: (index) => {
+    set((state) => ({
+      modules: {
+        ...state.modules,
+        seedUsers: state.modules.seedUsers.filter((_, i) => i !== index),
+      },
+    }));
+  },
+
+  updateSeedUserExtra: (index, field, value) => {
+    set((state) => ({
+      modules: {
+        ...state.modules,
+        seedUsers: state.modules.seedUsers.map((u, i) =>
+          i === index ? { ...u, extraFields: { ...u.extraFields, [field]: value } } : u,
+        ),
+      },
+    }));
   },
 }));

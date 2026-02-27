@@ -10,7 +10,25 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <!-- Loading spinner — visible until React mounts -->
+      <div id="gyxer-loader" style="display:flex;align-items:center;justify-content:center;height:100vh;background:#111">
+        <style>
+          @keyframes gyxer-spin { to { transform: rotate(360deg) } }
+          #gyxer-loader svg { animation: gyxer-spin 1.2s linear infinite; }
+        </style>
+        <svg width="48" height="48" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs><clipPath id="lc"><circle cx="16" cy="16" r="15"/></clipPath></defs>
+          <circle cx="16" cy="16" r="15" fill="#0f0f0f"/>
+          <g clip-path="url(#lc)">
+            <path d="M16 4 C22 4 28 9 27 16 C26 11 21 8 16 8 Z" fill="#E53935"/>
+            <path d="M27 16 C28 23 22 29 15 27 C20 27 24 23 24 18 Z" fill="#757575"/>
+            <path d="M15 27 C8 28 3 22 5 15 C5 20 9 25 15 27 Z" fill="#1a1a1a" stroke="#555" stroke-width="0.5"/>
+          </g>
+          <circle cx="16" cy="16" r="15" fill="none" stroke="#333" stroke-width="0.5"/>
+        </svg>
+      </div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

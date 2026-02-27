@@ -1,5 +1,5 @@
 import React from 'react';
-import { useProjectStore, type FieldType, type RelationType } from '../../store/project-store';
+import { useProjectStore, type FieldType, type RelationType, type AuthOverride } from '../../store/project-store';
 import { useTranslation } from '../../i18n';
 import { inputCls, labelCls, sectionCls, cardCls, checkboxCls, smallInputCls } from '../shared-styles';
 import { toPascalCase, toProjectKebab } from '../../utils/naming';
@@ -15,7 +15,7 @@ export function ProjectTab() {
   const {
     entities, relations,
     selectedEntityId, selectedRelationId,
-    settings,
+    settings, modules,
     updateEntity, updateField, removeField, addField,
     updateRelation, removeRelation,
     updateSettings,
@@ -158,6 +158,24 @@ export function ProjectTab() {
               className={`${inputCls} font-semibold`}
             />
           </div>
+
+          {modules.authJwt && (
+            <div className="mb-4">
+              <label className={labelCls}>{t('sidebar.authOverride')}</label>
+              <select
+                value={selectedEntity.authOverride || 'default'}
+                onChange={(e) => updateEntity(selectedEntity.id, { authOverride: e.target.value as AuthOverride })}
+                className={inputCls}
+              >
+                <option value="default">{t('sidebar.authDefault')}</option>
+                <option value="public">{t('sidebar.authPublic')}</option>
+                <option value="protected">{t('sidebar.authProtected')}</option>
+              </select>
+              <p className="text-[10px] text-dark-300 dark:text-dark-400 mt-1">
+                {t(`sidebar.auth${(selectedEntity.authOverride || 'default').charAt(0).toUpperCase() + (selectedEntity.authOverride || 'default').slice(1)}Hint` as any)}
+              </p>
+            </div>
+          )}
 
           <div className="flex items-center justify-between mb-2">
             <h3 className="text-xs font-semibold text-dark-300 dark:text-dark-400 uppercase tracking-wider">

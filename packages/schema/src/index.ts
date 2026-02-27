@@ -3,6 +3,7 @@ export {
   FieldType,
   RelationType,
   OnDeleteAction,
+  AuthOverride,
   FieldSchema,
   RelationSchema,
   EntitySchema,

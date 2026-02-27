@@ -1,13 +1,22 @@
 import React from 'react';
 import { useProjectStore } from '../../store/project-store';
 import { useTranslation } from '../../i18n';
-import { sectionCls, checkboxCls } from '../shared-styles';
+import { sectionCls, checkboxCls, cardCls, smallInputCls } from '../shared-styles';
 
 export function ModulesTab() {
-  const { entities, modules, toggleModule } = useProjectStore();
+  const {
+    entities, modules, toggleModule,
+    addSeedUser, updateSeedUser, removeSeedUser, updateSeedUserExtra,
+  } = useProjectStore();
   const { t } = useTranslation();
 
   const hasUser = entities.some((e) => e.name === 'User');
+
+  // Get extra required fields from User entity (for seed user extra fields)
+  const userEntity = entities.find((e) => e.name === 'User');
+  const extraRequiredFields = (userEntity?.fields ?? []).filter(
+    (f) => f.required && f.name !== 'email' && !f.default,
+  );
 
   return (
     <div className="h-full overflow-y-auto">
@@ -50,8 +59,69 @@ export function ModulesTab() {
                 <li>Register / Login / Refresh endpoints</li>
                 <li>bcrypt password hashing</li>
                 <li>{t('sidebar.authPasswordField')}</li>
-                <li>{t('sidebar.authSeedInfo')}</li>
               </ul>
+            </div>
+
+            {/* ─── Seed Users ─── */}
+            <div className="pt-2">
+              <h3 className="text-xs font-semibold text-dark-300 dark:text-dark-400 uppercase tracking-wider mb-2">
+                {t('sidebar.seedUsers')}
+              </h3>
+
+              <div className="space-y-2">
+                {modules.seedUsers.map((user, i) => (
+                  <div key={i} className={cardCls}>
+                    <div className="space-y-1.5">
+                      <input
+                        type="text"
+                        value={user.email}
+                        onChange={(e) => updateSeedUser(i, { email: e.target.value })}
+                        className={smallInputCls}
+                        placeholder="email"
+                      />
+                      <input
+                        type="text"
+                        value={user.password}
+                        onChange={(e) => updateSeedUser(i, { password: e.target.value })}
+                        className={smallInputCls}
+                        placeholder="password"
+                      />
+
+                      {extraRequiredFields.map((f) => (
+                        <input
+                          key={f.name}
+                          type={f.type === 'int' || f.type === 'float' ? 'number' : 'text'}
+                          value={user.extraFields[f.name] !== undefined ? String(user.extraFields[f.name]) : ''}
+                          onChange={(e) => {
+                            const val = f.type === 'int' ? parseInt(e.target.value) || 0
+                              : f.type === 'float' ? parseFloat(e.target.value) || 0
+                              : e.target.value;
+                            updateSeedUserExtra(i, f.name, val);
+                          }}
+                          className={smallInputCls}
+                          placeholder={f.name}
+                        />
+                      ))}
+                    </div>
+
+                    {modules.seedUsers.length > 1 && (
+                      <button
+                        onClick={() => removeSeedUser(i)}
+                        className="mt-1.5 text-[10px] text-dark-300 hover:text-gyxer-500 transition-colors"
+                      >
+                        {t('sidebar.removeSeedUser')}
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              <button
+                onClick={addSeedUser}
+                className="mt-2 w-full py-1.5 border border-dashed border-dark-200 dark:border-dark-600 rounded-lg text-xs text-dark-400 font-medium hover:border-gyxer-400 hover:text-gyxer-600 hover:bg-gyxer-50 dark:hover:bg-gyxer-900/30 transition-all"
+              >
+                {t('sidebar.addSeedUser')}
+              </button>
             </div>
           </div>
         )}
