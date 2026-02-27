@@ -20,10 +20,8 @@ const DEFAULT_SEED_USERS: SeedUser[] = [
 export function generateSeedFile(project: GyxerProject): string {
   // Extract seedUsers from auth-jwt module options
   const authModule = project.modules?.find((m) => m.name === 'auth-jwt' && m.enabled !== false);
-  const seedUsers: SeedUser[] =
-    (authModule?.options?.seedUsers as SeedUser[] | undefined)?.length
-      ? (authModule.options.seedUsers as SeedUser[])
-      : DEFAULT_SEED_USERS;
+  const rawSeedUsers = authModule?.options?.seedUsers as SeedUser[] | undefined;
+  const seedUsers: SeedUser[] = rawSeedUsers?.length ? rawSeedUsers : DEFAULT_SEED_USERS;
 
   // Collect required User fields without defaults (except email — already handled)
   const userEntity = project.entities.find((e) => e.name === 'User');
