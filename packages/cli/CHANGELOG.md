@@ -1,5 +1,13 @@
 # @gyxer-studio/cli
 
+## 0.4.2
+
+### Patch Changes
+
+- Updated dependencies [8b43968]
+  - @gyxer-studio/generator@0.4.2
+  - @gyxer-studio/schema@0.4.2
+
 ## 0.4.1
 
 ### Patch Changes
