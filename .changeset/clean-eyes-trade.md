@@ -1,5 +1,4 @@
 ---
-'@gyxer-studio/editor': patch
 '@gyxer-studio/generator': patch
 ---
 
