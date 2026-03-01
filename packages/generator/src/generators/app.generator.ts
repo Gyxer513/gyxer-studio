@@ -206,6 +206,24 @@ export class PrismaModule {}
 /**
  * Generate Prisma exception filter that converts Prisma errors to proper HTTP responses.
  */
+/**
+ * Generate nest-cli.json configuration.
+ */
+export function generateNestCliJson(): string {
+  return JSON.stringify(
+    {
+      $schema: 'https://json.schemastore.org/nest-cli',
+      collection: '@nestjs/schematics',
+      sourceRoot: 'src',
+      compilerOptions: {
+        deleteOutDir: true,
+      },
+    },
+    null,
+    2,
+  ) + '\n';
+}
+
 export function generatePrismaExceptionFilter(): string {
   return `import { ArgumentsHost, Catch, ExceptionFilter, HttpStatus } from '@nestjs/common';
 import { Prisma } from '@prisma/client';

@@ -69,6 +69,13 @@ export function exportToSchema(): Record<string, unknown> {
         ...(Object.keys(u.extraFields).length > 0 ? u.extraFields : {}),
       }));
     }
+    // Resolve auth entity name from ID; only write if non-default
+    if (modules.authEntityId) {
+      const authEntity = entities.find((e) => e.id === modules.authEntityId);
+      if (authEntity && authEntity.name !== 'User') {
+        options.entityName = authEntity.name;
+      }
+    }
     schemaModules.push({ name: 'auth-jwt', enabled: true, options });
   }
 

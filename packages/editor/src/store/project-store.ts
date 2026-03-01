@@ -69,6 +69,7 @@ export interface ProjectSettings {
 
 export interface ModulesConfig {
   authJwt: boolean;
+  authEntityId: string | null;
   seedUsers: SeedUser[];
 }
 
@@ -144,6 +145,7 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
   },
   modules: {
     authJwt: false,
+    authEntityId: null,
     seedUsers: [{ email: 'admin@example.com', password: 'password123', extraFields: {} }], // pragma: allowlist secret
   },
 
@@ -278,6 +280,7 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
     set((s) => ({
       entities: [...s.entities, newEntity],
       selectedEntityId: newEntity.id,
+      modules: { ...s.modules, authEntityId: newEntity.id },
     }));
   },
 
@@ -385,7 +388,17 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
           seedUsers = json.modules.seedUsers;
         }
       }
-      const modules: ModulesConfig = { authJwt, seedUsers };
+      // Resolve authEntityId: from options.entityName or fallback to 'User'
+      let authEntityId: string | null = null;
+      if (authJwt) {
+        const authMod = Array.isArray(json.modules)
+          ? json.modules.find((m: any) => m.name === 'auth-jwt' && m.enabled)
+          : null;
+        const entityName = (authMod?.options?.entityName as string) || 'User';
+        const found = entities.find((e) => e.name === entityName);
+        authEntityId = found?.id || null;
+      }
+      const modules: ModulesConfig = { authJwt, authEntityId, seedUsers };
 
       // Update counters to avoid ID conflicts
       entityCounter = entities.length;
@@ -431,9 +444,16 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
     // Auto-create User entity when auth-jwt is enabled
     if (module === 'authJwt' && enabled) {
       const state = get();
-      if (!state.entities.some((e) => e.name === 'User')) {
+      const existingUser = state.entities.find((e) => e.name === 'User');
+      if (existingUser) {
+        // Track existing User entity by ID
+        set((s) => ({ modules: { ...s.modules, authEntityId: existingUser.id } }));
+      } else {
         state.addUserEntity();
       }
+    }
+    if (module === 'authJwt' && !enabled) {
+      set((state) => ({ modules: { ...state.modules, authEntityId: null } }));
     }
   },
 

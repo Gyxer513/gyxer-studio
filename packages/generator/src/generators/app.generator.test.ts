@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { generateMain, generateAppModule } from './app.generator.js';
+import { generateMain, generateAppModule, generateNestCliJson } from './app.generator.js';
 import type { GyxerProject } from '@gyxer-studio/schema';
 
 const baseProject: GyxerProject = {
@@ -116,6 +116,15 @@ describe('App Generator', () => {
       const mod = generateAppModule(baseProject);
       expect(mod).not.toContain('AuthModule');
       expect(mod).not.toContain('JwtAuthGuard');
+    });
+  });
+
+  describe('generateNestCliJson', () => {
+    it('should produce valid JSON with sourceRoot and deleteOutDir', () => {
+      const json = JSON.parse(generateNestCliJson());
+      expect(json.sourceRoot).toBe('src');
+      expect(json.compilerOptions.deleteOutDir).toBe(true);
+      expect(json.$schema).toBeDefined();
     });
   });
 });

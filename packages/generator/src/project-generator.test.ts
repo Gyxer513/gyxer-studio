@@ -96,6 +96,42 @@ const blogProject: GyxerProject = {
   },
 };
 
+// ─── Account project (custom auth entity name) ─────────────────
+
+const accountProject: GyxerProject = {
+  name: 'account-api',
+  version: '0.1.0',
+  description: 'Project with custom auth entity name',
+  entities: [
+    {
+      name: 'Account',
+      fields: [
+        { name: 'email', type: 'string', required: true, unique: true, index: true },
+        { name: 'displayName', type: 'string', required: true, unique: false, index: false },
+      ],
+      relations: [],
+    },
+    {
+      name: 'Post',
+      fields: [
+        { name: 'title', type: 'string', required: true, unique: false, index: false },
+      ],
+      relations: [],
+    },
+  ],
+  modules: [{ name: 'auth-jwt', enabled: true, options: { entityName: 'Account' } }],
+  settings: {
+    port: 3000,
+    database: 'postgresql',
+    databaseUrl: 'postgresql://localhost:5432/account_api',
+    enableSwagger: true,
+    enableCors: true,
+    enableHelmet: true,
+    enableRateLimit: false,
+    docker: false,
+  },
+};
+
 // ─── Shop project (enums, 6 entities, no auth) ─────────────────
 
 const shopProject: GyxerProject = {
@@ -178,6 +214,7 @@ describe('E2E: generateProject', () => {
       expect(result.filesCreated).toContain(path.join(tmpDir, 'src', 'app.module.ts'));
       expect(result.filesCreated).toContain(path.join(tmpDir, 'package.json'));
       expect(result.filesCreated).toContain(path.join(tmpDir, 'tsconfig.json'));
+      expect(result.filesCreated).toContain(path.join(tmpDir, 'nest-cli.json'));
       expect(result.filesCreated).toContain(path.join(tmpDir, '.gitignore'));
       expect(result.filesCreated).toContain(path.join(tmpDir, '.env'));
       expect(result.filesCreated).toContain(path.join(tmpDir, '.env.example'));
@@ -240,6 +277,21 @@ describe('E2E: generateProject', () => {
 
       const pkg = JSON.parse(await fs.readFile(path.join(tmpDir, 'package.json'), 'utf-8'));
       expect(pkg.prisma).toBeUndefined();
+    });
+
+    it('should generate nest-cli.json with correct config', async () => {
+      await generateProject(minimalProject, { outputDir: tmpDir, silent: true });
+
+      const nestCli = JSON.parse(await fs.readFile(path.join(tmpDir, 'nest-cli.json'), 'utf-8'));
+      expect(nestCli.sourceRoot).toBe('src');
+      expect(nestCli.compilerOptions?.deleteOutDir).toBe(true);
+    });
+
+    it('should exclude prisma/ from tsconfig.build.json', async () => {
+      await generateProject(minimalProject, { outputDir: tmpDir, silent: true });
+
+      const tsBuild = JSON.parse(await fs.readFile(path.join(tmpDir, 'tsconfig.build.json'), 'utf-8'));
+      expect(tsBuild.exclude).toContain('prisma');
     });
 
     it('should generate Prisma infrastructure', async () => {
@@ -555,6 +607,75 @@ describe('E2E: generateProject', () => {
       expect(gitignore).toContain('node_modules');
       expect(gitignore).toContain('.env');
       expect(gitignore).toContain('dist/');
+    });
+  });
+
+  describe('account project (custom auth entity name)', () => {
+    it('should use custom entity name in Prisma schema', async () => {
+      await generateProject(accountProject, { outputDir: tmpDir, silent: true });
+
+      const prisma = await fs.readFile(path.join(tmpDir, 'prisma', 'schema.prisma'), 'utf-8');
+      expect(prisma).toContain('model Account');
+      expect(prisma).toContain('passwordHash');
+    });
+
+    it('should use custom accessor in auth.service.ts', async () => {
+      await generateProject(accountProject, { outputDir: tmpDir, silent: true });
+
+      const service = await fs.readFile(path.join(tmpDir, 'src', 'auth', 'auth.service.ts'), 'utf-8');
+      expect(service).toContain('this.prisma.account.findUnique');
+      expect(service).toContain('this.prisma.account.create');
+      expect(service).not.toContain('this.prisma.user.');
+    });
+
+    it('should use custom accessor in jwt.strategy.ts', async () => {
+      await generateProject(accountProject, { outputDir: tmpDir, silent: true });
+
+      const strategy = await fs.readFile(path.join(tmpDir, 'src', 'auth', 'strategies', 'jwt.strategy.ts'), 'utf-8');
+      expect(strategy).toContain('this.prisma.account.findUnique');
+      expect(strategy).not.toContain('this.prisma.user.');
+    });
+
+    it('should use custom accessor in seed.ts', async () => {
+      await generateProject(accountProject, { outputDir: tmpDir, silent: true });
+
+      const seed = await fs.readFile(path.join(tmpDir, 'prisma', 'seed.ts'), 'utf-8');
+      expect(seed).toContain('prisma.account.upsert');
+      expect(seed).not.toContain('prisma.user.');
+    });
+
+    it('should include displayName in register DTO', async () => {
+      await generateProject(accountProject, { outputDir: tmpDir, silent: true });
+
+      const dto = await fs.readFile(path.join(tmpDir, 'src', 'auth', 'dto', 'register.dto.ts'), 'utf-8');
+      expect(dto).toContain('displayName');
+    });
+
+    it('should use custom entity name in Account service with password hashing', async () => {
+      await generateProject(accountProject, { outputDir: tmpDir, silent: true });
+
+      const service = await fs.readFile(path.join(tmpDir, 'src', 'account', 'account.service.ts'), 'utf-8');
+      expect(service).toContain('bcrypt');
+      expect(service).toContain('passwordHash');
+    });
+
+    it('should add password field to CreateAccountDto', async () => {
+      await generateProject(accountProject, { outputDir: tmpDir, silent: true });
+
+      const dto = await fs.readFile(path.join(tmpDir, 'src', 'account', 'dto', 'create-account.dto.ts'), 'utf-8');
+      expect(dto).toContain('password');
+    });
+  });
+
+  describe('backward compatibility (default User entity)', () => {
+    it('should still use prisma.user when no entityName option', async () => {
+      await generateProject(blogProject, { outputDir: tmpDir, silent: true });
+
+      const service = await fs.readFile(path.join(tmpDir, 'src', 'auth', 'auth.service.ts'), 'utf-8');
+      expect(service).toContain('this.prisma.user.findUnique');
+
+      const seed = await fs.readFile(path.join(tmpDir, 'prisma', 'seed.ts'), 'utf-8');
+      expect(seed).toContain('prisma.user.upsert');
     });
   });
 });

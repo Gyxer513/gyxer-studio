@@ -1,5 +1,6 @@
 import type { Entity, Field, GyxerProject } from '@gyxer-studio/schema';
 import { toCamelCase, toKebabCase } from '../utils.js';
+import { getAuthEntityName } from '../modules/auth-jwt.generator.js';
 
 /**
  * Generate a sample value string for a field based on its type.
@@ -33,8 +34,9 @@ function sampleValue(field: Field): string {
  * Build a sample DTO object literal from entity fields.
  */
 function buildSampleDto(entity: Entity, project: GyxerProject): string {
+  const authEntityName = getAuthEntityName(project);
   const hasAuthJwt =
-    entity.name === 'User' &&
+    entity.name === authEntityName &&
     project.modules?.some((m) => m.name === 'auth-jwt' && m.enabled !== false);
 
   const lines = entity.fields
@@ -57,8 +59,9 @@ export function generateServiceSpec(entity: Entity, project: GyxerProject): stri
   const kebab = toKebabCase(name);
   const className = `${name}Service`;
 
+  const authEntityName = getAuthEntityName(project);
   const hasAuthJwt =
-    name === 'User' &&
+    name === authEntityName &&
     project.modules?.some((m) => m.name === 'auth-jwt' && m.enabled !== false);
 
   const sampleDto = buildSampleDto(entity, project);

@@ -1,5 +1,6 @@
 import type { Entity, Field, GyxerProject } from '@gyxer-studio/schema';
 import { toCamelCase } from '../utils.js';
+import { getAuthEntityName } from '../modules/auth-jwt.generator.js';
 
 /** FK field descriptor for DTO generation. */
 interface FkFieldInfo {
@@ -101,9 +102,10 @@ export function generateCreateDto(entity: Entity, project: GyxerProject): string
     lines.push(generateFkDtoField(fk, false));
   }
 
-  // Auth-jwt: add password field to CreateUserDto
+  // Auth-jwt: add password field to auth entity CreateDto
+  const authEntityName = getAuthEntityName(project);
   const hasAuthJwt =
-    entity.name === 'User' &&
+    entity.name === authEntityName &&
     project.modules?.some((m) => m.name === 'auth-jwt' && m.enabled !== false);
   if (hasAuthJwt) {
     lines.push("  @ApiProperty({ description: 'User password (will be hashed)' })");
