@@ -1,5 +1,12 @@
 # @gyxer-studio/generator
 
+## 0.4.3
+
+### Patch Changes
+
+- 090b970: fix: seed generator fallback for extra fields when User entity is missing
+  - @gyxer-studio/schema@0.4.3
+
 ## 0.4.2
 
 ### Patch Changes
