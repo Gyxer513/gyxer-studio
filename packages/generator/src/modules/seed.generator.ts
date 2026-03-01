@@ -23,11 +23,14 @@ export function generateSeedFile(project: GyxerProject): string {
   const rawSeedUsers = authModule?.options?.seedUsers as SeedUser[] | undefined;
   const seedUsers: SeedUser[] = rawSeedUsers?.length ? rawSeedUsers : DEFAULT_SEED_USERS;
 
-  // Collect required User fields without defaults (except email — already handled)
+  // Collect required User fields without defaults (except email — already handled).
+  // When no User entity exists in project, the auto-generated User model has required `name`.
   const userEntity = project.entities.find((e) => e.name === 'User');
-  const extraFields = (userEntity?.fields ?? []).filter(
-    (f) => f.required && f.name !== 'email' && f.default === undefined,
-  );
+  const extraFields = userEntity
+    ? (userEntity.fields ?? []).filter(
+        (f) => f.required && f.name !== 'email' && f.default === undefined,
+      )
+    : [{ name: 'name', type: 'string' as const, required: true as const }];
 
   /** Build the extra field assignments for a single user create block. */
   function buildExtraData(user: SeedUser): string {

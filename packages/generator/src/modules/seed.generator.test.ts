@@ -148,13 +148,13 @@ describe('generateSeedFile', () => {
     expect(result).not.toContain("role:");
   });
 
-  it('should handle project without User entity', () => {
+  it('should handle project without User entity (fallback includes name)', () => {
     const project = makeProject({ entities: [] });
     const result = generateSeedFile(project);
     expect(result).toContain('prisma.user.upsert');
     expect(result).toContain('passwordHash,');
-    // No extra fields — just email + passwordHash
-    expect(result).not.toContain("name: 'name',");
+    // Auto-generated User model always has required `name` — fallback includes it
+    expect(result).toContain("name: 'name',");
   });
 
   it('should disconnect prisma in finally block', () => {
@@ -211,6 +211,31 @@ describe('generateSeedFile', () => {
       });
       const result = generateSeedFile(project);
       expect(result).toContain("email: 'admin@example.com'");
+    });
+
+    it('should include name from seedUser when entity is not named User', () => {
+      const project = makeProject({
+        entities: [{
+          name: 'Users',
+          fields: [
+            { name: 'email', type: 'string', required: true, unique: true, index: true },
+            { name: 'name', type: 'string', required: true, unique: false, index: false },
+          ],
+          relations: [],
+        }],
+        modules: [{
+          name: 'auth-jwt',
+          enabled: true,
+          options: {
+            seedUsers: [
+              { email: 'admin@test.com', password: 'pass', name: 'Alex' },
+            ],
+          },
+        }],
+      });
+      const result = generateSeedFile(project);
+      expect(result).toContain("name: 'Alex',");
+      expect(result).toContain("email: 'admin@test.com'");
     });
 
     it('should use extraFields from seedUser when provided', () => {
