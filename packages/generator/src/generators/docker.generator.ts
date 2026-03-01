@@ -46,6 +46,7 @@ export function generateDockerCompose(project: GyxerProject): string {
 }
 
 function generateDockerComposePostgres(project: GyxerProject, dbName: string): string {
+  const { dbUser, dbPassword, dbPort } = project.settings;
   return `version: '3.8'
 
 services:
@@ -54,7 +55,7 @@ services:
     ports:
       - "\${PORT:-${project.settings.port}}:${project.settings.port}"
     environment:
-      - DATABASE_URL=postgresql://postgres:\${DB_PASSWORD:-postgres}@db:5432/${dbName}
+      - DATABASE_URL=postgresql://${dbUser}:\${DB_PASSWORD:-${dbPassword}}@db:5432/${dbName}
       - PORT=${project.settings.port}
     depends_on:
       db:
@@ -65,14 +66,14 @@ services:
     image: postgres:16-alpine
     environment:
       POSTGRES_DB: ${dbName}
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: \${DB_PASSWORD:-postgres}
+      POSTGRES_USER: ${dbUser}
+      POSTGRES_PASSWORD: \${DB_PASSWORD:-${dbPassword}}
     ports:
-      - "\${DB_PORT:-5432}:5432"
+      - "\${DB_PORT:-${dbPort}}:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: ["CMD-SHELL", "pg_isready -U ${dbUser}"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -104,6 +105,7 @@ volumes:
 }
 
 function generateDockerComposeMysql(project: GyxerProject, dbName: string): string {
+  const { dbUser, dbPassword, dbPort } = project.settings;
   return `version: '3.8'
 
 services:
@@ -112,7 +114,7 @@ services:
     ports:
       - "\${PORT:-${project.settings.port}}:${project.settings.port}"
     environment:
-      - DATABASE_URL=mysql://root:\${DB_PASSWORD:-root}@db:3306/${dbName}
+      - DATABASE_URL=mysql://${dbUser}:\${DB_PASSWORD:-${dbPassword}}@db:3306/${dbName}
       - PORT=${project.settings.port}
     depends_on:
       db:
@@ -123,9 +125,9 @@ services:
     image: mysql:8
     environment:
       MYSQL_DATABASE: ${dbName}
-      MYSQL_ROOT_PASSWORD: \${DB_PASSWORD:-root}
+      MYSQL_ROOT_PASSWORD: \${DB_PASSWORD:-${dbPassword}}
     ports:
-      - "\${DB_PORT:-3306}:3306"
+      - "\${DB_PORT:-${dbPort}}:3306"
     volumes:
       - mysqldata:/var/lib/mysql
     healthcheck:
@@ -142,39 +144,43 @@ volumes:
 
 // ─── Helper: build DATABASE_URL for a given database type ─────────
 
-export function buildDatabaseUrl(db: string, dbName: string): string {
-  switch (db) {
+export function buildDatabaseUrl(
+  settings: { database: string; dbHost: string; dbPort: number; dbUser: string; dbPassword: string },
+  dbName: string,
+): string {
+  switch (settings.database) {
     case 'sqlite':
       return 'file:./prisma/dev.db';
     case 'mysql':
-      return `mysql://root:root@localhost:3306/${dbName}`;
+      return `mysql://${settings.dbUser}:${settings.dbPassword}@${settings.dbHost}:${settings.dbPort}/${dbName}`;
     case 'postgresql':
     default:
-      return `postgresql://postgres:postgres@localhost:5432/${dbName}`;
+      return `postgresql://${settings.dbUser}:${settings.dbPassword}@${settings.dbHost}:${settings.dbPort}/${dbName}`;
   }
 }
 
 /**
  * Generate .env file with correct DATABASE_URL for the chosen database.
+ * Uses ${VAR} references in DATABASE_URL to avoid password duplication (Prisma supports dotenv-expand).
  */
 export function generateEnvFile(project: GyxerProject): string {
   const db = project.settings.database;
   const dbName = project.name.replace(/-/g, '_');
-  const url = buildDatabaseUrl(db, dbName);
 
   if (db === 'sqlite') {
-    return `DATABASE_URL=${url}
+    return `DATABASE_URL=file:./prisma/dev.db
 PORT=${project.settings.port}
 `;
   }
 
-  const defaultPort = db === 'mysql' ? '3306' : '5432';
-  const defaultPassword = db === 'mysql' ? 'root' : 'postgres';
+  const protocol = db === 'mysql' ? 'mysql' : 'postgresql';
 
-  return `DATABASE_URL=${url}
+  return `DB_HOST=${project.settings.dbHost}
+DB_PORT=${project.settings.dbPort}
+DB_USER=${project.settings.dbUser}
+DB_PASSWORD=${project.settings.dbPassword}
+DATABASE_URL=${protocol}://\${DB_USER}:\${DB_PASSWORD}@\${DB_HOST}:\${DB_PORT}/${dbName}
 PORT=${project.settings.port}
-DB_PASSWORD=${defaultPassword}
-DB_PORT=${defaultPort}
 `;
 }
 
@@ -187,17 +193,13 @@ PORT=${project.settings.port}
 `;
   }
 
-  if (db === 'mysql') {
-    return `DATABASE_URL=mysql://root:YOUR_PASSWORD@localhost:3306/YOUR_DB_NAME
-PORT=${project.settings.port}
-DB_PASSWORD=YOUR_PASSWORD
-DB_PORT=3306
-`;
-  }
+  const protocol = db === 'mysql' ? 'mysql' : 'postgresql';
 
-  return `DATABASE_URL=postgresql://postgres:YOUR_PASSWORD@localhost:5432/YOUR_DB_NAME
-PORT=${project.settings.port}
+  return `DB_HOST=localhost
+DB_PORT=${project.settings.dbPort}
+DB_USER=${db === 'mysql' ? 'root' : 'postgres'}
 DB_PASSWORD=YOUR_PASSWORD
-DB_PORT=5432
+DATABASE_URL=${protocol}://\${DB_USER}:\${DB_PASSWORD}@\${DB_HOST}:\${DB_PORT}/YOUR_DB_NAME
+PORT=${project.settings.port}
 `;
 }
