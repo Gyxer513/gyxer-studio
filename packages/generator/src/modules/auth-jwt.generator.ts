@@ -6,11 +6,14 @@ import type { GyxerProject } from '@gyxer-studio/schema';
 export function generateAuthJwtFiles(project: GyxerProject): Map<string, string> {
   const files = new Map<string, string>();
 
-  // Collect required User fields without defaults (except email — already handled)
+  // Collect required User fields without defaults (except email — already handled).
+  // When no User entity exists on canvas, the auto-generated User model has required `name`.
   const userEntity = project.entities.find((e) => e.name === 'User');
-  const extraFields = (userEntity?.fields ?? []).filter(
-    (f) => f.required && f.name !== 'email' && f.default === undefined,
-  );
+  const extraFields = userEntity
+    ? (userEntity.fields ?? []).filter(
+        (f) => f.required && f.name !== 'email' && f.default === undefined,
+      )
+    : [{ name: 'name', type: 'string' as const }];
 
   // Auth module
   files.set('src/auth/auth.module.ts', generateAuthModule());

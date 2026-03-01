@@ -428,6 +428,50 @@ describe('E2E: generateProject', () => {
       expect(result.securityReport.score).toBeDefined();
       expect(result.securityReport.checks.length).toBeGreaterThan(0);
     });
+
+    it('should include name field in register DTO and auth service when User is NOT on canvas', async () => {
+      // When User entity is NOT in entities (auto-generated), the auth service
+      // must still include the required `name` field in register DTO and create call.
+      const authNoUserProject: GyxerProject = {
+        name: 'auth-no-user',
+        version: '0.1.0',
+        description: 'Auth without explicit User entity',
+        entities: [
+          {
+            name: 'Post',
+            fields: [
+              { name: 'title', type: 'string', required: true, unique: false, index: false },
+            ],
+            relations: [],
+          },
+        ],
+        modules: [{ name: 'auth-jwt', enabled: true, options: {} }],
+        settings: {
+          port: 3000,
+          database: 'postgresql',
+          databaseUrl: 'postgresql://postgres:postgres@localhost:5432/auth_no_user',
+          enableSwagger: true,
+          enableCors: true,
+          enableHelmet: false,
+          enableRateLimit: false,
+          docker: false,
+        },
+      };
+
+      await generateProject(authNoUserProject, { outputDir: tmpDir, silent: true });
+
+      const registerDto = await fs.readFile(
+        path.join(tmpDir, 'src', 'auth', 'dto', 'register.dto.ts'),
+        'utf-8',
+      );
+      expect(registerDto).toContain('name');
+
+      const authService = await fs.readFile(
+        path.join(tmpDir, 'src', 'auth', 'auth.service.ts'),
+        'utf-8',
+      );
+      expect(authService).toContain('...rest');
+    });
   });
 
   describe('shop project (enums, many entities, no auth)', () => {
