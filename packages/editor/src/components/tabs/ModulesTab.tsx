@@ -87,21 +87,32 @@ export function ModulesTab() {
                         placeholder="password"
                       />
 
-                      {extraRequiredFields.map((f) => (
-                        <input
-                          key={f.name}
-                          type={f.type === 'int' || f.type === 'float' ? 'number' : 'text'}
-                          value={user.extraFields[f.name] !== undefined ? String(user.extraFields[f.name]) : ''}
-                          onChange={(e) => {
-                            const val = f.type === 'int' ? parseInt(e.target.value) || 0
-                              : f.type === 'float' ? parseFloat(e.target.value) || 0
-                              : e.target.value;
-                            updateSeedUserExtra(i, f.name, val);
-                          }}
-                          className={smallInputCls}
-                          placeholder={f.name}
-                        />
-                      ))}
+                      {/* Extra fields: from seed user data + required User entity fields */}
+                      {(() => {
+                        const keys = new Set([
+                          ...Object.keys(user.extraFields),
+                          ...extraRequiredFields.map((f) => f.name),
+                        ]);
+                        return [...keys].map((fieldName) => {
+                          const entityField = extraRequiredFields.find((f) => f.name === fieldName);
+                          const isNumeric = entityField?.type === 'int' || entityField?.type === 'float';
+                          return (
+                            <input
+                              key={fieldName}
+                              type={isNumeric ? 'number' : 'text'}
+                              value={user.extraFields[fieldName] !== undefined ? String(user.extraFields[fieldName]) : ''}
+                              onChange={(e) => {
+                                const val = entityField?.type === 'int' ? parseInt(e.target.value) || 0
+                                  : entityField?.type === 'float' ? parseFloat(e.target.value) || 0
+                                  : e.target.value;
+                                updateSeedUserExtra(i, fieldName, val);
+                              }}
+                              className={smallInputCls}
+                              placeholder={fieldName}
+                            />
+                          );
+                        });
+                      })()}
                     </div>
 
                     {modules.seedUsers.length > 1 && (

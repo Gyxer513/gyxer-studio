@@ -370,11 +370,14 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
         const authMod = json.modules.find((m: any) => m.name === 'auth-jwt' && m.enabled);
         authJwt = !!authMod;
         if (authMod?.options?.seedUsers?.length) {
-          seedUsers = (authMod.options.seedUsers as any[]).map((u: any) => ({
-            email: u.email || '',
-            password: u.password || '',
-            extraFields: u.extraFields || {},
-          }));
+          seedUsers = (authMod.options.seedUsers as any[]).map((u: any) => {
+            const { email, password, extraFields: ef, ...rest } = u;
+            return {
+              email: email || '',
+              password: password || '',
+              extraFields: { ...(ef || {}), ...rest },
+            };
+          });
         }
       } else if (json.modules && typeof json.modules === 'object') {
         authJwt = json.modules.authJwt ?? false;
