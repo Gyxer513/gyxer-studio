@@ -1,4 +1,5 @@
 import type { GyxerProject } from '@gyxer-studio/schema';
+import { getAuthEntityName } from './auth-jwt.generator.js';
 
 interface SeedUser {
   email: string;
@@ -23,11 +24,14 @@ export function generateSeedFile(project: GyxerProject): string {
   const rawSeedUsers = authModule?.options?.seedUsers as SeedUser[] | undefined;
   const seedUsers: SeedUser[] = rawSeedUsers?.length ? rawSeedUsers : DEFAULT_SEED_USERS;
 
-  // Collect required User fields without defaults (except email — already handled).
-  // When no User entity exists in project, the auto-generated User model has required `name`.
-  const userEntity = project.entities.find((e) => e.name === 'User');
-  const extraFields = userEntity
-    ? (userEntity.fields ?? []).filter(
+  const entityName = getAuthEntityName(project);
+  const accessor = entityName.charAt(0).toLowerCase() + entityName.slice(1);
+
+  // Collect required entity fields without defaults (except email — already handled).
+  // When no auth entity exists in project, the auto-generated model has required `name`.
+  const authEntity = project.entities.find((e) => e.name === entityName);
+  const extraFields = authEntity
+    ? (authEntity.fields ?? []).filter(
         (f) => f.required && f.name !== 'email' && f.default === undefined,
       )
     : [{ name: 'name', type: 'string' as const, required: true as const }];
@@ -59,7 +63,7 @@ export function generateSeedFile(project: GyxerProject): string {
 
     return `  const passwordHash${i > 0 ? i + 1 : ''} = await bcrypt.hash('${user.password}', 12); // pragma: allowlist secret
 
-  const ${varName} = await prisma.user.upsert({
+  const ${varName} = await prisma.${accessor}.upsert({
     where: { email: '${user.email}' },
     update: {},
     create: {

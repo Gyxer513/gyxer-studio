@@ -1,5 +1,6 @@
 import type { GyxerProject, Entity, Field, Relation } from '@gyxer-studio/schema';
 import { toSnakeCase } from '../utils.js';
+import { getAuthEntityName } from '../modules/auth-jwt.generator.js';
 
 /**
  * Generate a complete Prisma schema from a GyxerProject.
@@ -40,12 +41,13 @@ export function generatePrismaSchema(project: GyxerProject): string {
     lines.push(generateModel(entity, project));
   }
 
-  // Auto-generate User model for auth-jwt when no User entity is defined
+  // Auto-generate auth entity model for auth-jwt when the entity is not defined
   const hasAuthJwt = project.modules?.some((m) => m.name === 'auth-jwt' && m.enabled !== false);
-  const hasUserEntity = project.entities.some((e) => e.name === 'User');
-  if (hasAuthJwt && !hasUserEntity) {
+  const authEntityName = hasAuthJwt ? getAuthEntityName(project) : 'User';
+  const hasAuthEntity = project.entities.some((e) => e.name === authEntityName);
+  if (hasAuthJwt && !hasAuthEntity) {
     lines.push('');
-    lines.push(generateAuthUserModel());
+    lines.push(generateAuthUserModel(authEntityName));
   }
 
   return lines.join('\n') + '\n';
@@ -64,9 +66,10 @@ function generateModel(entity: Entity, project: GyxerProject): string {
   lines.push('  createdAt DateTime @default(now())');
   lines.push('  updatedAt DateTime @updatedAt');
 
-  // Auth: add passwordHash to User model
+  // Auth: add passwordHash to auth entity model
   const hasAuthJwt = project.modules?.some((m) => m.name === 'auth-jwt' && m.enabled !== false);
-  if (hasAuthJwt && entity.name === 'User') {
+  const authEntityName = hasAuthJwt ? getAuthEntityName(project) : '';
+  if (hasAuthJwt && entity.name === authEntityName) {
     lines.push('  passwordHash  String  @map("password_hash")');
   }
 
@@ -247,13 +250,13 @@ function toPrismaAction(action: string): string {
 }
 
 /**
- * Generate a full User model for auth-jwt when no User entity exists in the project.
+ * Generate an auth entity model for auth-jwt when the entity doesn't exist in the project.
  * Provides the minimal fields needed by the auth module: email, name, passwordHash.
  */
-function generateAuthUserModel(): string {
+function generateAuthUserModel(entityName: string): string {
   const lines: string[] = [];
-  lines.push('/// Auto-generated User model for auth-jwt module');
-  lines.push('model User {');
+  lines.push(`/// Auto-generated ${entityName} model for auth-jwt module`);
+  lines.push(`model ${entityName} {`);
   lines.push('  id            Int      @id @default(autoincrement())');
   lines.push('  createdAt     DateTime @default(now())');
   lines.push('  updatedAt     DateTime @updatedAt');
@@ -261,7 +264,7 @@ function generateAuthUserModel(): string {
   lines.push('  name          String');
   lines.push('  passwordHash  String   @map("password_hash")');
   lines.push('');
-  lines.push('  @@map("user")');
+  lines.push(`  @@map("${toSnakeCase(entityName)}")`);
   lines.push('}');
   return lines.join('\n');
 }

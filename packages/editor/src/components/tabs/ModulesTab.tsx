@@ -10,10 +10,14 @@ export function ModulesTab() {
   } = useProjectStore();
   const { t } = useTranslation();
 
-  const hasUser = entities.some((e) => e.name === 'User');
+  // Find auth entity by ID first, fallback to name 'User' for backward compat
+  const authEntity = modules.authEntityId
+    ? entities.find((e) => e.id === modules.authEntityId)
+    : entities.find((e) => e.name === 'User');
+  const hasUser = !!authEntity;
 
-  // Get extra required fields from User entity (for seed user extra fields)
-  const userEntity = entities.find((e) => e.name === 'User');
+  // Get extra required fields from auth entity (for seed user extra fields)
+  const userEntity = authEntity;
   const extraRequiredFields = (userEntity?.fields ?? []).filter(
     (f) => f.required && f.name !== 'email' && !f.default,
   );

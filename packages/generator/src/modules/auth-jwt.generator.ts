@@ -1,20 +1,41 @@
 import type { GyxerProject } from '@gyxer-studio/schema';
 
 /**
+ * Resolve the auth entity name from the project's auth-jwt module options.
+ * Defaults to 'User' when no custom entityName is configured.
+ */
+export function getAuthEntityName(project: GyxerProject): string {
+  const authModule = project.modules?.find(
+    (m) => m.name === 'auth-jwt' && m.enabled !== false,
+  );
+  return (authModule?.options?.entityName as string) || 'User';
+}
+
+/** Convert entity name to Prisma client accessor (lowercase first letter). */
+function toPrismaAccessor(entityName: string): string {
+  return entityName.charAt(0).toLowerCase() + entityName.slice(1);
+}
+
+/**
  * Generate all files needed for JWT authentication module.
  */
 export function generateAuthJwtFiles(project: GyxerProject): Map<string, string> {
   const files = new Map<string, string>();
 
-  // Collect required User fields without defaults (except email — already handled)
-  const userEntity = project.entities.find((e) => e.name === 'User');
-  const extraFields = (userEntity?.fields ?? []).filter(
-    (f) => f.required && f.name !== 'email' && f.default === undefined,
-  );
+  const entityName = getAuthEntityName(project);
+
+  // Collect required entity fields without defaults (except email — already handled).
+  // When the auth entity is not on the canvas, the auto-generated model has required `name`.
+  const authEntity = project.entities.find((e) => e.name === entityName);
+  const extraFields = authEntity
+    ? (authEntity.fields ?? []).filter(
+        (f) => f.required && f.name !== 'email' && f.default === undefined,
+      )
+    : [{ name: 'name', type: 'string' as const }];
 
   // Auth module
   files.set('src/auth/auth.module.ts', generateAuthModule());
-  files.set('src/auth/auth.service.ts', generateAuthService(extraFields));
+  files.set('src/auth/auth.service.ts', generateAuthService(extraFields, entityName));
   files.set('src/auth/auth.controller.ts', generateAuthController());
 
   // DTOs
@@ -24,7 +45,7 @@ export function generateAuthJwtFiles(project: GyxerProject): Map<string, string>
   files.set('src/auth/dto/refresh-token.dto.ts', generateRefreshTokenDto());
 
   // JWT strategy & guard
-  files.set('src/auth/strategies/jwt.strategy.ts', generateJwtStrategy());
+  files.set('src/auth/strategies/jwt.strategy.ts', generateJwtStrategy(entityName));
   files.set('src/auth/guards/jwt-auth.guard.ts', generateJwtAuthGuard());
 
   // Decorators
@@ -62,7 +83,9 @@ export class AuthModule {}
 
 // ─── Auth Service ───────────────────────────────────────────
 
-function generateAuthService(extraFields: { name: string }[]): string {
+function generateAuthService(extraFields: { name: string }[], entityName: string): string {
+  const accessor = toPrismaAccessor(entityName);
+
   // Build the spread of extra fields into prisma create data
   const extraSpread = extraFields.length > 0 ? ', ...rest' : '';
   const destructure =
@@ -101,7 +124,7 @@ export class AuthService {
     ${destructure}
 
     // Check if user already exists
-    const existing = await this.prisma.user.findUnique({ where: { email } });
+    const existing = await this.prisma.${accessor}.findUnique({ where: { email } });
     if (existing) {
       throw new ConflictException('User with this email already exists');
     }
@@ -110,7 +133,7 @@ export class AuthService {
     const passwordHash = await bcrypt.hash(password, 12);
 
     // Create user
-    const user = await this.prisma.user.create({
+    const user = await this.prisma.${accessor}.create({
       data: ${createData} as any,
     });
 
@@ -118,7 +141,7 @@ export class AuthService {
   }
 
   async login(email: string, password: string) {
-    const user = await this.prisma.user.findUnique({ where: { email } });
+    const user = await this.prisma.${accessor}.findUnique({ where: { email } });
     if (!user) {
       throw new UnauthorizedException('Invalid credentials');
     }
@@ -137,7 +160,7 @@ export class AuthService {
         secret: process.env.JWT_REFRESH_SECRET || 'change-me-refresh-secret',
       });
 
-      const user = await this.prisma.user.findUnique({
+      const user = await this.prisma.${accessor}.findUnique({
         where: { id: payload.sub },
       });
 
@@ -152,7 +175,7 @@ export class AuthService {
   }
 
   async getProfile(userId: number) {
-    const user = await this.prisma.user.findUnique({
+    const user = await this.prisma.${accessor}.findUnique({
       where: { id: userId },
     });
 
@@ -342,7 +365,9 @@ export class RefreshTokenDto {
 
 // ─── JWT Strategy ───────────────────────────────────────────
 
-function generateJwtStrategy(): string {
+function generateJwtStrategy(entityName: string): string {
+  const accessor = toPrismaAccessor(entityName);
+
   return `import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
@@ -364,7 +389,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   }
 
   async validate(payload: JwtPayload) {
-    const user = await this.prisma.user.findUnique({
+    const user = await this.prisma.${accessor}.findUnique({
       where: { id: payload.sub },
     });
 

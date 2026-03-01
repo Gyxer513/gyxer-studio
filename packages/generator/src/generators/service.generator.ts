@@ -1,5 +1,6 @@
 import type { Entity, GyxerProject } from '@gyxer-studio/schema';
 import { toCamelCase, toKebabCase } from '../utils.js';
+import { getAuthEntityName } from '../modules/auth-jwt.generator.js';
 
 /**
  * Generate a NestJS service for an entity with full CRUD.
@@ -9,8 +10,9 @@ export function generateService(entity: Entity, project: GyxerProject): string {
   const camel = toCamelCase(name);
   const className = `${name}Service`;
 
+  const authEntityName = getAuthEntityName(project);
   const hasAuthJwt =
-    name === 'User' &&
+    name === authEntityName &&
     project.modules?.some((m) => m.name === 'auth-jwt' && m.enabled !== false);
 
   // User + auth-jwt: create method hashes password, findAll/findOne exclude passwordHash

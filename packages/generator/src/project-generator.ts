@@ -11,6 +11,7 @@ import { generateServiceSpec, generateControllerSpec } from './generators/test.g
 import {
   generateMain,
   generateAppModule,
+  generateNestCliJson,
   generatePrismaService,
   generatePrismaModule,
   generatePrismaExceptionFilter,
@@ -190,11 +191,16 @@ export async function generateProject(
     filesCreated,
   );
   await writeFile(
+    path.join(outputDir, 'nest-cli.json'),
+    generateNestCliJson(),
+    filesCreated,
+  );
+  await writeFile(
     path.join(outputDir, '.gitignore'),
     generateGitignore(),
     filesCreated,
   );
-  log('  + package.json, tsconfig.json, .gitignore');
+  log('  + package.json, tsconfig.json, nest-cli.json, .gitignore');
 
   // ─── Docker ────────────────────────────────────────────
   if (project.settings.docker) {
@@ -344,7 +350,7 @@ function generateTsBuildConfig(): string {
   return JSON.stringify(
     {
       extends: './tsconfig.json',
-      exclude: ['node_modules', 'test', 'dist', '**/*spec.ts'],
+      exclude: ['node_modules', 'test', 'dist', 'prisma', '**/*spec.ts'],
     },
     null,
     2,
