@@ -18,6 +18,7 @@ export function RequestBuilder({ onSend }: { onSend: () => void }) {
   const {
     baseUrl, setBaseUrl,
     bearerToken, setToken, clearToken,
+    authHeaderEnabled, setAuthHeaderEnabled,
     activeRequest,
     setMethod, setPath, setBody,
     addHeader, removeHeader, toggleHeader, updateHeader,
@@ -132,11 +133,30 @@ export function RequestBuilder({ onSend }: { onSend: () => void }) {
           className="flex items-center gap-1 text-xs font-medium text-dark-400 dark:text-dark-300 hover:text-dark-600 dark:hover:text-dark-100 transition-colors"
         >
           <span className={`transition-transform ${showHeaders ? 'rotate-90' : ''}`}>▸</span>
-          {t('http.headers')} ({activeRequest.headers.filter((h) => h.enabled).length})
+          {t('http.headers')} ({activeRequest.headers.filter((h) => h.enabled).length + (hasToken && authHeaderEnabled ? 1 : 0)})
         </button>
 
         {showHeaders && (
           <div className="mt-1.5 space-y-1">
+            {/* Auto-injected Authorization header */}
+            {hasToken && (
+              <div className="flex items-center gap-1">
+                <input
+                  type="checkbox"
+                  checked={authHeaderEnabled}
+                  onChange={(e) => setAuthHeaderEnabled(e.target.checked)}
+                  className="rounded border-gray-300 dark:border-dark-500 text-green-500 w-3 h-3"
+                />
+                <span className={`px-1.5 py-0.5 text-[11px] font-mono text-green-600 dark:text-green-400 ${!authHeaderEnabled ? 'opacity-40' : ''}`}>
+                  Authorization
+                </span>
+                <span className="text-dark-300 text-[10px]">:</span>
+                <span className={`flex-1 px-1.5 py-0.5 text-[11px] font-mono text-green-600 dark:text-green-400 truncate ${!authHeaderEnabled ? 'opacity-40' : ''}`}>
+                  Bearer {bearerToken.length > 20 ? bearerToken.slice(0, 20) + '...' : bearerToken}
+                </span>
+              </div>
+            )}
+
             {activeRequest.headers.map((header, i) => (
               <div key={i} className="flex items-center gap-1">
                 <input

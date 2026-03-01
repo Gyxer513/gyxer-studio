@@ -57,6 +57,8 @@ interface HttpStore {
   setBaseUrl: (url: string) => void;
 
   // Actions — bearer token
+  authHeaderEnabled: boolean;
+  setAuthHeaderEnabled: (enabled: boolean) => void;
   setToken: (token: string) => void;
   clearToken: () => void;
 
@@ -84,6 +86,7 @@ export const useHttpStore = create<HttpStore>()(
       // Persisted defaults
       baseUrl: 'http://localhost:3000',
       bearerToken: '',
+      authHeaderEnabled: true,
       history: [],
 
       // Session defaults
@@ -95,6 +98,7 @@ export const useHttpStore = create<HttpStore>()(
       setBaseUrl: (baseUrl) => set({ baseUrl }),
 
       // Bearer token
+      setAuthHeaderEnabled: (authHeaderEnabled) => set({ authHeaderEnabled }),
       setToken: (bearerToken) => set({ bearerToken }),
       clearToken: () => set({ bearerToken: '' }),
 
@@ -167,6 +171,7 @@ export const useHttpStore = create<HttpStore>()(
       partialize: (state) => ({
         baseUrl: state.baseUrl,
         bearerToken: state.bearerToken,
+        authHeaderEnabled: state.authHeaderEnabled,
         history: state.history,
       }),
     },

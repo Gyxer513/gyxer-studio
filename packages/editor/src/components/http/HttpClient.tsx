@@ -10,6 +10,7 @@ export function HttpClient() {
   const {
     baseUrl,
     bearerToken,
+    authHeaderEnabled,
     activeRequest,
     isLoading,
     setLoading,
@@ -35,8 +36,8 @@ export function HttpClient() {
       }
     }
 
-    // Auto-inject bearer token if set and no Authorization header already exists
-    if (bearerToken && !headers['Authorization'] && !headers['authorization']) {
+    // Auto-inject bearer token if set, enabled, and no Authorization header already exists
+    if (bearerToken && authHeaderEnabled && !headers['Authorization'] && !headers['authorization']) {
       headers['Authorization'] = `Bearer ${bearerToken}`;
     }
 
@@ -116,7 +117,7 @@ export function HttpClient() {
 
       setResponse(errorResponse);
     }
-  }, [baseUrl, bearerToken, activeRequest, isLoading, setLoading, setResponse, setToken, pushHistory, t]);
+  }, [baseUrl, bearerToken, authHeaderEnabled, activeRequest, isLoading, setLoading, setResponse, setToken, pushHistory, t]);
 
   return (
     <div className="flex flex-col h-full">
