@@ -17,7 +17,11 @@ const baseProject: GyxerProject = {
   settings: {
     port: 3000,
     database: 'postgresql',
-    databaseUrl: 'postgresql://localhost:5432/test',
+    databaseUrl: 'postgresql://postgres:postgres@localhost:5432/my_app',
+    dbHost: 'localhost',
+    dbPort: 5432,
+    dbUser: 'postgres',
+    dbPassword: 'postgres',
     enableSwagger: true,
     enableCors: true,
     enableHelmet: true,
@@ -43,6 +47,9 @@ const mysqlProject: GyxerProject = {
     ...baseProject.settings,
     database: 'mysql',
     databaseUrl: 'mysql://root:root@localhost:3306/mysql_app',
+    dbPort: 3306,
+    dbUser: 'root',
+    dbPassword: 'root',
   },
 };
 
@@ -230,11 +237,14 @@ describe('Docker Generator', () => {
   // ─── .env file ──────────────────────────────────────────────
 
   describe('generateEnvFile', () => {
-    it('should include DATABASE_URL for postgresql', () => {
+    it('should include DATABASE_URL with variable references for postgresql', () => {
       const env = generateEnvFile(baseProject);
 
-      expect(env).toContain('DATABASE_URL=');
-      expect(env).toContain('postgresql://');
+      expect(env).toContain('DATABASE_URL=postgresql://');
+      expect(env).toContain('${DB_USER}');
+      expect(env).toContain('${DB_PASSWORD}');
+      expect(env).toContain('${DB_HOST}');
+      expect(env).toContain('${DB_PORT}');
     });
 
     it('should use project name for database name', () => {
@@ -249,10 +259,32 @@ describe('Docker Generator', () => {
       expect(env).toContain('PORT=3000');
     });
 
-    it('should include DB_PASSWORD for postgresql', () => {
+    it('should include individual DB fields', () => {
       const env = generateEnvFile(baseProject);
 
+      expect(env).toContain('DB_HOST=localhost');
+      expect(env).toContain('DB_PORT=5432');
+      expect(env).toContain('DB_USER=postgres');
       expect(env).toContain('DB_PASSWORD=postgres');
+    });
+
+    it('should use custom credentials from settings', () => {
+      const customProject: GyxerProject = {
+        ...baseProject,
+        settings: {
+          ...baseProject.settings,
+          dbHost: 'db.example.com',
+          dbPort: 5433,
+          dbUser: 'admin',
+          dbPassword: 'secret123',
+        },
+      };
+      const env = generateEnvFile(customProject);
+
+      expect(env).toContain('DB_HOST=db.example.com');
+      expect(env).toContain('DB_PORT=5433');
+      expect(env).toContain('DB_USER=admin');
+      expect(env).toContain('DB_PASSWORD=secret123');
     });
 
     it('should use file URL for sqlite', () => {
@@ -287,8 +319,10 @@ describe('Docker Generator', () => {
 
       expect(env).toContain('DATABASE_URL=');
       expect(env).toContain('PORT=');
-      expect(env).toContain('DB_PASSWORD=');
+      expect(env).toContain('DB_HOST=');
       expect(env).toContain('DB_PORT=');
+      expect(env).toContain('DB_USER=');
+      expect(env).toContain('DB_PASSWORD=');
     });
 
     it('should use file URL for sqlite example', () => {
@@ -310,26 +344,38 @@ describe('Docker Generator', () => {
   // ─── buildDatabaseUrl ───────────────────────────────────────
 
   describe('buildDatabaseUrl', () => {
+    const pgSettings = { database: 'postgresql', dbHost: 'localhost', dbPort: 5432, dbUser: 'postgres', dbPassword: 'postgres' };
+    const mysqlSettings = { database: 'mysql', dbHost: 'localhost', dbPort: 3306, dbUser: 'root', dbPassword: 'root' };
+    const sqliteSettings = { database: 'sqlite', dbHost: '', dbPort: 0, dbUser: '', dbPassword: '' };
+
     it('should return postgresql URL by default', () => {
-      const url = buildDatabaseUrl('postgresql', 'my_db');
+      const url = buildDatabaseUrl(pgSettings, 'my_db');
 
       expect(url).toBe('postgresql://postgres:postgres@localhost:5432/my_db');
     });
 
     it('should return file URL for sqlite', () => {
-      const url = buildDatabaseUrl('sqlite', 'my_db');
+      const url = buildDatabaseUrl(sqliteSettings, 'my_db');
 
       expect(url).toBe('file:./prisma/dev.db');
     });
 
     it('should return mysql URL for mysql', () => {
-      const url = buildDatabaseUrl('mysql', 'my_db');
+      const url = buildDatabaseUrl(mysqlSettings, 'my_db');
 
       expect(url).toBe('mysql://root:root@localhost:3306/my_db');
     });
 
+    it('should use custom credentials', () => {
+      const custom = { database: 'postgresql', dbHost: 'db.prod.com', dbPort: 5433, dbUser: 'admin', dbPassword: 'secret' };
+      const url = buildDatabaseUrl(custom, 'prod_db');
+
+      expect(url).toBe('postgresql://admin:secret@db.prod.com:5433/prod_db');
+    });
+
     it('should default to postgresql for unknown db type', () => {
-      const url = buildDatabaseUrl('unknown', 'test_db');
+      const unknown = { ...pgSettings, database: 'unknown' };
+      const url = buildDatabaseUrl(unknown, 'test_db');
 
       expect(url).toBe('postgresql://postgres:postgres@localhost:5432/test_db');
     });
