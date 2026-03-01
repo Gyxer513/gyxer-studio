@@ -194,13 +194,13 @@ export function ProjectTab() {
                     type="text"
                     value={field.name}
                     onChange={(e) => updateField(selectedEntity.id, i, { name: e.target.value })}
-                    className="flex-1 px-2 py-1 border border-gray-200 dark:border-dark-600 rounded-md text-xs font-mono bg-white dark:bg-dark-700 dark:text-dark-100"
+                    className="flex-1 min-w-0 px-2 py-1 border border-gray-200 dark:border-dark-600 rounded-md text-xs font-mono bg-white dark:bg-dark-700 dark:text-dark-100"
                     placeholder={t('sidebar.fieldPlaceholder')}
                   />
                   <select
                     value={field.type}
                     onChange={(e) => updateField(selectedEntity.id, i, { type: e.target.value as FieldType })}
-                    className="px-1.5 py-1 border border-gray-200 dark:border-dark-600 rounded-md text-xs bg-white dark:bg-dark-700 dark:text-dark-100 font-mono"
+                    className="shrink-0 w-[88px] px-1.5 py-1 border border-gray-200 dark:border-dark-600 rounded-md text-xs bg-white dark:bg-dark-700 dark:text-dark-100 font-mono"
                   >
                     {FIELD_TYPES.map((ft) => (
                       <option key={ft} value={ft}>{ft}</option>

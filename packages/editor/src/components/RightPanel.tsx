@@ -42,7 +42,7 @@ export function RightPanel() {
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-hidden">
+      <div className="flex-1 overflow-y-auto">
         {activeTab === 'project' && <ProjectTab />}
         {activeTab === 'database' && <DatabaseTab />}
         {activeTab === 'modules' && <ModulesTab />}
