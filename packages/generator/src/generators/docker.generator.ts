@@ -1,5 +1,128 @@
 import type { GyxerProject } from '@gyxer-studio/schema';
 
+// ─── Helper: detect which module services are needed ──────────────
+
+interface ModuleFlags {
+  needsRedis: boolean;
+  needsMinio: boolean;
+  needsMeili: boolean;
+  needsKeycloak: boolean;
+}
+
+function getModuleFlags(project: GyxerProject): ModuleFlags {
+  const modules = project.modules || [];
+  const has = (name: string) => modules.some((m) => m.name === name && m.enabled !== false);
+  const storageModule = modules.find((m) => m.name === 'file-storage' && m.enabled !== false);
+  const provider = (storageModule?.options?.provider as string) || 'minio';
+
+  return {
+    needsRedis: has('cache') || has('queues'),
+    needsMinio: has('file-storage') && provider === 'minio',
+    needsMeili: has('search'),
+    needsKeycloak: has('auth-keycloak') && !has('auth-jwt'),
+  };
+}
+
+function generateModuleAppEnv(flags: ModuleFlags): string {
+  const lines: string[] = [];
+  if (flags.needsRedis)    lines.push('      - REDIS_URL=redis://redis:6379');
+  if (flags.needsMinio)    lines.push('      - S3_ENDPOINT=http://minio:9000');
+  if (flags.needsMeili)    lines.push('      - MEILISEARCH_HOST=http://meilisearch:7700');
+  if (flags.needsKeycloak) lines.push('      - KEYCLOAK_AUTH_SERVER_URL=http://keycloak:8080');
+  return lines.length ? '\n' + lines.join('\n') : '';
+}
+
+function generateModuleAppDependsOn(flags: ModuleFlags): string {
+  const deps: string[] = [];
+  if (flags.needsRedis)    deps.push('      redis:\n        condition: service_healthy');
+  if (flags.needsMinio)    deps.push('      minio:\n        condition: service_healthy');
+  if (flags.needsMeili)    deps.push('      meilisearch:\n        condition: service_healthy');
+  if (flags.needsKeycloak) deps.push('      keycloak:\n        condition: service_started');
+  return deps.length ? '\n' + deps.join('\n') : '';
+}
+
+function generateModuleServices(flags: ModuleFlags): string {
+  const blocks: string[] = [];
+
+  if (flags.needsRedis) {
+    blocks.push(`
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "\${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped`);
+  }
+
+  if (flags.needsMinio) {
+    blocks.push(`
+  minio:
+    image: minio/minio:latest
+    command: server /data --console-address ":9001"
+    ports:
+      - "\${MINIO_PORT:-9000}:9000"
+      - "\${MINIO_CONSOLE_PORT:-9001}:9001"
+    environment:
+      MINIO_ROOT_USER: \${MINIO_ROOT_USER:-minioadmin}
+      MINIO_ROOT_PASSWORD: \${MINIO_ROOT_PASSWORD:-minioadmin}
+    volumes:
+      - miniodata:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped`);
+  }
+
+  if (flags.needsMeili) {
+    blocks.push(`
+  meilisearch:
+    image: getmeili/meilisearch:latest
+    ports:
+      - "\${MEILI_PORT:-7700}:7700"
+    environment:
+      MEILI_MASTER_KEY: \${MEILI_MASTER_KEY:-masterkey}
+    volumes:
+      - meilidata:/meili_data
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--spider", "http://localhost:7700/health"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped`);
+  }
+
+  if (flags.needsKeycloak) {
+    blocks.push(`
+  keycloak:
+    image: quay.io/keycloak/keycloak:latest
+    command: start-dev
+    ports:
+      - "\${KEYCLOAK_PORT:-8080}:8080"
+    environment:
+      KEYCLOAK_ADMIN: \${KEYCLOAK_ADMIN:-admin}
+      KEYCLOAK_ADMIN_PASSWORD: \${KEYCLOAK_ADMIN_PASSWORD:-admin}
+    restart: unless-stopped`);
+  }
+
+  return blocks.join('\n');
+}
+
+function generateModuleVolumes(flags: ModuleFlags): string {
+  const vols: string[] = [];
+  if (flags.needsRedis) vols.push('  redisdata:');
+  if (flags.needsMinio) vols.push('  miniodata:');
+  if (flags.needsMeili) vols.push('  meilidata:');
+  return vols.length ? '\n' + vols.join('\n') : '';
+}
+
 /**
  * Generate Dockerfile for the NestJS app.
  */
@@ -25,9 +148,7 @@ CMD ["sh", "-c", "npx prisma db push --skip-generate && node dist/main.js"]
 
 /**
  * Generate docker-compose.yml adapted to the chosen database.
- * - PostgreSQL: app + postgres service
- * - SQLite: app only (file-based DB, no extra service)
- * - MySQL: app + mysql service
+ * Includes additional services for enabled modules (Redis, MinIO, MeiliSearch, Keycloak).
  */
 export function generateDockerCompose(project: GyxerProject): string {
   const db = project.settings.database;
@@ -47,6 +168,12 @@ export function generateDockerCompose(project: GyxerProject): string {
 
 function generateDockerComposePostgres(project: GyxerProject, dbName: string): string {
   const { dbUser, dbPassword, dbPort } = project.settings;
+  const flags = getModuleFlags(project);
+  const moduleEnv = generateModuleAppEnv(flags);
+  const moduleDeps = generateModuleAppDependsOn(flags);
+  const moduleServices = generateModuleServices(flags);
+  const moduleVolumes = generateModuleVolumes(flags);
+
   return `version: '3.8'
 
 services:
@@ -56,10 +183,10 @@ services:
       - "\${PORT:-${project.settings.port}}:${project.settings.port}"
     environment:
       - DATABASE_URL=postgresql://${dbUser}:\${DB_PASSWORD:-${dbPassword}}@db:5432/${dbName}
-      - PORT=${project.settings.port}
+      - PORT=${project.settings.port}${moduleEnv}
     depends_on:
       db:
-        condition: service_healthy
+        condition: service_healthy${moduleDeps}
     restart: unless-stopped
 
   db:
@@ -77,14 +204,22 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
-    restart: unless-stopped
+    restart: unless-stopped${moduleServices}
 
 volumes:
-  pgdata:
+  pgdata:${moduleVolumes}
 `;
 }
 
 function generateDockerComposeSqlite(project: GyxerProject): string {
+  const flags = getModuleFlags(project);
+  const moduleEnv = generateModuleAppEnv(flags);
+  const moduleServices = generateModuleServices(flags);
+  const moduleVolumes = generateModuleVolumes(flags);
+  const hasModuleDeps = flags.needsRedis || flags.needsMinio || flags.needsMeili || flags.needsKeycloak;
+  const moduleDeps = generateModuleAppDependsOn(flags);
+  const dependsOnBlock = hasModuleDeps ? `\n    depends_on:${moduleDeps}` : '';
+
   return `version: '3.8'
 
 services:
@@ -94,18 +229,24 @@ services:
       - "\${PORT:-${project.settings.port}}:${project.settings.port}"
     environment:
       - DATABASE_URL=file:./prisma/dev.db
-      - PORT=${project.settings.port}
+      - PORT=${project.settings.port}${moduleEnv}
     volumes:
-      - sqlite-data:/app/prisma
-    restart: unless-stopped
+      - sqlite-data:/app/prisma${dependsOnBlock}
+    restart: unless-stopped${moduleServices}
 
 volumes:
-  sqlite-data:
+  sqlite-data:${moduleVolumes}
 `;
 }
 
 function generateDockerComposeMysql(project: GyxerProject, dbName: string): string {
   const { dbUser, dbPassword, dbPort } = project.settings;
+  const flags = getModuleFlags(project);
+  const moduleEnv = generateModuleAppEnv(flags);
+  const moduleDeps = generateModuleAppDependsOn(flags);
+  const moduleServices = generateModuleServices(flags);
+  const moduleVolumes = generateModuleVolumes(flags);
+
   return `version: '3.8'
 
 services:
@@ -115,10 +256,10 @@ services:
       - "\${PORT:-${project.settings.port}}:${project.settings.port}"
     environment:
       - DATABASE_URL=mysql://${dbUser}:\${DB_PASSWORD:-${dbPassword}}@db:3306/${dbName}
-      - PORT=${project.settings.port}
+      - PORT=${project.settings.port}${moduleEnv}
     depends_on:
       db:
-        condition: service_healthy
+        condition: service_healthy${moduleDeps}
     restart: unless-stopped
 
   db:
@@ -135,10 +276,10 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
-    restart: unless-stopped
+    restart: unless-stopped${moduleServices}
 
 volumes:
-  mysqldata:
+  mysqldata:${moduleVolumes}
 `;
 }
 

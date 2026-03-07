@@ -11,10 +11,13 @@ import { generateServiceSpec, generateControllerSpec } from './generators/test.g
 import {
   generateMain,
   generateAppModule,
+  generateAppController,
   generateNestCliJson,
   generatePrismaService,
   generatePrismaModule,
   generatePrismaExceptionFilter,
+  generatePrettierRc,
+  generateEslintConfig,
 } from './generators/app.generator.js';
 import {
   generateDockerfile,
@@ -292,8 +295,10 @@ export async function generateProject(
 
   await writeFile(path.join(srcDir, 'main.ts'), generateMain(project), filesCreated);
   await writeFile(path.join(srcDir, 'app.module.ts'), generateAppModule(project), filesCreated);
+  await writeFile(path.join(srcDir, 'app.controller.ts'), generateAppController(project), filesCreated);
   log('  + src/main.ts');
   log('  + src/app.module.ts');
+  log('  + src/app.controller.ts (GET /health)');
 
   // ─── Project config files ──────────────────────────────
   await writeFile(
@@ -321,7 +326,17 @@ export async function generateProject(
     generateGitignore(),
     filesCreated,
   );
-  log('  + package.json, tsconfig.json, nest-cli.json, .gitignore');
+  await writeFile(
+    path.join(outputDir, '.prettierrc'),
+    generatePrettierRc(),
+    filesCreated,
+  );
+  await writeFile(
+    path.join(outputDir, 'eslint.config.mjs'),
+    generateEslintConfig(),
+    filesCreated,
+  );
+  log('  + package.json, tsconfig.json, nest-cli.json, .gitignore, .prettierrc, eslint.config.mjs');
 
   // ─── Docker ────────────────────────────────────────────
   if (project.settings.docker) {
@@ -463,6 +478,9 @@ function generatePackageJson(project: GyxerProject): string {
       prisma: '^6.0.0',
       'ts-jest': '^29.2.0',
       typescript: '^5.7.0',
+      '@eslint/js': '^9.17.0',
+      eslint: '^9.17.0',
+      'typescript-eslint': '^8.18.0',
       prettier: '^3.4.0',
       ...(hasAuthJwt ? { 'ts-node': '^10.9.0', ...getAuthDevDependencies() } : {}),
       ...(hasFileStorage ? getFileStorageDevDependencies() : {}),
@@ -530,8 +548,11 @@ function generateGitignore(): string {
   return `node_modules/
 dist/
 .env
+.env.local
 *.tsbuildinfo
 coverage/
+prisma/*.db
+prisma/*.db-journal
 .DS_Store
 `;
 }

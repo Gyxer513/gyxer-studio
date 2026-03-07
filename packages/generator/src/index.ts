@@ -10,9 +10,12 @@ export { generateModule } from './generators/module.generator.js';
 export {
   generateMain,
   generateAppModule,
+  generateAppController,
   generatePrismaService,
   generatePrismaModule,
   generatePrismaExceptionFilter,
+  generatePrettierRc,
+  generateEslintConfig,
 } from './generators/app.generator.js';
 export {
   generateDockerfile,

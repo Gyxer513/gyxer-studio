@@ -2,6 +2,7 @@
 
 exports[`App Generator > generateAppModule > should generate app.module.ts matching snapshot 1`] = `
 "import { Module } from '@nestjs/common';
+import { AppController } from './app.controller';
 import { PrismaModule } from './prisma/prisma.module';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
@@ -22,6 +23,7 @@ import { UserModule } from './user/user.module';
       useClass: ThrottlerGuard,
     },
   ],
+  controllers: [AppController],
 })
 export class AppModule {}
 "

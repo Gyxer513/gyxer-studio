@@ -99,6 +99,9 @@ export function generateAppModule(project: GyxerProject): string {
   const imports: string[] = [];
   const moduleNames: string[] = [];
 
+  // App controller (health endpoint)
+  imports.push(`import { AppController } from './app.controller';`);
+
   // Prisma module
   imports.push(`import { PrismaModule } from './prisma/prisma.module';`);
   moduleNames.push('PrismaModule');
@@ -216,6 +219,7 @@ export function generateAppModule(project: GyxerProject): string {
     lines.push('  ],');
   }
 
+  lines.push('  controllers: [AppController],');
   lines.push('})');
   lines.push('export class AppModule {}');
 
@@ -258,6 +262,77 @@ export class PrismaModule {}
 /**
  * Generate Prisma exception filter that converts Prisma errors to proper HTTP responses.
  */
+/**
+ * Generate app.controller.ts with a health endpoint.
+ */
+export function generateAppController(project: GyxerProject): string {
+  const hasAuth = project.modules?.some(
+    (m) => (m.name === 'auth-jwt' || m.name === 'auth-keycloak') && m.enabled !== false,
+  ) ?? false;
+
+  const lines: string[] = [];
+  lines.push(`import { Controller, Get } from '@nestjs/common';`);
+  if (hasAuth) {
+    lines.push(`import { Public } from './auth/decorators/public.decorator';`);
+  }
+  lines.push('');
+  lines.push('@Controller()');
+  lines.push('export class AppController {');
+  if (hasAuth) {
+    lines.push('  @Public()');
+  }
+  lines.push("  @Get('health')");
+  lines.push('  health() {');
+  lines.push('    return {');
+  lines.push("      status: 'ok',");
+  lines.push('      timestamp: new Date().toISOString(),');
+  lines.push('      uptime: process.uptime(),');
+  lines.push('    };');
+  lines.push('  }');
+  lines.push('}');
+  return lines.join('\n') + '\n';
+}
+
+/**
+ * Generate .prettierrc for the NestJS project.
+ */
+export function generatePrettierRc(): string {
+  return JSON.stringify(
+    {
+      singleQuote: true,
+      trailingComma: 'all',
+      tabWidth: 2,
+      semi: true,
+      printWidth: 100,
+    },
+    null,
+    2,
+  ) + '\n';
+}
+
+/**
+ * Generate eslint.config.mjs for the NestJS project.
+ */
+export function generateEslintConfig(): string {
+  return `import eslint from '@eslint/js';
+import tseslint from 'typescript-eslint';
+
+export default tseslint.config(
+  eslint.configs.recommended,
+  ...tseslint.configs.recommended,
+  {
+    rules: {
+      '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
+      '@typescript-eslint/no-explicit-any': 'warn',
+    },
+  },
+  {
+    ignores: ['dist/', 'node_modules/', 'coverage/'],
+  },
+);
+`;
+}
+
 /**
  * Generate nest-cli.json configuration.
  */
