@@ -71,6 +71,25 @@ export interface ModulesConfig {
   authJwt: boolean;
   authEntityId: string | null;
   seedUsers: SeedUser[];
+  cache: boolean;
+  cacheTtl: number;
+  cacheMaxItems: number;
+  queues: boolean;
+  queuesName: string;
+  queuesConcurrency: number;
+  fileStorage: boolean;
+  fileStorageProvider: 'minio' | 's3';
+  fileStorageBucket: string;
+  fileStorageMaxSize: number;
+  websockets: boolean;
+  websocketsNamespace: string;
+  search: boolean;
+  authOAuth: boolean;
+  authOAuthProviders: ('google' | 'github')[];
+  authKeycloak: boolean;
+  authKeycloakRealm: string;
+  authKeycloakServerUrl: string;
+  authKeycloakClientId: string;
 }
 
 // ─── Store ──────────────────────────────────────────
@@ -112,6 +131,7 @@ interface ProjectStore {
   // Settings & modules
   updateSettings: (data: Partial<ProjectSettings>) => void;
   toggleModule: (module: keyof ModulesConfig, enabled: boolean) => void;
+  updateModuleOption: (key: string, value: any) => void;
 
   // Seed users
   addSeedUser: () => void;
@@ -147,6 +167,25 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
     authJwt: false,
     authEntityId: null,
     seedUsers: [{ email: 'admin@example.com', password: 'password123', extraFields: {} }], // pragma: allowlist secret
+    cache: false,
+    cacheTtl: 300,
+    cacheMaxItems: 100,
+    queues: false,
+    queuesName: 'default',
+    queuesConcurrency: 5,
+    fileStorage: false,
+    fileStorageProvider: 'minio',
+    fileStorageBucket: 'uploads',
+    fileStorageMaxSize: 5,
+    websockets: false,
+    websocketsNamespace: '/',
+    search: false,
+    authOAuth: false,
+    authOAuthProviders: ['google'],
+    authKeycloak: false,
+    authKeycloakRealm: 'master',
+    authKeycloakServerUrl: 'http://localhost:8080',
+    authKeycloakClientId: 'nestjs-app',
   },
 
   // ── Entity ──────────────────────────────────────
@@ -398,7 +437,99 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
         const found = entities.find((e) => e.name === entityName);
         authEntityId = found?.id || null;
       }
-      const modules: ModulesConfig = { authJwt, authEntityId, seedUsers };
+      // Parse cache module
+      let cache = false;
+      let cacheTtl = 300;
+      let cacheMaxItems = 100;
+      if (Array.isArray(json.modules)) {
+        const cacheMod = json.modules.find((m: any) => m.name === 'cache' && m.enabled);
+        cache = !!cacheMod;
+        if (cacheMod?.options?.ttl) cacheTtl = cacheMod.options.ttl as number;
+        if (cacheMod?.options?.maxItems) cacheMaxItems = cacheMod.options.maxItems as number;
+      } else if (json.modules && typeof json.modules === 'object') {
+        cache = json.modules.cache ?? false;
+        if (json.modules.cacheTtl) cacheTtl = json.modules.cacheTtl;
+        if (json.modules.cacheMaxItems) cacheMaxItems = json.modules.cacheMaxItems;
+      }
+      // Parse queues module
+      let queues = false;
+      let queuesName = 'default';
+      let queuesConcurrency = 5;
+      if (Array.isArray(json.modules)) {
+        const queuesMod = json.modules.find((m: any) => m.name === 'queues' && m.enabled);
+        queues = !!queuesMod;
+        if (queuesMod?.options?.queueName) queuesName = queuesMod.options.queueName as string;
+        if (queuesMod?.options?.concurrency) queuesConcurrency = queuesMod.options.concurrency as number;
+      } else if (json.modules && typeof json.modules === 'object') {
+        queues = json.modules.queues ?? false;
+        if (json.modules.queuesName) queuesName = json.modules.queuesName;
+        if (json.modules.queuesConcurrency) queuesConcurrency = json.modules.queuesConcurrency;
+      }
+      // Parse file-storage module
+      let fileStorage = false;
+      let fileStorageProvider: 'minio' | 's3' = 'minio';
+      let fileStorageBucket = 'uploads';
+      let fileStorageMaxSize = 5;
+      if (Array.isArray(json.modules)) {
+        const storageMod = json.modules.find((m: any) => m.name === 'file-storage' && m.enabled);
+        fileStorage = !!storageMod;
+        if (storageMod?.options?.provider) fileStorageProvider = storageMod.options.provider as 'minio' | 's3';
+        if (storageMod?.options?.bucket) fileStorageBucket = storageMod.options.bucket as string;
+        if (storageMod?.options?.maxFileSize) fileStorageMaxSize = storageMod.options.maxFileSize as number;
+      } else if (json.modules && typeof json.modules === 'object') {
+        fileStorage = json.modules.fileStorage ?? false;
+        if (json.modules.fileStorageProvider) fileStorageProvider = json.modules.fileStorageProvider;
+        if (json.modules.fileStorageBucket) fileStorageBucket = json.modules.fileStorageBucket;
+        if (json.modules.fileStorageMaxSize) fileStorageMaxSize = json.modules.fileStorageMaxSize;
+      }
+      // Parse websockets module
+      let websockets = false;
+      let websocketsNamespace = '/';
+      if (Array.isArray(json.modules)) {
+        const wsMod = json.modules.find((m: any) => m.name === 'websockets' && m.enabled);
+        websockets = !!wsMod;
+        if (wsMod?.options?.namespace) websocketsNamespace = wsMod.options.namespace as string;
+      } else if (json.modules && typeof json.modules === 'object') {
+        websockets = json.modules.websockets ?? false;
+        if (json.modules.websocketsNamespace) websocketsNamespace = json.modules.websocketsNamespace;
+      }
+      // Parse search module
+      let search = false;
+      if (Array.isArray(json.modules)) {
+        const searchMod = json.modules.find((m: any) => m.name === 'search' && m.enabled);
+        search = !!searchMod;
+      } else if (json.modules && typeof json.modules === 'object') {
+        search = json.modules.search ?? false;
+      }
+      // Parse auth-oauth module
+      let authOAuth = false;
+      let authOAuthProviders: ('google' | 'github')[] = ['google'];
+      if (Array.isArray(json.modules)) {
+        const oauthMod = json.modules.find((m: any) => m.name === 'auth-oauth' && m.enabled);
+        authOAuth = !!oauthMod;
+        if (oauthMod?.options?.providers) authOAuthProviders = oauthMod.options.providers as ('google' | 'github')[];
+      } else if (json.modules && typeof json.modules === 'object') {
+        authOAuth = json.modules.authOAuth ?? false;
+        if (json.modules.authOAuthProviders) authOAuthProviders = json.modules.authOAuthProviders;
+      }
+      // Parse auth-keycloak module
+      let authKeycloak = false;
+      let authKeycloakRealm = 'master';
+      let authKeycloakServerUrl = 'http://localhost:8080';
+      let authKeycloakClientId = 'nestjs-app';
+      if (Array.isArray(json.modules)) {
+        const kcMod = json.modules.find((m: any) => m.name === 'auth-keycloak' && m.enabled);
+        authKeycloak = !!kcMod;
+        if (kcMod?.options?.realm) authKeycloakRealm = kcMod.options.realm as string;
+        if (kcMod?.options?.authServerUrl) authKeycloakServerUrl = kcMod.options.authServerUrl as string;
+        if (kcMod?.options?.clientId) authKeycloakClientId = kcMod.options.clientId as string;
+      } else if (json.modules && typeof json.modules === 'object') {
+        authKeycloak = json.modules.authKeycloak ?? false;
+        if (json.modules.authKeycloakRealm) authKeycloakRealm = json.modules.authKeycloakRealm;
+        if (json.modules.authKeycloakServerUrl) authKeycloakServerUrl = json.modules.authKeycloakServerUrl;
+        if (json.modules.authKeycloakClientId) authKeycloakClientId = json.modules.authKeycloakClientId;
+      }
+      const modules: ModulesConfig = { authJwt, authEntityId, seedUsers, cache, cacheTtl, cacheMaxItems, queues, queuesName, queuesConcurrency, fileStorage, fileStorageProvider, fileStorageBucket, fileStorageMaxSize, websockets, websocketsNamespace, search, authOAuth, authOAuthProviders, authKeycloak, authKeycloakRealm, authKeycloakServerUrl, authKeycloakClientId };
 
       // Update counters to avoid ID conflicts
       entityCounter = entities.length;
@@ -455,6 +586,12 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
     if (module === 'authJwt' && !enabled) {
       set((state) => ({ modules: { ...state.modules, authEntityId: null } }));
     }
+  },
+
+  updateModuleOption: (key, value) => {
+    set((state) => ({
+      modules: { ...state.modules, [key]: value },
+    }));
   },
 
   // ── Seed Users ────────────────────────────────

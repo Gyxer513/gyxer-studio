@@ -31,6 +31,43 @@ import {
   getAuthDevDependencies,
 } from './modules/auth-jwt.generator.js';
 import { generateSeedFile } from './modules/seed.generator.js';
+import {
+  generateCacheFiles,
+  getCacheDependencies,
+  getCacheEnvVars,
+} from './modules/cache.generator.js';
+import {
+  generateQueuesFiles,
+  getQueuesDependencies,
+  getQueuesEnvVars,
+} from './modules/queues.generator.js';
+import {
+  generateFileStorageFiles,
+  getFileStorageDependencies,
+  getFileStorageDevDependencies,
+  getFileStorageEnvVars,
+} from './modules/file-storage.generator.js';
+import {
+  generateWebsocketsFiles,
+  getWebsocketsDependencies,
+} from './modules/websockets.generator.js';
+import {
+  generateSearchFiles,
+  getSearchDependencies,
+  getSearchEnvVars,
+} from './modules/search.generator.js';
+import {
+  generateAuthOAuthFiles,
+  getAuthOAuthDependencies,
+  getAuthOAuthDevDependencies,
+  getAuthOAuthEnvVars,
+} from './modules/auth-oauth.generator.js';
+import {
+  generateAuthKeycloakFiles,
+  getAuthKeycloakDependencies,
+  getAuthKeycloakDevDependencies,
+  getAuthKeycloakEnvVars,
+} from './modules/auth-keycloak.generator.js';
 
 export interface GenerateOptions {
   outputDir: string;
@@ -165,6 +202,90 @@ export async function generateProject(
     log('  + prisma/seed.ts');
   }
 
+  // ─── Auth OAuth module ─────────────────────────────────
+  const hasAuthOAuth = project.modules.some((m) => m.name === 'auth-oauth' && m.enabled !== false);
+  if (hasAuthOAuth && hasAuthJwt) {
+    const oauthFiles = generateAuthOAuthFiles(project);
+    for (const [relativePath, content] of oauthFiles) {
+      const fullPath = path.join(outputDir, relativePath);
+      await fs.ensureDir(path.dirname(fullPath));
+      await writeFile(fullPath, content, filesCreated);
+    }
+    log('  + src/auth/strategies/ (OAuth providers + controller)');
+  }
+
+  // ─── Auth Keycloak module ──────────────────────────────
+  const hasAuthKeycloak = project.modules.some((m) => m.name === 'auth-keycloak' && m.enabled !== false);
+  if (hasAuthKeycloak && !hasAuthJwt) {
+    const keycloakFiles = generateAuthKeycloakFiles(project);
+    for (const [relativePath, content] of keycloakFiles) {
+      const fullPath = path.join(outputDir, relativePath);
+      await fs.ensureDir(path.dirname(fullPath));
+      await writeFile(fullPath, content, filesCreated);
+    }
+    log('  + src/auth/ (Keycloak module, strategy, guard, decorators)');
+  }
+
+  // ─── Cache module ──────────────────────────────────────
+  const hasCache = project.modules.some((m) => m.name === 'cache' && m.enabled !== false);
+  if (hasCache) {
+    const cacheFiles = generateCacheFiles(project);
+    for (const [relativePath, content] of cacheFiles) {
+      const fullPath = path.join(outputDir, relativePath);
+      await fs.ensureDir(path.dirname(fullPath));
+      await writeFile(fullPath, content, filesCreated);
+    }
+    log('  + src/cache/ (module, service)');
+  }
+
+  // ─── Queues module ────────────────────────────────────
+  const hasQueues = project.modules.some((m) => m.name === 'queues' && m.enabled !== false);
+  if (hasQueues) {
+    const queuesFiles = generateQueuesFiles(project);
+    for (const [relativePath, content] of queuesFiles) {
+      const fullPath = path.join(outputDir, relativePath);
+      await fs.ensureDir(path.dirname(fullPath));
+      await writeFile(fullPath, content, filesCreated);
+    }
+    log('  + src/queues/ (module, service, processor, DTOs)');
+  }
+
+  // ─── File Storage module ──────────────────────────────────
+  const hasFileStorage = project.modules.some((m) => m.name === 'file-storage' && m.enabled !== false);
+  if (hasFileStorage) {
+    const storageFiles = generateFileStorageFiles(project);
+    for (const [relativePath, content] of storageFiles) {
+      const fullPath = path.join(outputDir, relativePath);
+      await fs.ensureDir(path.dirname(fullPath));
+      await writeFile(fullPath, content, filesCreated);
+    }
+    log('  + src/storage/ (module, service, controller, DTOs)');
+  }
+
+  // ─── WebSockets module ───────────────────────────────────
+  const hasWebsockets = project.modules.some((m) => m.name === 'websockets' && m.enabled !== false);
+  if (hasWebsockets) {
+    const wsFiles = generateWebsocketsFiles(project);
+    for (const [relativePath, content] of wsFiles) {
+      const fullPath = path.join(outputDir, relativePath);
+      await fs.ensureDir(path.dirname(fullPath));
+      await writeFile(fullPath, content, filesCreated);
+    }
+    log('  + src/websockets/ (module, gateway, DTOs)');
+  }
+
+  // ─── Search module ──────────────────────────────────────
+  const hasSearch = project.modules.some((m) => m.name === 'search' && m.enabled !== false);
+  if (hasSearch) {
+    const searchFiles = generateSearchFiles(project);
+    for (const [relativePath, content] of searchFiles) {
+      const fullPath = path.join(outputDir, relativePath);
+      await fs.ensureDir(path.dirname(fullPath));
+      await writeFile(fullPath, content, filesCreated);
+    }
+    log('  + src/search/ (module, service, controller)');
+  }
+
   // ─── App bootstrap ─────────────────────────────────────
   const srcDir = path.join(outputDir, 'src');
   await fs.ensureDir(srcDir);
@@ -220,6 +341,34 @@ export async function generateProject(
     envContent += getAuthEnvVars();
     envExampleContent += 'JWT_SECRET=your-secret-key\nJWT_EXPIRES_IN=15m\nJWT_REFRESH_SECRET=your-refresh-secret\nJWT_REFRESH_EXPIRES_IN=7d\n';
   }
+  if (hasCache) {
+    envContent += getCacheEnvVars();
+    envExampleContent += 'REDIS_URL=redis://localhost:6379\n';
+  }
+  if (hasQueues) {
+    // Only add Redis env if cache didn't already add it
+    if (!hasCache) {
+      envContent += getQueuesEnvVars();
+      envExampleContent += 'REDIS_HOST=localhost\nREDIS_PORT=6379\n';
+    }
+  }
+  if (hasFileStorage) {
+    envContent += getFileStorageEnvVars();
+    envExampleContent += 'S3_ENDPOINT=http://localhost:9000\nS3_REGION=us-east-1\nS3_ACCESS_KEY=minioadmin\nS3_SECRET_KEY=minioadmin\nS3_BUCKET=uploads\n';
+  }
+  if (hasSearch) {
+    envContent += getSearchEnvVars();
+    envExampleContent += 'MEILISEARCH_HOST=http://localhost:7700\nMEILISEARCH_API_KEY=\n';
+  }
+  if (hasAuthOAuth && hasAuthJwt) {
+    const oauthProviders = ((project.modules.find((m) => m.name === 'auth-oauth')?.options?.providers as string[]) || ['google']) as any;
+    envContent += getAuthOAuthEnvVars(oauthProviders);
+    envExampleContent += getAuthOAuthEnvVars(oauthProviders);
+  }
+  if (hasAuthKeycloak && !hasAuthJwt) {
+    envContent += getAuthKeycloakEnvVars();
+    envExampleContent += 'KEYCLOAK_AUTH_SERVER_URL=http://localhost:8080\nKEYCLOAK_REALM=master\nKEYCLOAK_CLIENT_ID=nestjs-app\n';
+  }
   await writeFile(path.join(outputDir, '.env'), envContent, filesCreated);
   await writeFile(path.join(outputDir, '.env.example'), envExampleContent, filesCreated);
   log('  + .env, .env.example');
@@ -254,6 +403,13 @@ export async function generateProject(
 
 function generatePackageJson(project: GyxerProject): string {
   const hasAuthJwt = project.modules.some((m) => m.name === 'auth-jwt' && m.enabled !== false);
+  const hasCache = project.modules.some((m) => m.name === 'cache' && m.enabled !== false);
+  const hasQueues = project.modules.some((m) => m.name === 'queues' && m.enabled !== false);
+  const hasFileStorage = project.modules.some((m) => m.name === 'file-storage' && m.enabled !== false);
+  const hasWebsockets = project.modules.some((m) => m.name === 'websockets' && m.enabled !== false);
+  const hasSearch = project.modules.some((m) => m.name === 'search' && m.enabled !== false);
+  const hasAuthOAuth = project.modules.some((m) => m.name === 'auth-oauth' && m.enabled !== false);
+  const hasAuthKeycloak = project.modules.some((m) => m.name === 'auth-keycloak' && m.enabled !== false);
 
   const pkg = {
     name: project.name,
@@ -287,6 +443,15 @@ function generatePackageJson(project: GyxerProject): string {
         ? { '@nestjs/throttler': '^6.0.0' }
         : {}),
       ...(hasAuthJwt ? getAuthDependencies() : {}),
+      ...(hasCache ? getCacheDependencies() : {}),
+      ...(hasQueues ? getQueuesDependencies() : {}),
+      ...(hasFileStorage ? getFileStorageDependencies() : {}),
+      ...(hasWebsockets ? getWebsocketsDependencies() : {}),
+      ...(hasSearch ? getSearchDependencies() : {}),
+      ...(hasAuthOAuth && hasAuthJwt ? getAuthOAuthDependencies(
+        ((project.modules.find((m) => m.name === 'auth-oauth')?.options?.providers as string[]) || ['google']) as any
+      ) : {}),
+      ...(hasAuthKeycloak && !hasAuthJwt ? getAuthKeycloakDependencies() : {}),
     },
     devDependencies: {
       '@nestjs/cli': '^10.4.0',
@@ -300,6 +465,10 @@ function generatePackageJson(project: GyxerProject): string {
       typescript: '^5.7.0',
       prettier: '^3.4.0',
       ...(hasAuthJwt ? { 'ts-node': '^10.9.0', ...getAuthDevDependencies() } : {}),
+      ...(hasFileStorage ? getFileStorageDevDependencies() : {}),
+      ...(hasAuthOAuth && hasAuthJwt ? getAuthOAuthDevDependencies(
+        ((project.modules.find((m) => m.name === 'auth-oauth')?.options?.providers as string[]) || ['google']) as any
+      ) : {}),
     },
     jest: {
       moduleFileExtensions: ['js', 'json', 'ts'],
