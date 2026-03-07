@@ -78,6 +78,45 @@ export function exportToSchema(): Record<string, unknown> {
     }
     schemaModules.push({ name: 'auth-jwt', enabled: true, options });
   }
+  if (modules.cache) {
+    const options: Record<string, unknown> = {};
+    if (modules.cacheTtl !== 300) options.ttl = modules.cacheTtl;
+    if (modules.cacheMaxItems !== 100) options.maxItems = modules.cacheMaxItems;
+    schemaModules.push({ name: 'cache', enabled: true, options });
+  }
+  if (modules.queues) {
+    const options: Record<string, unknown> = {};
+    if (modules.queuesName !== 'default') options.queueName = modules.queuesName;
+    if (modules.queuesConcurrency !== 5) options.concurrency = modules.queuesConcurrency;
+    schemaModules.push({ name: 'queues', enabled: true, options });
+  }
+  if (modules.fileStorage) {
+    const options: Record<string, unknown> = {};
+    if (modules.fileStorageProvider !== 'minio') options.provider = modules.fileStorageProvider;
+    if (modules.fileStorageBucket !== 'uploads') options.bucket = modules.fileStorageBucket;
+    if (modules.fileStorageMaxSize !== 5) options.maxFileSize = modules.fileStorageMaxSize;
+    schemaModules.push({ name: 'file-storage', enabled: true, options });
+  }
+  if (modules.websockets) {
+    const options: Record<string, unknown> = {};
+    if (modules.websocketsNamespace !== '/') options.namespace = modules.websocketsNamespace;
+    schemaModules.push({ name: 'websockets', enabled: true, options });
+  }
+  if (modules.search) {
+    schemaModules.push({ name: 'search', enabled: true, options: {} });
+  }
+  if (modules.authOAuth && modules.authJwt) {
+    const options: Record<string, unknown> = {};
+    if (modules.authOAuthProviders.length > 0) options.providers = modules.authOAuthProviders;
+    schemaModules.push({ name: 'auth-oauth', enabled: true, options });
+  }
+  if (modules.authKeycloak && !modules.authJwt) {
+    const options: Record<string, unknown> = {};
+    if (modules.authKeycloakRealm !== 'master') options.realm = modules.authKeycloakRealm;
+    if (modules.authKeycloakServerUrl !== 'http://localhost:8080') options.authServerUrl = modules.authKeycloakServerUrl;
+    if (modules.authKeycloakClientId !== 'nestjs-app') options.clientId = modules.authKeycloakClientId;
+    schemaModules.push({ name: 'auth-keycloak', enabled: true, options });
+  }
 
   return {
     name: settings.name,

@@ -25,6 +25,13 @@ export {
 // Modules
 export { generateAuthJwtFiles } from './modules/auth-jwt.generator.js';
 export { generateSeedFile } from './modules/seed.generator.js';
+export { generateCacheFiles } from './modules/cache.generator.js';
+export { generateQueuesFiles } from './modules/queues.generator.js';
+export { generateFileStorageFiles } from './modules/file-storage.generator.js';
+export { generateWebsocketsFiles } from './modules/websockets.generator.js';
+export { generateSearchFiles } from './modules/search.generator.js';
+export { generateAuthOAuthFiles } from './modules/auth-oauth.generator.js';
+export { generateAuthKeycloakFiles } from './modules/auth-keycloak.generator.js';
 
 // Security
 export { generateSecurityReport, formatSecurityReport } from './security/report.js';

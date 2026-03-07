@@ -106,6 +106,46 @@ export interface Translations {
   'sidebar.addSeedUser': string;
   'sidebar.removeSeedUser': string;
 
+  // Auth OAuth module
+  'sidebar.authOAuth': string;
+  'sidebar.authOAuthGenerates': string;
+  'sidebar.authOAuthProviders': string;
+
+  // Cache module
+  'sidebar.cache': string;
+  'sidebar.cacheGenerates': string;
+  'sidebar.cacheTtl': string;
+  'sidebar.cacheMaxItems': string;
+
+  // File Storage module
+  'sidebar.fileStorage': string;
+  'sidebar.fileStorageGenerates': string;
+  'sidebar.fileStorageProvider': string;
+  'sidebar.fileStorageBucket': string;
+  'sidebar.fileStorageMaxSize': string;
+
+  // Search module
+  'sidebar.search': string;
+  'sidebar.searchGenerates': string;
+
+  // WebSockets module
+  'sidebar.websockets': string;
+  'sidebar.websocketsGenerates': string;
+  'sidebar.websocketsNamespace': string;
+
+  // Queues module
+  'sidebar.queues': string;
+  'sidebar.queuesGenerates': string;
+  'sidebar.queuesName': string;
+  'sidebar.queuesConcurrency': string;
+
+  // Auth Keycloak module
+  'sidebar.authKeycloak': string;
+  'sidebar.authKeycloakGenerates': string;
+  'sidebar.authKeycloakRealm': string;
+  'sidebar.authKeycloakServerUrl': string;
+  'sidebar.authKeycloakClientId': string;
+
   // HTTP Client
   'http.baseUrl': string;
   'http.send': string;
@@ -233,6 +273,39 @@ export const translations: Record<Locale, Translations> = {
     'sidebar.addSeedUser': '+ Add User',
     'sidebar.removeSeedUser': 'Remove',
 
+    'sidebar.authOAuth': 'OAuth (Google, GitHub)',
+    'sidebar.authOAuthGenerates': 'OAuth generates:',
+    'sidebar.authOAuthProviders': 'Providers',
+
+    'sidebar.cache': 'Redis Cache',
+    'sidebar.cacheGenerates': 'Cache generates:',
+    'sidebar.cacheTtl': 'TTL (seconds)',
+    'sidebar.cacheMaxItems': 'Max items',
+
+    'sidebar.fileStorage': 'File Storage (S3/MinIO)',
+    'sidebar.fileStorageGenerates': 'Storage generates:',
+    'sidebar.fileStorageProvider': 'Provider',
+    'sidebar.fileStorageBucket': 'Bucket name',
+    'sidebar.fileStorageMaxSize': 'Max file size (MB)',
+
+    'sidebar.search': 'Search (MeiliSearch)',
+    'sidebar.searchGenerates': 'Search generates:',
+
+    'sidebar.websockets': 'WebSockets (Socket.IO)',
+    'sidebar.websocketsGenerates': 'WebSockets generate:',
+    'sidebar.websocketsNamespace': 'Namespace',
+
+    'sidebar.queues': 'Job Queues (BullMQ)',
+    'sidebar.queuesGenerates': 'Queues generate:',
+    'sidebar.queuesName': 'Queue name',
+    'sidebar.queuesConcurrency': 'Concurrency',
+
+    'sidebar.authKeycloak': 'Keycloak SSO',
+    'sidebar.authKeycloakGenerates': 'Keycloak generates:',
+    'sidebar.authKeycloakRealm': 'Realm',
+    'sidebar.authKeycloakServerUrl': 'Auth Server URL',
+    'sidebar.authKeycloakClientId': 'Client ID',
+
     'http.baseUrl': 'Base URL',
     'http.send': 'Send',
     'http.sending': 'Sending...',
@@ -357,6 +430,39 @@ export const translations: Record<Locale, Translations> = {
     'sidebar.seedUsers': 'Тестовые пользователи',
     'sidebar.addSeedUser': '+ Добавить',
     'sidebar.removeSeedUser': 'Удалить',
+
+    'sidebar.authOAuth': 'OAuth (Google, GitHub)',
+    'sidebar.authOAuthGenerates': 'OAuth генерирует:',
+    'sidebar.authOAuthProviders': 'Провайдеры',
+
+    'sidebar.cache': 'Redis Кеш',
+    'sidebar.cacheGenerates': 'Кеш генерирует:',
+    'sidebar.cacheTtl': 'TTL (секунды)',
+    'sidebar.cacheMaxItems': 'Макс. записей',
+
+    'sidebar.fileStorage': 'Файловое хранилище (S3/MinIO)',
+    'sidebar.fileStorageGenerates': 'Хранилище генерирует:',
+    'sidebar.fileStorageProvider': 'Провайдер',
+    'sidebar.fileStorageBucket': 'Имя бакета',
+    'sidebar.fileStorageMaxSize': 'Макс. размер файла (МБ)',
+
+    'sidebar.websockets': 'WebSockets (Socket.IO)',
+    'sidebar.websocketsGenerates': 'WebSockets генерируют:',
+    'sidebar.websocketsNamespace': 'Пространство имён',
+
+    'sidebar.search': 'Поиск (MeiliSearch)',
+    'sidebar.searchGenerates': 'Поиск генерирует:',
+
+    'sidebar.queues': 'Очереди задач (BullMQ)',
+    'sidebar.queuesGenerates': 'Очереди генерируют:',
+    'sidebar.queuesName': 'Имя очереди',
+    'sidebar.queuesConcurrency': 'Параллельность',
+
+    'sidebar.authKeycloak': 'Keycloak SSO',
+    'sidebar.authKeycloakGenerates': 'Keycloak генерирует:',
+    'sidebar.authKeycloakRealm': 'Realm',
+    'sidebar.authKeycloakServerUrl': 'URL сервера авторизации',
+    'sidebar.authKeycloakClientId': 'Client ID',
 
     'http.baseUrl': 'Базовый URL',
     'http.send': 'Отправить',

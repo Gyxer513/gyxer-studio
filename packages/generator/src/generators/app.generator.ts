@@ -91,6 +91,9 @@ export function generateMain(project: GyxerProject): string {
  */
 export function generateAppModule(project: GyxerProject): string {
   const hasAuthJwt = project.modules?.some((m) => m.name === 'auth-jwt' && m.enabled !== false) ?? false;
+  const hasCache = project.modules?.some((m) => m.name === 'cache' && m.enabled !== false) ?? false;
+  const hasQueues = project.modules?.some((m) => m.name === 'queues' && m.enabled !== false) ?? false;
+  const hasFileStorage = project.modules?.some((m) => m.name === 'file-storage' && m.enabled !== false) ?? false;
   const needsAppGuard = project.settings.enableRateLimit || hasAuthJwt;
 
   const imports: string[] = [];
@@ -105,6 +108,38 @@ export function generateAppModule(project: GyxerProject): string {
     imports.push(`import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';`);
   }
 
+  // Cache
+  if (hasCache) {
+    imports.push(`import { CacheConfigModule } from './cache/cache.module';`);
+    moduleNames.push('CacheConfigModule');
+  }
+
+  // Queues
+  if (hasQueues) {
+    imports.push(`import { QueuesModule } from './queues/queues.module';`);
+    moduleNames.push('QueuesModule');
+  }
+
+  // File Storage
+  if (hasFileStorage) {
+    imports.push(`import { StorageModule } from './storage/storage.module';`);
+    moduleNames.push('StorageModule');
+  }
+
+  // WebSockets
+  const hasWebsockets = project.modules?.some((m) => m.name === 'websockets' && m.enabled !== false) ?? false;
+  if (hasWebsockets) {
+    imports.push(`import { WebsocketsModule } from './websockets/websockets.module';`);
+    moduleNames.push('WebsocketsModule');
+  }
+
+  // Search
+  const hasSearch = project.modules?.some((m) => m.name === 'search' && m.enabled !== false) ?? false;
+  if (hasSearch) {
+    imports.push(`import { SearchModule } from './search/search.module';`);
+    moduleNames.push('SearchModule');
+  }
+
   // Auth JWT
   if (hasAuthJwt) {
     imports.push(`import { AuthModule } from './auth/auth.module';`);
@@ -112,7 +147,16 @@ export function generateAppModule(project: GyxerProject): string {
     moduleNames.push('AuthModule');
   }
 
-  if (needsAppGuard) {
+  // Auth Keycloak (alternative to auth-jwt)
+  const hasAuthKeycloak = project.modules?.some((m) => m.name === 'auth-keycloak' && m.enabled !== false) ?? false;
+  if (hasAuthKeycloak && !hasAuthJwt) {
+    imports.push(`import { AuthKeycloakModule } from './auth/auth-keycloak.module';`);
+    imports.push(`import { KeycloakAuthGuard } from './auth/guards/keycloak-auth.guard';`);
+    moduleNames.push('AuthKeycloakModule');
+  }
+
+  const needsKeycloakGuard = hasAuthKeycloak && !hasAuthJwt;
+  if (needsAppGuard || needsKeycloakGuard) {
     imports.push(`import { APP_GUARD } from '@nestjs/core';`);
   }
 
@@ -145,7 +189,7 @@ export function generateAppModule(project: GyxerProject): string {
 
   lines.push('  ],');
 
-  if (needsAppGuard) {
+  if (needsAppGuard || needsKeycloakGuard) {
     lines.push('  providers: [');
     if (project.settings.enableRateLimit) {
       lines.push('    {');
@@ -159,6 +203,14 @@ export function generateAppModule(project: GyxerProject): string {
       lines.push('    {');
       lines.push('      provide: APP_GUARD,');
       lines.push('      useClass: JwtAuthGuard,');
+      lines.push('    },');
+    }
+    if (needsKeycloakGuard) {
+      lines.push('    // Global Keycloak guard — all routes protected by default');
+      lines.push('    // Use @Public() decorator to make specific routes public');
+      lines.push('    {');
+      lines.push('      provide: APP_GUARD,');
+      lines.push('      useClass: KeycloakAuthGuard,');
       lines.push('    },');
     }
     lines.push('  ],');
