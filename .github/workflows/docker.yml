@@ -63,4 +63,4 @@ jobs:
             ghcr.io/${{ steps.version.outputs.owner }}/studio:${{ steps.version.outputs.version }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          platforms: linux/amd64,linux/arm64
+          platforms: linux/amd64
