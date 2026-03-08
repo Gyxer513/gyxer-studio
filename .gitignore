@@ -15,7 +15,8 @@ docs/.vitepress/cache/
 .vscode/
 
 # Claude Code
-.claude/
+.claude/*
+!.claude/commands/
 
 # Generated output (test artifacts)
 blog-api/
