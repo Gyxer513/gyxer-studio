@@ -5,6 +5,8 @@ import {
   generateEnvFile,
   generateEnvExample,
   buildDatabaseUrl,
+  generateAdminDockerfile,
+  generateAdminNginxConf,
 } from './docker.generator.js';
 import type { GyxerProject } from '@gyxer-studio/schema';
 
@@ -338,6 +340,85 @@ describe('Docker Generator', () => {
       expect(env).toContain('DATABASE_URL=mysql://');
       expect(env).toContain('YOUR_PASSWORD');
       expect(env).toContain('DB_PORT=3306');
+    });
+  });
+
+  // ─── Admin Docker ──────────────────────────────────────────
+
+  describe('admin docker compose service', () => {
+    const adminProject: GyxerProject = {
+      ...baseProject,
+      modules: [{ name: 'admin-dashboard', enabled: true, options: {} }],
+    };
+
+    it('should include admin service when admin-dashboard enabled', () => {
+      const compose = generateDockerCompose(adminProject);
+
+      expect(compose).toContain('admin:');
+      expect(compose).toContain('build: ./admin');
+      expect(compose).toContain('ADMIN_PORT:-5173');
+    });
+
+    it('should have admin depend on app', () => {
+      const compose = generateDockerCompose(adminProject);
+
+      expect(compose).toContain('depends_on:\n      - app');
+    });
+
+    it('should not include admin service when module is disabled', () => {
+      const compose = generateDockerCompose(baseProject);
+
+      expect(compose).not.toContain('admin:');
+      expect(compose).not.toContain('build: ./admin');
+    });
+  });
+
+  describe('generateAdminDockerfile', () => {
+    it('should use multi-stage build with nginx', () => {
+      const df = generateAdminDockerfile();
+
+      expect(df).toContain('FROM node:20-alpine AS builder');
+      expect(df).toContain('FROM nginx:alpine');
+    });
+
+    it('should build the admin app', () => {
+      const df = generateAdminDockerfile();
+
+      expect(df).toContain('RUN npm run build');
+    });
+
+    it('should copy built files to nginx html directory', () => {
+      const df = generateAdminDockerfile();
+
+      expect(df).toContain('COPY --from=builder /app/dist /usr/share/nginx/html');
+    });
+
+    it('should copy nginx config', () => {
+      const df = generateAdminDockerfile();
+
+      expect(df).toContain('COPY nginx.conf /etc/nginx/conf.d/default.conf');
+    });
+  });
+
+  describe('generateAdminNginxConf', () => {
+    it('should proxy /api to app service and strip prefix', () => {
+      const conf = generateAdminNginxConf();
+
+      expect(conf).toContain('location /api/');
+      expect(conf).toContain('proxy_pass http://app:3000/');
+    });
+
+    it('should serve SPA with fallback to index.html', () => {
+      const conf = generateAdminNginxConf();
+
+      expect(conf).toContain('try_files $uri $uri/ /index.html');
+    });
+
+    it('should set proxy headers', () => {
+      const conf = generateAdminNginxConf();
+
+      expect(conf).toContain('X-Real-IP');
+      expect(conf).toContain('X-Forwarded-For');
     });
   });
 

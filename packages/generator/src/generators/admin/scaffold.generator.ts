@@ -56,6 +56,7 @@ export default defineConfig({
       '/api': {
         target: 'http://localhost:${project.settings.port}',
         changeOrigin: true,
+        rewrite: (path: string) => path.replace(/^\\/api/, ''),
       },
     },
   },

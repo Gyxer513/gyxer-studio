@@ -205,6 +205,8 @@ describe('admin dashboard generator', () => {
     const files = generateAdminFiles(project);
     const viteConfig = files.get('vite.config.ts')!;
     expect(viteConfig).toContain('http://localhost:4000');
+    expect(viteConfig).toContain('rewrite');
+    expect(viteConfig).toContain("path.replace(/^\\/api/, '')");
   });
 
   it('should generate correct package.json with project name', () => {

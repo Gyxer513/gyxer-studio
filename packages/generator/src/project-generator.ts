@@ -24,6 +24,8 @@ import {
   generateDockerCompose,
   generateEnvFile,
   generateEnvExample,
+  generateAdminDockerfile,
+  generateAdminNginxConf,
 } from './generators/docker.generator.js';
 import { generateSecurityReport, formatSecurityReport } from './security/report.js';
 import type { SecurityReport } from './security/report.js';
@@ -399,6 +401,20 @@ export async function generateProject(
       const fullPath = path.join(outputDir, 'admin', relativePath);
       await fs.ensureDir(path.dirname(fullPath));
       await writeFile(fullPath, content, filesCreated);
+    }
+    // Admin Docker files (Dockerfile + nginx.conf inside admin/)
+    if (project.settings.docker) {
+      await writeFile(
+        path.join(outputDir, 'admin', 'Dockerfile'),
+        generateAdminDockerfile(),
+        filesCreated,
+      );
+      await writeFile(
+        path.join(outputDir, 'admin', 'nginx.conf'),
+        generateAdminNginxConf(),
+        filesCreated,
+      );
+      log('  + admin/Dockerfile, admin/nginx.conf');
     }
     log(`  + admin/ (React admin dashboard — ${adminFiles.size} files)`);
   }

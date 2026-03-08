@@ -7,6 +7,7 @@ interface ModuleFlags {
   needsMinio: boolean;
   needsMeili: boolean;
   needsKeycloak: boolean;
+  needsAdmin: boolean;
 }
 
 function getModuleFlags(project: GyxerProject): ModuleFlags {
@@ -20,6 +21,7 @@ function getModuleFlags(project: GyxerProject): ModuleFlags {
     needsMinio: has('file-storage') && provider === 'minio',
     needsMeili: has('search'),
     needsKeycloak: has('auth-keycloak') && !has('auth-jwt'),
+    needsAdmin: has('admin-dashboard'),
   };
 }
 
@@ -109,6 +111,17 @@ function generateModuleServices(flags: ModuleFlags): string {
     environment:
       KEYCLOAK_ADMIN: \${KEYCLOAK_ADMIN:-admin}
       KEYCLOAK_ADMIN_PASSWORD: \${KEYCLOAK_ADMIN_PASSWORD:-admin}
+    restart: unless-stopped`);
+  }
+
+  if (flags.needsAdmin) {
+    blocks.push(`
+  admin:
+    build: ./admin
+    ports:
+      - "\${ADMIN_PORT:-5173}:80"
+    depends_on:
+      - app
     restart: unless-stopped`);
   }
 
@@ -322,6 +335,50 @@ DB_USER=${project.settings.dbUser}
 DB_PASSWORD=${project.settings.dbPassword}
 DATABASE_URL=${protocol}://\${DB_USER}:\${DB_PASSWORD}@\${DB_HOST}:\${DB_PORT}/${dbName}
 PORT=${project.settings.port}
+`;
+}
+
+/**
+ * Generate admin/Dockerfile — multi-stage build with nginx.
+ */
+export function generateAdminDockerfile(): string {
+  return `FROM node:20-alpine AS builder
+WORKDIR /app
+COPY package*.json ./
+RUN npm install
+COPY . .
+RUN npm run build
+
+FROM nginx:alpine
+COPY --from=builder /app/dist /usr/share/nginx/html
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+EXPOSE 80
+`;
+}
+
+/**
+ * Generate admin/nginx.conf — serve SPA + reverse-proxy /api to the app service.
+ */
+export function generateAdminNginxConf(): string {
+  return `server {
+    listen 80;
+    root /usr/share/nginx/html;
+    index index.html;
+
+    # Reverse-proxy API requests to NestJS (strip /api prefix)
+    location /api/ {
+        proxy_pass http://app:3000/;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    # SPA fallback
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+}
 `;
 }
 
