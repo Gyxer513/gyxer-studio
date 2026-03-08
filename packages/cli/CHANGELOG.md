@@ -1,5 +1,17 @@
 # @gyxer-studio/cli
 
+## 0.6.0-alpha.0
+
+### Minor Changes
+
+- 1083756: feat: add 7 plugin modules — cache (Redis), queues (BullMQ), file-storage (S3/MinIO), websockets (Socket.IO), search (MeiliSearch), auth-oauth (Google/GitHub), auth-keycloak (SSO)
+
+### Patch Changes
+
+- Updated dependencies [1083756]
+  - @gyxer-studio/generator@0.6.0-alpha.0
+  - @gyxer-studio/schema@0.6.0-alpha.0
+
 ## 0.5.0
 
 ### Patch Changes
