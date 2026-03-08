@@ -117,6 +117,9 @@ export function exportToSchema(): Record<string, unknown> {
     if (modules.authKeycloakClientId !== 'nestjs-app') options.clientId = modules.authKeycloakClientId;
     schemaModules.push({ name: 'auth-keycloak', enabled: true, options });
   }
+  if (modules.adminPanel) {
+    schemaModules.push({ name: 'admin-dashboard', enabled: true, options: {} });
+  }
 
   return {
     name: settings.name,

@@ -36,6 +36,9 @@ export { generateSearchFiles } from './modules/search.generator.js';
 export { generateAuthOAuthFiles } from './modules/auth-oauth.generator.js';
 export { generateAuthKeycloakFiles } from './modules/auth-keycloak.generator.js';
 
+// Admin Dashboard
+export { generateAdminFiles } from './generators/admin/index.js';
+
 // Security
 export { generateSecurityReport, formatSecurityReport } from './security/report.js';
 export type { SecurityCheck, SecurityReport } from './security/report.js';

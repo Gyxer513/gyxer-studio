@@ -146,6 +146,11 @@ export interface Translations {
   'sidebar.authKeycloakServerUrl': string;
   'sidebar.authKeycloakClientId': string;
 
+  // Admin Dashboard module
+  'sidebar.frontendSection': string;
+  'sidebar.adminPanel': string;
+  'sidebar.adminPanelGenerates': string;
+
   // HTTP Client
   'http.baseUrl': string;
   'http.send': string;
@@ -306,6 +311,10 @@ export const translations: Record<Locale, Translations> = {
     'sidebar.authKeycloakServerUrl': 'Auth Server URL',
     'sidebar.authKeycloakClientId': 'Client ID',
 
+    'sidebar.frontendSection': 'Frontend',
+    'sidebar.adminPanel': 'Admin Dashboard',
+    'sidebar.adminPanelGenerates': 'Generates React admin panel with CRUD pages for all entities, login page, and dashboard.',
+
     'http.baseUrl': 'Base URL',
     'http.send': 'Send',
     'http.sending': 'Sending...',
@@ -463,6 +472,10 @@ export const translations: Record<Locale, Translations> = {
     'sidebar.authKeycloakRealm': 'Realm',
     'sidebar.authKeycloakServerUrl': 'URL сервера авторизации',
     'sidebar.authKeycloakClientId': 'Client ID',
+
+    'sidebar.frontendSection': 'Фронтенд',
+    'sidebar.adminPanel': 'Админ-панель',
+    'sidebar.adminPanelGenerates': 'Генерирует React-админку с CRUD страницами для всех сущностей, страницей логина и дашбордом.',
 
     'http.baseUrl': 'Базовый URL',
     'http.send': 'Отправить',

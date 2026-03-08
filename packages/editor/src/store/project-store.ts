@@ -90,6 +90,7 @@ export interface ModulesConfig {
   authKeycloakRealm: string;
   authKeycloakServerUrl: string;
   authKeycloakClientId: string;
+  adminPanel: boolean;
 }
 
 // ─── Store ──────────────────────────────────────────
@@ -186,6 +187,7 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
     authKeycloakRealm: 'master',
     authKeycloakServerUrl: 'http://localhost:8080',
     authKeycloakClientId: 'nestjs-app',
+    adminPanel: false,
   },
 
   // ── Entity ──────────────────────────────────────
@@ -529,7 +531,15 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
         if (json.modules.authKeycloakServerUrl) authKeycloakServerUrl = json.modules.authKeycloakServerUrl;
         if (json.modules.authKeycloakClientId) authKeycloakClientId = json.modules.authKeycloakClientId;
       }
-      const modules: ModulesConfig = { authJwt, authEntityId, seedUsers, cache, cacheTtl, cacheMaxItems, queues, queuesName, queuesConcurrency, fileStorage, fileStorageProvider, fileStorageBucket, fileStorageMaxSize, websockets, websocketsNamespace, search, authOAuth, authOAuthProviders, authKeycloak, authKeycloakRealm, authKeycloakServerUrl, authKeycloakClientId };
+      // Parse admin-dashboard module
+      let adminPanel = false;
+      if (Array.isArray(json.modules)) {
+        const adminMod = json.modules.find((m: any) => m.name === 'admin-dashboard' && m.enabled);
+        adminPanel = !!adminMod;
+      } else if (json.modules && typeof json.modules === 'object') {
+        adminPanel = json.modules.adminPanel ?? false;
+      }
+      const modules: ModulesConfig = { authJwt, authEntityId, seedUsers, cache, cacheTtl, cacheMaxItems, queues, queuesName, queuesConcurrency, fileStorage, fileStorageProvider, fileStorageBucket, fileStorageMaxSize, websockets, websocketsNamespace, search, authOAuth, authOAuthProviders, authKeycloak, authKeycloakRealm, authKeycloakServerUrl, authKeycloakClientId, adminPanel };
 
       // Update counters to avoid ID conflicts
       entityCounter = entities.length;

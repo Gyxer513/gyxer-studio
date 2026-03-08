@@ -534,6 +534,44 @@ export function ModulesTab() {
             </div>
           </div>
         )}
+
+        {/* ─── Frontend ─── */}
+        <div className="mt-6 pt-4 border-t border-dark-200 dark:border-dark-600">
+          <span className="text-xs font-medium text-dark-400 dark:text-dark-500 uppercase tracking-wider">
+            {t('sidebar.frontendSection')}
+          </span>
+        </div>
+
+        <label className="flex items-center gap-2.5 cursor-pointer group mt-3">
+          <input
+            type="checkbox"
+            checked={modules.adminPanel}
+            onChange={(e) => toggleModule('adminPanel', e.target.checked)}
+            className={checkboxCls}
+          />
+          <div className="flex items-center gap-2">
+            <span className="w-6 h-6 bg-gyxer-50 dark:bg-gyxer-900/40 rounded flex items-center justify-center text-xs">📊</span>
+            <span className="text-sm text-dark-600 dark:text-dark-200 group-hover:text-dark-800 dark:group-hover:text-white transition-colors">
+              {t('sidebar.adminPanel')}
+            </span>
+          </div>
+        </label>
+
+        {modules.adminPanel && (
+          <div className="mt-3 ml-7 space-y-2.5">
+            <div className="p-2.5 bg-gyxer-50/50 dark:bg-gyxer-900/20 rounded-lg border border-gyxer-200 dark:border-gyxer-800 space-y-1.5">
+              <div className="text-xs font-medium text-gyxer-700 dark:text-gyxer-300">
+                {t('sidebar.adminPanelGenerates')}
+              </div>
+              <ul className="text-[11px] text-dark-500 dark:text-dark-300 space-y-1 ml-3 list-disc">
+                <li>React + Vite + Tailwind CSS</li>
+                <li>CRUD pages for all entities</li>
+                <li>Dashboard with entity counts</li>
+                {modules.authJwt && <li>Login page + JWT auth</li>}
+              </ul>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

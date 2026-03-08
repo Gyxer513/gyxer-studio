@@ -71,6 +71,7 @@ import {
   getAuthKeycloakDevDependencies,
   getAuthKeycloakEnvVars,
 } from './modules/auth-keycloak.generator.js';
+import { generateAdminFiles } from './generators/admin/index.js';
 
 export interface GenerateOptions {
   outputDir: string;
@@ -387,6 +388,20 @@ export async function generateProject(
   await writeFile(path.join(outputDir, '.env'), envContent, filesCreated);
   await writeFile(path.join(outputDir, '.env.example'), envExampleContent, filesCreated);
   log('  + .env, .env.example');
+
+  // ─── Admin Dashboard ────────────────────────────────────
+  const hasAdminDashboard = project.modules.some(
+    (m) => m.name === 'admin-dashboard' && m.enabled !== false,
+  );
+  if (hasAdminDashboard) {
+    const adminFiles = generateAdminFiles(project);
+    for (const [relativePath, content] of adminFiles) {
+      const fullPath = path.join(outputDir, 'admin', relativePath);
+      await fs.ensureDir(path.dirname(fullPath));
+      await writeFile(fullPath, content, filesCreated);
+    }
+    log(`  + admin/ (React admin dashboard — ${adminFiles.size} files)`);
+  }
 
   // ─── Security Report ───────────────────────────────────
   const securityReport = generateSecurityReport(project);

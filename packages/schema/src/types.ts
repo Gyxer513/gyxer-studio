@@ -82,6 +82,7 @@ export const ModuleName = z.enum([
   'search',
   'cache',
   'websockets',
+  'admin-dashboard',
 ]);
 export type ModuleName = z.infer<typeof ModuleName>;
 
