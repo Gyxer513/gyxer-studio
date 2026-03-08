@@ -32,4 +32,7 @@ features:
   - icon: "\U0001F9E9"
     title: Module System
     details: Add JWT auth, file storage, queues, caching, and more as plug-in modules.
+  - icon: "\U0001F916"
+    title: MCP Server
+    details: AI agents build projects via Model Context Protocol. Describe what you want — the AI does the rest.
 ---

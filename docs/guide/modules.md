@@ -4,22 +4,23 @@ Modules add pre-built functionality to your generated project.
 
 ## Available Modules
 
-| Module | Status | Description |
-|--------|--------|-------------|
-| `auth-jwt` | **Implemented** | JWT authentication with refresh tokens |
-| `auth-oauth` | Planned | OAuth2 integration |
-| `auth-keycloak` | Planned | Keycloak SSO |
-| `file-storage` | Planned | MinIO-based file uploads |
-| `queues` | Planned | BullMQ background jobs |
-| `search` | Planned | Elasticsearch integration |
-| `cache` | Planned | Redis caching layer |
-| `websockets` | Planned | Real-time events via Socket.IO |
+| Module | Description |
+|--------|-------------|
+| `auth-jwt` | JWT authentication with access/refresh tokens |
+| `auth-oauth` | OAuth2 providers (Google, GitHub, Facebook) |
+| `auth-keycloak` | Keycloak SSO integration |
+| `file-storage` | S3-compatible file upload/download with Multer |
+| `queues` | BullMQ job queues with Redis |
+| `search` | MeiliSearch full-text search |
+| `cache` | Redis caching layer |
+| `websockets` | Socket.IO real-time communication |
+| `admin-dashboard` | React admin panel with shadcn/ui |
 
 ## Enabling Modules
 
 ### In the Editor
 
-Toggle the **JWT Auth** checkbox in the modules section of the right panel.
+Toggle module checkboxes in the modules section of the right panel.
 
 ### In JSON
 
@@ -28,10 +29,24 @@ Add to the `modules` array:
 ```json
 {
   "modules": [
-    { "name": "auth-jwt", "enabled": true }
+    { "name": "auth-jwt", "enabled": true },
+    { "name": "file-storage", "enabled": true },
+    { "name": "admin-dashboard", "enabled": true }
   ]
 }
 ```
+
+### Via MCP
+
+```
+enable_module({ moduleName: "auth-jwt" })
+```
+
+### Dependency Rules
+
+- **auth-oauth** requires **auth-jwt** to be enabled first
+- **auth-keycloak** and **auth-jwt** are mutually exclusive
+- Disabling **auth-jwt** automatically disables **auth-oauth**
 
 ## Auth JWT Module
 
