@@ -39,10 +39,10 @@ function makeProject(overrides: Partial<GyxerProject> = {}): GyxerProject {
 /* ─── Tests ────────────────────────────────────────── */
 
 describe('generateSeedFile', () => {
-  it('should import PrismaClient and bcrypt', () => {
+  it('should import PrismaClient and bcryptjs', () => {
     const result = generateSeedFile(makeProject());
     expect(result).toContain("import { PrismaClient } from '@prisma/client'");
-    expect(result).toContain("import * as bcrypt from 'bcrypt'");
+    expect(result).toContain("import * as bcrypt from 'bcryptjs'");
   });
 
   it('should use bcrypt.hash with salt rounds 12', () => {
@@ -177,7 +177,7 @@ describe('generateSeedFile', () => {
       });
       const result = generateSeedFile(project);
       expect(result).toContain("email: 'custom@test.com'");
-      expect(result).toContain("bcrypt.hash('mypass', 12)");
+      expect(result).toContain("bcrypt.hash('mypass', 12)"); // bcrypt is the import alias for bcryptjs
       expect(result).not.toContain('admin@example.com');
     });
 

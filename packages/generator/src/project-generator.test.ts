@@ -357,7 +357,7 @@ describe('E2E: generateProject', () => {
       const pkg = JSON.parse(await fs.readFile(path.join(tmpDir, 'package.json'), 'utf-8'));
       expect(pkg.dependencies['@nestjs/jwt']).toBeDefined();
       expect(pkg.dependencies['@nestjs/passport']).toBeDefined();
-      expect(pkg.dependencies['bcrypt']).toBeDefined();
+      expect(pkg.dependencies['bcryptjs']).toBeDefined();
     });
 
     it('should include rate limit deps in package.json', async () => {
@@ -408,7 +408,7 @@ describe('E2E: generateProject', () => {
       await generateProject(blogProject, { outputDir: tmpDir, silent: true });
 
       const service = await fs.readFile(path.join(tmpDir, 'src', 'user', 'user.service.ts'), 'utf-8');
-      expect(service).toContain('bcrypt');
+      expect(service).toContain('bcryptjs');
       expect(service).toContain('hash');
       expect(service).toContain('passwordHash');
     });
@@ -438,11 +438,11 @@ describe('E2E: generateProject', () => {
       }
     });
 
-    it('should generate User spec with bcrypt mock', async () => {
+    it('should generate User spec with bcryptjs mock', async () => {
       await generateProject(blogProject, { outputDir: tmpDir, silent: true });
 
       const spec = await fs.readFile(path.join(tmpDir, 'src', 'user', 'user.service.spec.ts'), 'utf-8');
-      expect(spec).toContain("jest.mock('bcrypt'");
+      expect(spec).toContain("jest.mock('bcryptjs'");
       expect(spec).toContain('passwordHash');
     });
 
@@ -452,7 +452,7 @@ describe('E2E: generateProject', () => {
       expect(await fs.pathExists(path.join(tmpDir, 'prisma', 'seed.ts'))).toBe(true);
 
       const seed = await fs.readFile(path.join(tmpDir, 'prisma', 'seed.ts'), 'utf-8');
-      expect(seed).toContain('bcrypt');
+      expect(seed).toContain('bcryptjs');
       expect(seed).toContain("admin@example.com");
       expect(seed).toContain('passwordHash');
       expect(seed).toContain('prisma.user.upsert');
@@ -655,7 +655,7 @@ describe('E2E: generateProject', () => {
       await generateProject(accountProject, { outputDir: tmpDir, silent: true });
 
       const service = await fs.readFile(path.join(tmpDir, 'src', 'account', 'account.service.ts'), 'utf-8');
-      expect(service).toContain('bcrypt');
+      expect(service).toContain('bcryptjs');
       expect(service).toContain('passwordHash');
     });
 

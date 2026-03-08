@@ -24,7 +24,7 @@ export function generateAdminPackageJson(project: GyxerProject): string {
       zod: '^3.23.0',
       clsx: '^2.1.0',
       'tailwind-merge': '^2.6.0',
-      'lucide-react': '^0.460.0',
+      'lucide-react': '^0.577.0',
       'date-fns': '^4.1.0',
     },
     devDependencies: {
@@ -56,7 +56,6 @@ export default defineConfig({
       '/api': {
         target: 'http://localhost:${project.settings.port}',
         changeOrigin: true,
-        rewrite: (path: string) => path.replace(/^\\/api/, ''),
       },
     },
   },
@@ -75,17 +74,17 @@ export default {
     extend: {
       colors: {
         primary: {
-          50: '#eff6ff',
-          100: '#dbeafe',
-          200: '#bfdbfe',
-          300: '#93c5fd',
-          400: '#60a5fa',
-          500: '#3b82f6',
-          600: '#2563eb',
-          700: '#1d4ed8',
-          800: '#1e40af',
-          900: '#1e3a8a',
-          950: '#172554',
+          50: '#fef2f2',
+          100: '#fde3e3',
+          200: '#fccaca',
+          300: '#f9a3a3',
+          400: '#f47272',
+          500: '#eb4c47',
+          600: '#e53935',
+          700: '#c62828',
+          800: '#a52222',
+          900: '#8b2020',
+          950: '#4c0e0e',
         },
       },
     },
@@ -191,7 +190,7 @@ export function generateAdminIndexCss(): string {
 @tailwind utilities;
 
 :root {
-  --primary: 59 130 246;
+  --primary: 229 57 53;
 }
 `;
 }

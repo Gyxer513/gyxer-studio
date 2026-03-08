@@ -46,7 +46,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = async (email: string, password: string) => {
     const res = await api.post('/auth/login', { email, password });
-    const accessToken = res.data.access_token;
+    const accessToken = res.data.accessToken;
     localStorage.setItem('access_token', accessToken);
     setToken(accessToken);
   };
@@ -84,6 +84,7 @@ import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/card';
+import { GyxerLogo } from '../components/ui/gyxer-logo';
 
 export function LoginPage() {
   const { login } = useAuth();
@@ -110,7 +111,8 @@ export function LoginPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
       <Card className="w-full max-w-sm">
-        <CardHeader>
+        <CardHeader className="flex flex-col items-center gap-3">
+          <GyxerLogo circle className="w-16 h-16" />
           <CardTitle className="text-center">Admin Login</CardTitle>
         </CardHeader>
         <CardContent>

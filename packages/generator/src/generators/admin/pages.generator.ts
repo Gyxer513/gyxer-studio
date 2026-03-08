@@ -115,6 +115,7 @@ export function generateListPage(entity: Entity): string {
   const kebab = toKebabCase(entity.name);
   const camel = toCamelCase(entity.name);
   const plural = pluralize(entity.name);
+  const pluralKebab = pluralize(kebab);
 
   const columnHeaders = entity.fields
     .map((f) => `              <TableHead>${f.name}</TableHead>`)
@@ -133,6 +134,7 @@ import { ${camel}Service } from '../../services/${kebab}.service';
 import { Button } from '../../components/ui/button';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '../../components/ui/table';${needsBadge ? `\nimport { Badge } from '../../components/ui/badge';` : ''}
 import { Dialog, DialogHeader, DialogTitle, DialogFooter } from '../../components/ui/dialog';
+import { GyxerSpinner } from '../../components/ui/gyxer-spinner';
 import { Plus, Pencil, Trash2 } from 'lucide-react';
 
 export function ${plural}ListPage() {
@@ -169,13 +171,13 @@ export function ${plural}ListPage() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-gray-900">${plural}</h1>
-        <Link to="/${kebab}s/create">
+        <Link to="/${pluralKebab}/create">
           <Button><Plus className="w-4 h-4 mr-2" /> Create</Button>
         </Link>
       </div>
 
       {loading ? (
-        <div className="text-center py-12 text-gray-500">Loading...</div>
+        <div className="flex justify-center py-12"><GyxerSpinner /></div>
       ) : items.length === 0 ? (
         <div className="text-center py-12 text-gray-500">
           No ${plural.toLowerCase()} found. Create one to get started.
@@ -195,7 +197,7 @@ ${columnHeaders}
 ${columnCells}
                   <TableCell>
                     <div className="flex items-center gap-1">
-                      <Link to={\`/${kebab}s/\${item.id}/edit\`}>
+                      <Link to={\`/${pluralKebab}/\${item.id}/edit\`}>
                         <Button variant="ghost" size="icon"><Pencil className="w-4 h-4" /></Button>
                       </Link>
                       <Button variant="ghost" size="icon" onClick={() => setDeleteId(item.id)}>
@@ -234,6 +236,7 @@ export function generateCreatePage(entity: Entity): string {
   const kebab = toKebabCase(entity.name);
   const camel = toCamelCase(entity.name);
   const plural = pluralize(entity.name);
+  const pluralKebab = pluralize(kebab);
 
   const zodFields = entity.fields
     .map((f) => `  ${f.name}: ${fieldToZodType(f)},`)
@@ -246,17 +249,13 @@ export function generateCreatePage(entity: Entity): string {
   const hasSwitch = entity.fields.some((f) => f.type === 'boolean');
   const hasSelect = entity.fields.some((f) => f.type === 'enum' && f.enumValues?.length);
 
-  const uiImports = ['Input'];
-  if (hasTextarea) uiImports.push('Textarea');
-  if (hasSelect) uiImports.push('Select');
-
   return `import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { ${camel}Service } from '../../services/${kebab}.service';
 import { Button } from '../../components/ui/button';
-import { ${uiImports.join(', ')} } from '../../components/ui/input';
+import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';${hasTextarea ? `\nimport { Textarea } from '../../components/ui/textarea';` : ''}${hasSelect ? `\nimport { Select } from '../../components/ui/select';` : ''}${hasSwitch ? `\nimport { Switch } from '../../components/ui/switch';` : ''}
 
 const schema = z.object({
@@ -276,7 +275,7 @@ export function ${plural}CreatePage() {
   const onSubmit = async (data: FormData) => {
     try {
       await ${camel}Service.create(data as Record<string, unknown>);
-      navigate('/${kebab}s');
+      navigate('/${pluralKebab}');
     } catch (err) {
       console.error('Failed to create:', err);
     }
@@ -295,7 +294,7 @@ ${formInputs}
           <Button type="submit" disabled={isSubmitting}>
             {isSubmitting ? 'Creating...' : 'Create'}
           </Button>
-          <Button type="button" variant="outline" onClick={() => navigate('/${kebab}s')}>
+          <Button type="button" variant="outline" onClick={() => navigate('/${pluralKebab}')}>
             Cancel
           </Button>
         </div>
@@ -312,6 +311,7 @@ export function generateEditPage(entity: Entity): string {
   const kebab = toKebabCase(entity.name);
   const camel = toCamelCase(entity.name);
   const plural = pluralize(entity.name);
+  const pluralKebab = pluralize(kebab);
 
   const zodFields = entity.fields
     .map((f) => `  ${f.name}: ${fieldToZodType(f)},`)
@@ -324,10 +324,6 @@ export function generateEditPage(entity: Entity): string {
   const hasSwitch = entity.fields.some((f) => f.type === 'boolean');
   const hasSelect = entity.fields.some((f) => f.type === 'enum' && f.enumValues?.length);
 
-  const uiImports = ['Input'];
-  if (hasTextarea) uiImports.push('Textarea');
-  if (hasSelect) uiImports.push('Select');
-
   return `import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
@@ -335,8 +331,9 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { ${camel}Service } from '../../services/${kebab}.service';
 import { Button } from '../../components/ui/button';
-import { ${uiImports.join(', ')} } from '../../components/ui/input';
-import { Label } from '../../components/ui/label';${hasTextarea ? `\nimport { Textarea } from '../../components/ui/textarea';` : ''}${hasSelect ? `\nimport { Select } from '../../components/ui/select';` : ''}${hasSwitch ? `\nimport { Switch } from '../../components/ui/switch';` : ''}
+import { Input } from '../../components/ui/input';
+import { Label } from '../../components/ui/label';
+import { GyxerSpinner } from '../../components/ui/gyxer-spinner';${hasTextarea ? `\nimport { Textarea } from '../../components/ui/textarea';` : ''}${hasSelect ? `\nimport { Select } from '../../components/ui/select';` : ''}${hasSwitch ? `\nimport { Switch } from '../../components/ui/switch';` : ''}
 
 const schema = z.object({
 ${zodFields}
@@ -371,14 +368,14 @@ export function ${plural}EditPage() {
     if (!id) return;
     try {
       await ${camel}Service.update(id, data as Record<string, unknown>);
-      navigate('/${kebab}s');
+      navigate('/${pluralKebab}');
     } catch (err) {
       console.error('Failed to update:', err);
     }
   };
 
   if (loading) {
-    return <div className="text-center py-12 text-gray-500">Loading...</div>;
+    return <div className="flex justify-center py-12"><GyxerSpinner /></div>;
   }
 
   return (
@@ -394,7 +391,7 @@ ${formInputs}
           <Button type="submit" disabled={isSubmitting}>
             {isSubmitting ? 'Saving...' : 'Save'}
           </Button>
-          <Button type="button" variant="outline" onClick={() => navigate('/${kebab}s')}>
+          <Button type="button" variant="outline" onClick={() => navigate('/${pluralKebab}')}>
             Cancel
           </Button>
         </div>
@@ -440,7 +437,8 @@ export function generateDashboardPage(project: GyxerProject): string {
       const kebab = toKebabCase(e.name);
       const camel = toCamelCase(e.name);
       const plural = pluralize(e.name);
-      return `        <Link to="/${kebab}s" className="block">
+      const pluralKebab = pluralize(kebab);
+      return `        <Link to="/${pluralKebab}" className="block">
           <Card className="hover:shadow-md transition-shadow">
             <CardHeader>
               <CardTitle className="text-base">${plural}</CardTitle>
@@ -495,9 +493,10 @@ export function generatePageFiles(project: GyxerProject): Map<string, string> {
   // Entity pages
   for (const entity of project.entities) {
     const kebab = toKebabCase(entity.name);
-    files.set(`src/pages/${kebab}s/list.tsx`, generateListPage(entity));
-    files.set(`src/pages/${kebab}s/create.tsx`, generateCreatePage(entity));
-    files.set(`src/pages/${kebab}s/edit.tsx`, generateEditPage(entity));
+    const pluralKebab = pluralize(kebab);
+    files.set(`src/pages/${pluralKebab}/list.tsx`, generateListPage(entity));
+    files.set(`src/pages/${pluralKebab}/create.tsx`, generateCreatePage(entity));
+    files.set(`src/pages/${pluralKebab}/edit.tsx`, generateEditPage(entity));
   }
 
   return files;

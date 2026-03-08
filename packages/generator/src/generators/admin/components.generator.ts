@@ -150,8 +150,7 @@ Select.displayName = 'Select';
 // ─── ui/switch.tsx ──────────────────────────────────────
 
 export function generateSwitch(): string {
-  return `import React from 'react';
-import { cn } from '../../lib/utils';
+  return `import { cn } from '../../lib/utils';
 
 interface SwitchProps {
   checked: boolean;
@@ -335,6 +334,73 @@ export function generateComponentFiles(): Map<string, string> {
   files.set('src/components/ui/card.tsx', generateCard());
   files.set('src/components/ui/table.tsx', generateTable());
   files.set('src/components/ui/dialog.tsx', generateDialog());
+  files.set('src/components/ui/gyxer-logo.tsx', generateGyxerLogo());
+  files.set('src/components/ui/gyxer-spinner.tsx', generateGyxerSpinner());
 
   return files;
+}
+
+// ─── ui/gyxer-logo.tsx ─────────────────────────────────
+
+export function generateGyxerLogo(): string {
+  return `interface GyxerLogoProps {
+  className?: string;
+  circle?: boolean;
+}
+
+export function GyxerLogo({ className = 'w-8 h-8', circle = false }: GyxerLogoProps) {
+  return (
+    <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+      {circle && (
+        <>
+          <defs><clipPath id="gyxer-clip"><circle cx="16" cy="16" r="15" /></clipPath></defs>
+          <circle cx="16" cy="16" r="15" fill="#0f0f0f" />
+          <g clipPath="url(#gyxer-clip)">
+            <path d="M16 4 C22 4 28 9 27 16 C26 11 21 8 16 8 Z" fill="#E53935" />
+            <path d="M27 16 C28 23 22 29 15 27 C20 27 24 23 24 18 Z" fill="#757575" />
+            <path d="M15 27 C8 28 3 22 5 15 C5 20 9 25 15 27 Z" fill="#1a1a1a" stroke="#555" strokeWidth="0.5" />
+          </g>
+          <circle cx="16" cy="16" r="15" fill="none" stroke="#333" strokeWidth="0.5" />
+        </>
+      )}
+      {!circle && (
+        <>
+          <path d="M16 4 C22 4 28 9 27 16 C26 11 21 8 16 8 Z" fill="#E53935" />
+          <path d="M27 16 C28 23 22 29 15 27 C20 27 24 23 24 18 Z" fill="#757575" />
+          <path d="M15 27 C8 28 3 22 5 15 C5 20 9 25 15 27 Z" fill="#1a1a1a" stroke="#555" strokeWidth="0.5" />
+        </>
+      )}
+    </svg>
+  );
+}
+`;
+}
+
+// ─── ui/gyxer-spinner.tsx ──────────────────────────────
+
+export function generateGyxerSpinner(): string {
+  const lines = [
+    "// Gyxer branded spinner",
+    '',
+    'interface GyxerSpinnerProps {',
+    '  className?: string;',
+    '}',
+    '',
+    "export function GyxerSpinner({ className = 'w-10 h-10' }: GyxerSpinnerProps) {",
+    '  return (',
+    '    <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>',
+    '      <defs><clipPath id="spinner-clip"><circle cx="16" cy="16" r="15" /></clipPath></defs>',
+    '      <circle cx="16" cy="16" r="15" fill="#0f0f0f" />',
+    '      <g clipPath="url(#spinner-clip)" className="animate-spin" style={{ transformOrigin: \'16px 16px\' }}>',
+    '        <path d="M16 4 C22 4 28 9 27 16 C26 11 21 8 16 8 Z" fill="#E53935" />',
+    '        <path d="M27 16 C28 23 22 29 15 27 C20 27 24 23 24 18 Z" fill="#757575" />',
+    '        <path d="M15 27 C8 28 3 22 5 15 C5 20 9 25 15 27 Z" fill="#1a1a1a" stroke="#555" strokeWidth="0.5" />',
+    '      </g>',
+    '      <circle cx="16" cy="16" r="15" fill="none" stroke="#333" strokeWidth="0.5" />',
+    '    </svg>',
+    '  );',
+    '}',
+    '',
+  ];
+  return lines.join('\n');
 }

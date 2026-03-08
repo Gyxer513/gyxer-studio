@@ -132,8 +132,8 @@ export class WsMessageDto {
 
 export function getWebsocketsDependencies(): Record<string, string> {
   return {
-    '@nestjs/websockets': '^10.4.0',
-    '@nestjs/platform-socket.io': '^10.4.0',
+    '@nestjs/websockets': '^11.0.0',
+    '@nestjs/platform-socket.io': '^11.0.0',
     'socket.io': '^4.8.0',
   };
 }

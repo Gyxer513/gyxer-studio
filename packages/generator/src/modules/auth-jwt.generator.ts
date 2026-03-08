@@ -70,7 +70,7 @@ import { JwtStrategy } from './strategies/jwt.strategy';
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.register({
       secret: process.env.JWT_SECRET || 'change-me-in-production',
-      signOptions: { expiresIn: process.env.JWT_EXPIRES_IN || '15m' },
+      signOptions: { expiresIn: (process.env.JWT_EXPIRES_IN || '15m') as any },
     }),
   ],
   controllers: [AuthController],
@@ -104,7 +104,7 @@ function generateAuthService(extraFields: { name: string }[], entityName: string
   ConflictException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import * as bcrypt from 'bcrypt';
+import * as bcrypt from 'bcryptjs';
 import { PrismaService } from '../prisma/prisma.service';
 import { RegisterDto } from './dto/register.dto';
 
@@ -194,7 +194,7 @@ export class AuthService {
     const accessToken = this.jwtService.sign(payload);
     const refreshToken = this.jwtService.sign(payload, {
       secret: process.env.JWT_REFRESH_SECRET || 'change-me-refresh-secret',
-      expiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '7d',
+      expiresIn: (process.env.JWT_REFRESH_EXPIRES_IN || '7d') as any,
     });
 
     return { accessToken, refreshToken };
@@ -504,17 +504,17 @@ JWT_REFRESH_EXPIRES_IN=7d
  */
 export function getAuthDependencies(): Record<string, string> {
   return {
-    '@nestjs/jwt': '^10.2.0',
-    '@nestjs/passport': '^10.0.0',
+    '@nestjs/jwt': '^11.0.0',
+    '@nestjs/passport': '^11.0.0',
     'passport': '^0.7.0',
     'passport-jwt': '^4.0.1',
-    'bcrypt': '^5.1.0',
+    'bcryptjs': '^2.4.3',
   };
 }
 
 export function getAuthDevDependencies(): Record<string, string> {
   return {
     '@types/passport-jwt': '^4.0.0',
-    '@types/bcrypt': '^5.0.0',
+    '@types/bcryptjs': '^2.4.6',
   };
 }

@@ -22,10 +22,9 @@ import {
 import {
   generateDockerfile,
   generateDockerCompose,
+  generateDockerignore,
   generateEnvFile,
   generateEnvExample,
-  generateAdminDockerfile,
-  generateAdminNginxConf,
 } from './generators/docker.generator.js';
 import { generateSecurityReport, formatSecurityReport } from './security/report.js';
 import type { SecurityReport } from './security/report.js';
@@ -342,14 +341,18 @@ export async function generateProject(
   log('  + package.json, tsconfig.json, nest-cli.json, .gitignore, .prettierrc, eslint.config.mjs');
 
   // ─── Docker ────────────────────────────────────────────
+  const hasAdminForDocker = project.modules.some(
+    (m) => m.name === 'admin-dashboard' && m.enabled !== false,
+  );
   if (project.settings.docker) {
-    await writeFile(path.join(outputDir, 'Dockerfile'), generateDockerfile(), filesCreated);
+    await writeFile(path.join(outputDir, 'Dockerfile'), generateDockerfile(hasAdminForDocker), filesCreated);
+    await writeFile(path.join(outputDir, '.dockerignore'), generateDockerignore(hasAdminForDocker), filesCreated);
     await writeFile(
       path.join(outputDir, 'docker-compose.yml'),
       generateDockerCompose(project),
       filesCreated,
     );
-    log('  + Dockerfile, docker-compose.yml');
+    log('  + Dockerfile, .dockerignore, docker-compose.yml');
   }
 
   // ─── Environment ───────────────────────────────────────
@@ -402,20 +405,8 @@ export async function generateProject(
       await fs.ensureDir(path.dirname(fullPath));
       await writeFile(fullPath, content, filesCreated);
     }
-    // Admin Docker files (Dockerfile + nginx.conf inside admin/)
-    if (project.settings.docker) {
-      await writeFile(
-        path.join(outputDir, 'admin', 'Dockerfile'),
-        generateAdminDockerfile(),
-        filesCreated,
-      );
-      await writeFile(
-        path.join(outputDir, 'admin', 'nginx.conf'),
-        generateAdminNginxConf(),
-        filesCreated,
-      );
-      log('  + admin/Dockerfile, admin/nginx.conf');
-    }
+    // Admin is built as a Docker stage in the main Dockerfile
+    // and served via @nestjs/serve-static — no separate container needed
     log(`  + admin/ (React admin dashboard — ${adminFiles.size} files)`);
   }
 
@@ -456,6 +447,7 @@ function generatePackageJson(project: GyxerProject): string {
   const hasSearch = project.modules.some((m) => m.name === 'search' && m.enabled !== false);
   const hasAuthOAuth = project.modules.some((m) => m.name === 'auth-oauth' && m.enabled !== false);
   const hasAuthKeycloak = project.modules.some((m) => m.name === 'auth-keycloak' && m.enabled !== false);
+  const hasAdmin = project.modules.some((m) => m.name === 'admin-dashboard' && m.enabled !== false);
 
   const pkg = {
     name: project.name,
@@ -475,18 +467,18 @@ function generatePackageJson(project: GyxerProject): string {
       'test:cov': 'jest --coverage',
     },
     dependencies: {
-      '@nestjs/common': '^10.4.0',
-      '@nestjs/core': '^10.4.0',
-      '@nestjs/platform-express': '^10.4.0',
-      '@nestjs/swagger': '^8.0.0',
+      '@nestjs/common': '^11.0.0',
+      '@nestjs/core': '^11.0.0',
+      '@nestjs/platform-express': '^11.0.0',
+      '@nestjs/swagger': '^11.0.0',
       '@prisma/client': '^6.0.0',
       'class-transformer': '^0.5.1',
       'class-validator': '^0.14.1',
-      helmet: '^8.0.0',
+      helmet: '^8.1.0',
       'reflect-metadata': '^0.2.0',
       rxjs: '^7.8.0',
       ...(project.settings.enableRateLimit
-        ? { '@nestjs/throttler': '^6.0.0' }
+        ? { '@nestjs/throttler': '^6.5.0' }
         : {}),
       ...(hasAuthJwt ? getAuthDependencies() : {}),
       ...(hasCache ? getCacheDependencies() : {}),
@@ -498,10 +490,11 @@ function generatePackageJson(project: GyxerProject): string {
         ((project.modules.find((m) => m.name === 'auth-oauth')?.options?.providers as string[]) || ['google']) as any
       ) : {}),
       ...(hasAuthKeycloak && !hasAuthJwt ? getAuthKeycloakDependencies() : {}),
+      ...(hasAdmin ? { '@nestjs/serve-static': '^5.0.0' } : {}),
     },
     devDependencies: {
-      '@nestjs/cli': '^10.4.0',
-      '@nestjs/testing': '^10.4.0',
+      '@nestjs/cli': '^11.0.0',
+      '@nestjs/testing': '^11.0.0',
       '@types/express': '^5.0.0',
       '@types/jest': '^29.5.0',
       '@types/node': '^22.0.0',
@@ -568,7 +561,7 @@ function generateTsBuildConfig(): string {
   return JSON.stringify(
     {
       extends: './tsconfig.json',
-      exclude: ['node_modules', 'test', 'dist', 'prisma', '**/*spec.ts'],
+      exclude: ['node_modules', 'test', 'dist', 'prisma', 'admin', '**/*spec.ts'],
     },
     null,
     2,

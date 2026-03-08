@@ -5,8 +5,7 @@ import {
   generateEnvFile,
   generateEnvExample,
   buildDatabaseUrl,
-  generateAdminDockerfile,
-  generateAdminNginxConf,
+  generateDockerignore,
 } from './docker.generator.js';
 import type { GyxerProject } from '@gyxer-studio/schema';
 
@@ -76,10 +75,11 @@ describe('Docker Generator', () => {
       expect(df).toContain('npx prisma generate');
     });
 
-    it('should run prisma db push before starting app', () => {
+    it('should run prisma db push and seed before starting app', () => {
       const df = generateDockerfile();
 
       expect(df).toContain('prisma db push --skip-generate');
+      expect(df).toContain('prisma db seed');
       expect(df).toContain('node dist/main.js');
     });
 
@@ -143,6 +143,12 @@ describe('Docker Generator', () => {
 
       expect(compose).toContain('depends_on');
       expect(compose).toContain('condition: service_healthy');
+    });
+
+    it('should include env_file for module env vars', () => {
+      const compose = generateDockerCompose(baseProject);
+
+      expect(compose).toContain('env_file: .env');
     });
 
     it('should handle hyphenated project names', () => {
@@ -343,82 +349,65 @@ describe('Docker Generator', () => {
     });
   });
 
-  // ─── Admin Docker ──────────────────────────────────────────
+  // ─── Admin embedded in main Dockerfile ─────────────────────
 
-  describe('admin docker compose service', () => {
-    const adminProject: GyxerProject = {
-      ...baseProject,
-      modules: [{ name: 'admin-dashboard', enabled: true, options: {} }],
-    };
-
-    it('should include admin service when admin-dashboard enabled', () => {
+  describe('admin embedded in Dockerfile', () => {
+    it('should not include admin service in docker-compose', () => {
+      const adminProject: GyxerProject = {
+        ...baseProject,
+        modules: [{ name: 'admin-dashboard', enabled: true, options: {} }],
+      };
       const compose = generateDockerCompose(adminProject);
-
-      expect(compose).toContain('admin:');
-      expect(compose).toContain('build: ./admin');
-      expect(compose).toContain('ADMIN_PORT:-5173');
-    });
-
-    it('should have admin depend on app', () => {
-      const compose = generateDockerCompose(adminProject);
-
-      expect(compose).toContain('depends_on:\n      - app');
-    });
-
-    it('should not include admin service when module is disabled', () => {
-      const compose = generateDockerCompose(baseProject);
 
       expect(compose).not.toContain('admin:');
       expect(compose).not.toContain('build: ./admin');
     });
+
+    it('should copy pre-built admin/dist to public/ when hasAdmin is true', () => {
+      const df = generateDockerfile(true);
+
+      expect(df).toContain('COPY admin/dist ./public');
+      expect(df).not.toContain('admin-builder');
+    });
+
+    it('should not copy admin when hasAdmin is false', () => {
+      const df = generateDockerfile(false);
+
+      expect(df).not.toContain('./public');
+      expect(df).not.toContain('admin');
+    });
+
+    it('should exclude admin sources but keep admin/dist in dockerignore when hasAdmin', () => {
+      const di = generateDockerignore(true);
+
+      expect(di).toContain('admin/node_modules');
+      expect(di).toContain('admin/src');
+      expect(di).not.toMatch(/^admin$/m);
+    });
+
+    it('should exclude admin entirely in dockerignore when no admin', () => {
+      const di = generateDockerignore(false);
+
+      expect(di).toContain('admin');
+      expect(di).not.toContain('admin/node_modules');
+    });
   });
 
-  describe('generateAdminDockerfile', () => {
-    it('should use multi-stage build with nginx', () => {
-      const df = generateAdminDockerfile();
+  // ─── .dockerignore ─────────────────────────────────────────
 
-      expect(df).toContain('FROM node:20-alpine AS builder');
-      expect(df).toContain('FROM nginx:alpine');
+  describe('generateDockerignore', () => {
+    it('should exclude node_modules and dist', () => {
+      const di = generateDockerignore();
+
+      expect(di).toContain('node_modules');
+      expect(di).toContain('dist');
     });
 
-    it('should build the admin app', () => {
-      const df = generateAdminDockerfile();
+    it('should exclude .env files', () => {
+      const di = generateDockerignore();
 
-      expect(df).toContain('RUN npm run build');
-    });
-
-    it('should copy built files to nginx html directory', () => {
-      const df = generateAdminDockerfile();
-
-      expect(df).toContain('COPY --from=builder /app/dist /usr/share/nginx/html');
-    });
-
-    it('should copy nginx config', () => {
-      const df = generateAdminDockerfile();
-
-      expect(df).toContain('COPY nginx.conf /etc/nginx/conf.d/default.conf');
-    });
-  });
-
-  describe('generateAdminNginxConf', () => {
-    it('should proxy /api to app service and strip prefix', () => {
-      const conf = generateAdminNginxConf();
-
-      expect(conf).toContain('location /api/');
-      expect(conf).toContain('proxy_pass http://app:3000/');
-    });
-
-    it('should serve SPA with fallback to index.html', () => {
-      const conf = generateAdminNginxConf();
-
-      expect(conf).toContain('try_files $uri $uri/ /index.html');
-    });
-
-    it('should set proxy headers', () => {
-      const conf = generateAdminNginxConf();
-
-      expect(conf).toContain('X-Real-IP');
-      expect(conf).toContain('X-Forwarded-For');
+      expect(di).toContain('.env');
+      expect(di).toContain('.env.local');
     });
   });
 

@@ -18,7 +18,7 @@ export function generateService(entity: Entity, project: GyxerProject): string {
   // User + auth-jwt: create method hashes password, findAll/findOne exclude passwordHash
   if (hasAuthJwt) {
     return `import { Injectable, NotFoundException } from '@nestjs/common';
-import * as bcrypt from 'bcrypt';
+import * as bcrypt from 'bcryptjs';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { Create${name}Dto } from './dto/create-${toKebabCase(name)}.dto';

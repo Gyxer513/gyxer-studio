@@ -175,7 +175,7 @@ export class SearchController {
 
 export function getSearchDependencies(): Record<string, string> {
   return {
-    'meilisearch': '^0.45.0',
+    'meilisearch': '^0.55.0',
   };
 }
 

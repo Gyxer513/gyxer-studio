@@ -106,7 +106,7 @@ export class CacheService {
 
 export function getCacheDependencies(): Record<string, string> {
   return {
-    '@nestjs/cache-manager': '^3.0.0',
+    '@nestjs/cache-manager': '^3.1.0',
     'cache-manager': '^6.0.0',
     'cacheable': '^1.0.0',
     '@keyv/redis': '^4.0.0',

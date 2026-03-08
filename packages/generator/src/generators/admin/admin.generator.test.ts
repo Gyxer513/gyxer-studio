@@ -95,9 +95,9 @@ describe('admin dashboard generator', () => {
     expect(files.has('src/pages/posts/edit.tsx')).toBe(true);
 
     // Category pages
-    expect(files.has('src/pages/categorys/list.tsx')).toBe(true);
-    expect(files.has('src/pages/categorys/create.tsx')).toBe(true);
-    expect(files.has('src/pages/categorys/edit.tsx')).toBe(true);
+    expect(files.has('src/pages/categories/list.tsx')).toBe(true);
+    expect(files.has('src/pages/categories/create.tsx')).toBe(true);
+    expect(files.has('src/pages/categories/edit.tsx')).toBe(true);
   });
 
   it('should generate entity services for each entity', () => {
@@ -129,7 +129,7 @@ describe('admin dashboard generator', () => {
     expect(app).toContain('PostsListPage');
     expect(app).toContain('CategoriesListPage');
     expect(app).toContain('/posts');
-    expect(app).toContain('/categorys');
+    expect(app).toContain('/categories');
   });
 
   it('should NOT generate auth files when auth-jwt is not enabled', () => {
@@ -205,8 +205,8 @@ describe('admin dashboard generator', () => {
     const files = generateAdminFiles(project);
     const viteConfig = files.get('vite.config.ts')!;
     expect(viteConfig).toContain('http://localhost:4000');
-    expect(viteConfig).toContain('rewrite');
-    expect(viteConfig).toContain("path.replace(/^\\/api/, '')");
+    expect(viteConfig).toContain("'/api'");
+    expect(viteConfig).not.toContain('rewrite');
   });
 
   it('should generate correct package.json with project name', () => {
@@ -249,7 +249,7 @@ describe('admin dashboard generator', () => {
     const sidebar = files.get('src/components/layout/sidebar.tsx')!;
     expect(sidebar).toContain('/posts');
     expect(sidebar).toContain('Posts');
-    expect(sidebar).toContain('/categorys');
+    expect(sidebar).toContain('/categories');
     expect(sidebar).toContain('Categories');
     expect(sidebar).toContain('Dashboard');
   });
@@ -258,10 +258,10 @@ describe('admin dashboard generator', () => {
     const project = createProject();
     const files = generateAdminFiles(project);
 
-    // Scaffold: 10, UI: 10, Layout: 3, Services: 3 (api + 2 entities),
+    // Scaffold: 10, UI: 12 (10 + gyxer-logo + gyxer-spinner), Layout: 3, Services: 3 (api + 2 entities),
     // Pages: 7 (dashboard + 2*3 entity pages), App.tsx: 1
-    // Total: 34
-    expect(files.size).toBe(34);
+    // Total: 36
+    expect(files.size).toBe(36);
   });
 
   it('should generate more files with auth enabled', () => {

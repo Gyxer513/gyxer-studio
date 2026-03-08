@@ -1,5 +1,5 @@
 import type { GyxerProject, Entity } from '@gyxer-studio/schema';
-import { toKebabCase, toCamelCase } from '../../utils.js';
+import { toKebabCase, toCamelCase, pluralize } from '../../utils.js';
 
 /**
  * Generate admin/src/lib/api.ts — axios instance with auth interceptor.
@@ -49,7 +49,7 @@ export function generateApiClient(hasAuth: boolean): string {
 export function generateEntityService(entity: Entity): string {
   const kebab = toKebabCase(entity.name);
   const camel = toCamelCase(entity.name);
-  const plural = kebab + 's';
+  const plural = pluralize(kebab);
 
   return `import api from '../lib/api';
 
