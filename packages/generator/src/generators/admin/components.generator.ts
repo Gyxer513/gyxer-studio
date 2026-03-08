@@ -354,20 +354,20 @@ export function GyxerLogo({ className = 'w-8 h-8', circle = false }: GyxerLogoPr
       {circle && (
         <>
           <defs><clipPath id="gyxer-clip"><circle cx="16" cy="16" r="15" /></clipPath></defs>
-          <circle cx="16" cy="16" r="15" fill="#0f0f0f" />
+          <circle cx="16" cy="16" r="15" fill="#ffffff" />
           <g clipPath="url(#gyxer-clip)">
             <path d="M16 4 C22 4 28 9 27 16 C26 11 21 8 16 8 Z" fill="#E53935" />
             <path d="M27 16 C28 23 22 29 15 27 C20 27 24 23 24 18 Z" fill="#757575" />
-            <path d="M15 27 C8 28 3 22 5 15 C5 20 9 25 15 27 Z" fill="#1a1a1a" stroke="#555" strokeWidth="0.5" />
+            <path d="M15 27 C8 28 3 22 5 15 C5 20 9 25 15 27 Z" fill="#424242" stroke="#9e9e9e" strokeWidth="0.5" />
           </g>
-          <circle cx="16" cy="16" r="15" fill="none" stroke="#333" strokeWidth="0.5" />
+          <circle cx="16" cy="16" r="15" fill="none" stroke="#e0e0e0" strokeWidth="0.5" />
         </>
       )}
       {!circle && (
         <>
           <path d="M16 4 C22 4 28 9 27 16 C26 11 21 8 16 8 Z" fill="#E53935" />
           <path d="M27 16 C28 23 22 29 15 27 C20 27 24 23 24 18 Z" fill="#757575" />
-          <path d="M15 27 C8 28 3 22 5 15 C5 20 9 25 15 27 Z" fill="#1a1a1a" stroke="#555" strokeWidth="0.5" />
+          <path d="M15 27 C8 28 3 22 5 15 C5 20 9 25 15 27 Z" fill="#424242" stroke="#9e9e9e" strokeWidth="0.5" />
         </>
       )}
     </svg>
@@ -390,13 +390,13 @@ export function generateGyxerSpinner(): string {
     '  return (',
     '    <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>',
     '      <defs><clipPath id="spinner-clip"><circle cx="16" cy="16" r="15" /></clipPath></defs>',
-    '      <circle cx="16" cy="16" r="15" fill="#0f0f0f" />',
+    '      <circle cx="16" cy="16" r="15" fill="#ffffff" />',
     '      <g clipPath="url(#spinner-clip)" className="animate-spin" style={{ transformOrigin: \'16px 16px\' }}>',
     '        <path d="M16 4 C22 4 28 9 27 16 C26 11 21 8 16 8 Z" fill="#E53935" />',
     '        <path d="M27 16 C28 23 22 29 15 27 C20 27 24 23 24 18 Z" fill="#757575" />',
-    '        <path d="M15 27 C8 28 3 22 5 15 C5 20 9 25 15 27 Z" fill="#1a1a1a" stroke="#555" strokeWidth="0.5" />',
+    '        <path d="M15 27 C8 28 3 22 5 15 C5 20 9 25 15 27 Z" fill="#424242" stroke="#9e9e9e" strokeWidth="0.5" />',
     '      </g>',
-    '      <circle cx="16" cy="16" r="15" fill="none" stroke="#333" strokeWidth="0.5" />',
+    '      <circle cx="16" cy="16" r="15" fill="none" stroke="#e0e0e0" strokeWidth="0.5" />',
     '    </svg>',
     '  );',
     '}',
