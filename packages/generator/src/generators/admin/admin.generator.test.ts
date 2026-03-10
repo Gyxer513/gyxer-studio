@@ -70,6 +70,7 @@ describe('admin dashboard generator', () => {
     const uiComponents = [
       'button', 'input', 'label', 'textarea', 'select',
       'switch', 'badge', 'card', 'table', 'dialog',
+      'file-upload',
     ];
     for (const comp of uiComponents) {
       expect(files.has(`src/components/ui/${comp}.tsx`)).toBe(true);
@@ -258,10 +259,10 @@ describe('admin dashboard generator', () => {
     const project = createProject();
     const files = generateAdminFiles(project);
 
-    // Scaffold: 10, UI: 12 (10 + gyxer-logo + gyxer-spinner), Layout: 3, Services: 3 (api + 2 entities),
+    // Scaffold: 10, UI: 13 (10 + gyxer-logo + gyxer-spinner + file-upload), Layout: 3, Services: 3 (api + 2 entities),
     // Pages: 7 (dashboard + 2*3 entity pages), App.tsx: 1
-    // Total: 36
-    expect(files.size).toBe(36);
+    // Total: 37
+    expect(files.size).toBe(37);
   });
 
   it('should generate more files with auth enabled', () => {
@@ -271,5 +272,141 @@ describe('admin dashboard generator', () => {
     );
     // Auth adds: auth.tsx, login.tsx, protected-route.tsx = 3 extra files
     expect(withAuth.size).toBe(noAuth.size + 3);
+  });
+
+  // ─── FK Relations ─────────────────────────────────────────
+
+  it('should generate FK select dropdown when entity has inbound relations', () => {
+    const project = createProject({
+      entities: [
+        {
+          name: 'Category',
+          fields: [
+            { name: 'name', type: 'string', required: true, unique: true, index: false },
+          ],
+          relations: [
+            { name: 'posts', type: 'one-to-many', target: 'Post', foreignKey: 'categoryId', onDelete: 'CASCADE' },
+          ],
+        },
+        {
+          name: 'Post',
+          fields: [
+            { name: 'title', type: 'string', required: true, unique: false, index: false },
+          ],
+          relations: [],
+        },
+      ],
+    });
+    const files = generateAdminFiles(project);
+
+    const createPage = files.get('src/pages/posts/create.tsx')!;
+    expect(createPage).toContain('categoryId');
+    expect(createPage).toContain('categoryService');
+    expect(createPage).toContain('<Select');
+    expect(createPage).toContain('Select Category');
+  });
+
+  it('should show FK column in list page with lookup map', () => {
+    const project = createProject({
+      entities: [
+        {
+          name: 'Category',
+          fields: [
+            { name: 'name', type: 'string', required: true, unique: true, index: false },
+          ],
+          relations: [
+            { name: 'posts', type: 'one-to-many', target: 'Post', foreignKey: 'categoryId', onDelete: 'CASCADE' },
+          ],
+        },
+        {
+          name: 'Post',
+          fields: [
+            { name: 'title', type: 'string', required: true, unique: false, index: false },
+          ],
+          relations: [],
+        },
+      ],
+    });
+    const files = generateAdminFiles(project);
+
+    const listPage = files.get('src/pages/posts/list.tsx')!;
+    expect(listPage).toContain('categoryService');
+    expect(listPage).toContain('categoryMap');
+    expect(listPage).toContain('item.categoryId');
+  });
+
+  // ─── File Upload ──────────────────────────────────────────
+
+  it('should generate FileUpload component', () => {
+    const project = createProject();
+    const files = generateAdminFiles(project);
+    expect(files.has('src/components/ui/file-upload.tsx')).toBe(true);
+    const fileUpload = files.get('src/components/ui/file-upload.tsx')!;
+    expect(fileUpload).toContain('FileUpload');
+    expect(fileUpload).toContain('/files/upload');
+  });
+
+  it('should generate FileUpload widget for image fields when file-storage is enabled', () => {
+    const project = createProject({
+      entities: [
+        {
+          name: 'Product',
+          fields: [
+            { name: 'name', type: 'string', required: true, unique: false, index: false },
+            { name: 'imageUrl', type: 'string', required: false, unique: false, index: false },
+          ],
+          relations: [],
+        },
+      ],
+      modules: [{ name: 'file-storage', enabled: true, options: {} }],
+    });
+    const files = generateAdminFiles(project);
+
+    const createPage = files.get('src/pages/products/create.tsx')!;
+    expect(createPage).toContain('FileUpload');
+    expect(createPage).toContain('previewType="image"');
+    expect(createPage).toContain('accept="image/*"');
+  });
+
+  it('should render image preview in list table for image fields with file-storage', () => {
+    const project = createProject({
+      entities: [
+        {
+          name: 'Product',
+          fields: [
+            { name: 'name', type: 'string', required: true, unique: false, index: false },
+            { name: 'imageUrl', type: 'string', required: false, unique: false, index: false },
+          ],
+          relations: [],
+        },
+      ],
+      modules: [{ name: 'file-storage', enabled: true, options: {} }],
+    });
+    const files = generateAdminFiles(project);
+
+    const listPage = files.get('src/pages/products/list.tsx')!;
+    expect(listPage).toContain('<img');
+    expect(listPage).toContain('/api/files/');
+  });
+
+  it('should render plain Input for imageUrl field when file-storage is NOT enabled', () => {
+    const project = createProject({
+      entities: [
+        {
+          name: 'Product',
+          fields: [
+            { name: 'name', type: 'string', required: true, unique: false, index: false },
+            { name: 'imageUrl', type: 'string', required: false, unique: false, index: false },
+          ],
+          relations: [],
+        },
+      ],
+      modules: [],
+    });
+    const files = generateAdminFiles(project);
+
+    const createPage = files.get('src/pages/products/create.tsx')!;
+    expect(createPage).not.toContain('FileUpload');
+    expect(createPage).toContain("register('imageUrl')");
   });
 });

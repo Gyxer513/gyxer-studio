@@ -21,4 +21,5 @@ docs/.vitepress/cache/
 # Generated output (test artifacts)
 blog-api/
 shop-api*/
+media-cms-api/
 configs/
