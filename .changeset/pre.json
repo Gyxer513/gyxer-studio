@@ -9,6 +9,7 @@
     "@gyxer-studio/mcp": "0.5.0"
   },
   "changesets": [
+    "mcp-and-admin-features",
     "plugin-modules-alpha"
   ]
 }
