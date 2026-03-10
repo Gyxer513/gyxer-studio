@@ -244,7 +244,7 @@ export function getFileStorageDependencies(): Record<string, string> {
   return {
     '@aws-sdk/client-s3': '^3.700.0',
     '@aws-sdk/s3-request-presigner': '^3.700.0',
-    '@nestjs/platform-express': '^10.4.0',
+    '@nestjs/platform-express': '^11.0.0',
     'multer': '^1.4.5-lts.1',
     'uuid': '^11.0.0',
   };

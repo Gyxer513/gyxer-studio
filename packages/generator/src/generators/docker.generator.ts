@@ -125,12 +125,19 @@ function generateModuleVolumes(flags: ModuleFlags): string {
 
 /**
  * Generate Dockerfile for the NestJS app.
+ * When hasAdmin is true, expects admin/dist/ to be pre-built locally
+ * (cd admin && npm install && npm run build) and copies it into /app/public
+ * so ServeStaticModule can serve it.
  */
-export function generateDockerfile(): string {
+export function generateDockerfile(hasAdmin = false): string {
+  const copyAdmin = hasAdmin
+    ? '\nCOPY admin/dist ./public'
+    : '';
+
   return `FROM node:20-alpine AS builder
 WORKDIR /app
 COPY package*.json ./
-RUN npm install
+RUN --mount=type=cache,target=/root/.npm npm install --no-audit --no-fund
 COPY . .
 RUN npx prisma generate
 RUN npm run build
@@ -140,9 +147,9 @@ WORKDIR /app
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package*.json ./
-COPY --from=builder /app/prisma ./prisma
+COPY --from=builder /app/prisma ./prisma${copyAdmin}
 EXPOSE 3000
-CMD ["sh", "-c", "npx prisma db push --skip-generate && node dist/main.js"]
+CMD ["sh", "-c", "npx prisma db push --skip-generate && (npx prisma db seed 2>/dev/null || true) && node dist/main.js"]
 `;
 }
 
@@ -174,13 +181,12 @@ function generateDockerComposePostgres(project: GyxerProject, dbName: string): s
   const moduleServices = generateModuleServices(flags);
   const moduleVolumes = generateModuleVolumes(flags);
 
-  return `version: '3.8'
-
-services:
+  return `services:
   app:
     build: .
     ports:
       - "\${PORT:-${project.settings.port}}:${project.settings.port}"
+    env_file: .env
     environment:
       - DATABASE_URL=postgresql://${dbUser}:\${DB_PASSWORD:-${dbPassword}}@db:5432/${dbName}
       - PORT=${project.settings.port}${moduleEnv}
@@ -220,13 +226,12 @@ function generateDockerComposeSqlite(project: GyxerProject): string {
   const moduleDeps = generateModuleAppDependsOn(flags);
   const dependsOnBlock = hasModuleDeps ? `\n    depends_on:${moduleDeps}` : '';
 
-  return `version: '3.8'
-
-services:
+  return `services:
   app:
     build: .
     ports:
       - "\${PORT:-${project.settings.port}}:${project.settings.port}"
+    env_file: .env
     environment:
       - DATABASE_URL=file:./prisma/dev.db
       - PORT=${project.settings.port}${moduleEnv}
@@ -247,13 +252,12 @@ function generateDockerComposeMysql(project: GyxerProject, dbName: string): stri
   const moduleServices = generateModuleServices(flags);
   const moduleVolumes = generateModuleVolumes(flags);
 
-  return `version: '3.8'
-
-services:
+  return `services:
   app:
     build: .
     ports:
       - "\${PORT:-${project.settings.port}}:${project.settings.port}"
+    env_file: .env
     environment:
       - DATABASE_URL=mysql://${dbUser}:\${DB_PASSWORD:-${dbPassword}}@db:3306/${dbName}
       - PORT=${project.settings.port}${moduleEnv}
@@ -322,6 +326,29 @@ DB_USER=${project.settings.dbUser}
 DB_PASSWORD=${project.settings.dbPassword}
 DATABASE_URL=${protocol}://\${DB_USER}:\${DB_PASSWORD}@\${DB_HOST}:\${DB_PORT}/${dbName}
 PORT=${project.settings.port}
+`;
+}
+
+/**
+ * Generate .dockerignore for the NestJS app.
+ * When hasAdmin is true, only admin/dist is kept (pre-built locally).
+ * Everything else under admin/ is excluded.
+ */
+export function generateDockerignore(hasAdmin = false): string {
+  const adminLines = hasAdmin
+    ? 'admin/node_modules\nadmin/src\nadmin/*.json\nadmin/*.ts\nadmin/*.js\nadmin/*.html'
+    : 'admin';
+
+  return `node_modules
+dist
+${adminLines}
+.env
+.env.local
+.git
+*.md
+coverage
+prisma/*.db
+prisma/*.db-journal
 `;
 }
 

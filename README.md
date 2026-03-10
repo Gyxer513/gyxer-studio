@@ -33,6 +33,23 @@ docker run -p 4200:4200 gyxer513/studio
 
 Opens `http://localhost:4200` — add entities, configure fields and relations, then click **Generate**. The config saves to `./configs/`.
 
+### Option C: Via MCP (AI-powered)
+
+Add to your Claude Code / Cursor MCP config:
+
+```json
+{
+  "mcpServers": {
+    "gyxer": {
+      "command": "npx",
+      "args": ["-y", "@gyxer-studio/mcp"]
+    }
+  }
+}
+```
+
+Then ask your AI: *"Create a blog API with users, posts, and comments. Add JWT auth."*
+
 ### 2. Generate via CLI
 
 ```bash
@@ -58,10 +75,12 @@ docker compose up -d
 |---------|------------|
 | **Visual Model Editor** | Drag-and-drop data modeling with React Flow |
 | **Code Generation** | Clean NestJS + Prisma — CRUD, DTOs, Swagger, validation |
-| **Relations** | 1:1, 1:N with onDelete actions and auto-generated foreign keys |
-| **Auth JWT** | Full auth system — register, login, refresh tokens, guards |
+| **Relations** | 1:1, 1:N, M:N with onDelete actions and auto-generated foreign keys |
+| **9 Modules** | Auth JWT/OAuth/Keycloak, file storage, queues, search, cache, WebSockets, admin dashboard |
+| **MCP Server** | AI agents (Claude, Cursor) build projects via Model Context Protocol |
 | **Security Report** | Helmet, Rate Limiting, CORS, secrets check on every build |
 | **Docker** | Multi-stage Dockerfile + docker-compose.yml with healthcheck |
+| **Admin Dashboard** | Generated React admin panel with shadcn/ui |
 | **HTTP Client** | Built-in Postman-like API tester with auto-generated endpoints |
 | **Generated Tests** | Service and controller spec files with full mocking |
 | **Import / Export** | Save and load project schemas as JSON |
@@ -114,8 +133,9 @@ npx @gyxer-studio/cli generate examples/shop.json -o ./shop-api
 | Schema | TypeScript + Zod validation |
 | Generator | TypeScript, string-based code generation |
 | CLI | Commander, Inquirer, Chalk, Ora |
+| MCP | Model Context Protocol SDK, Zod |
 | Generated Backend | NestJS, Prisma, class-validator, Swagger |
-| Testing | Vitest — 190+ tests (unit + E2E) |
+| Testing | Vitest — 367 tests |
 
 ## Project Structure
 
@@ -126,6 +146,7 @@ gyxer-studio/
     generator/    # @gyxer-studio/generator  — NestJS code generation engine
     editor/       # @gyxer-studio/editor     — React Flow visual editor
     cli/          # @gyxer-studio/cli        — CLI wizard + generate command
+    mcp/          # @gyxer-studio/mcp        — MCP server for AI agents
   examples/       # Example schemas (blog, blog-with-auth, shop)
   .changeset/     # Changesets config (unified versioning)
   .github/        # CI/CD workflows
@@ -136,7 +157,7 @@ gyxer-studio/
 ```bash
 npm install          # install all dependencies
 npm run build        # build all packages
-npm test             # run all 190+ tests
+npm test             # run all 367 tests
 npm run dev          # start editor dev server
 ```
 

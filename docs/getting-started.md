@@ -51,7 +51,7 @@ npx @gyxer-studio/cli validate configs/my-app.json
 ## Running Tests (Development)
 
 ```bash
-npm test                         # all 149 tests
+npm test                         # all 367 tests
 npm test -w packages/schema      # schema validation tests
 npm test -w packages/generator   # code generation tests
 ```
@@ -65,6 +65,7 @@ gyxer-studio/
     generator/    # @gyxer-studio/generator — NestJS code generation engine
     editor/       # @gyxer-studio/editor   — React Flow visual editor
     cli/          # @gyxer-studio/cli      — CLI commands
+    mcp/          # @gyxer-studio/mcp     — MCP server for AI agents
   examples/       # Example project schemas
   docs/           # This documentation (VitePress)
 ```
@@ -75,10 +76,12 @@ gyxer-studio/
 | `@gyxer-studio/generator` | NestJS + Prisma code generator |
 | `@gyxer-studio/editor` | Visual drag-and-drop editor |
 | `@gyxer-studio/cli` | Command-line interface |
+| `@gyxer-studio/mcp` | MCP server for AI agents |
 
 ## Next Steps
 
 - [Visual Editor Guide](/guide/visual-editor) — learn the editor interface
 - [Field Types](/guide/field-types) — all 9 supported field types
 - [CLI Commands](/guide/cli) — editor, generate, new, validate
+- [MCP Server](/guide/mcp) — AI-powered project building
 - [Schema Specification](/reference/schema) — full JSON schema reference

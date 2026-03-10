@@ -1,0 +1,70 @@
+{
+  "name": "media-cms-api",
+  "version": "0.1.0",
+  "description": "Media CMS with articles, categories, authors, and file uploads",
+  "entities": [
+    {
+      "name": "Author",
+      "fields": [
+        { "name": "email", "type": "string", "required": true, "unique": true, "index": true },
+        { "name": "name", "type": "string", "required": true, "unique": false, "index": false },
+        { "name": "bio", "type": "text", "required": false, "unique": false, "index": false },
+        { "name": "avatarUrl", "type": "string", "required": false, "unique": false, "index": false }
+      ],
+      "relations": [
+        { "name": "articles", "type": "one-to-many", "target": "Article", "foreignKey": "authorId", "onDelete": "CASCADE" }
+      ]
+    },
+    {
+      "name": "Category",
+      "fields": [
+        { "name": "name", "type": "string", "required": true, "unique": true, "index": true },
+        { "name": "slug", "type": "string", "required": true, "unique": true, "index": true },
+        { "name": "description", "type": "text", "required": false, "unique": false, "index": false },
+        { "name": "coverImage", "type": "string", "required": false, "unique": false, "index": false }
+      ],
+      "relations": [
+        { "name": "articles", "type": "one-to-many", "target": "Article", "foreignKey": "categoryId", "onDelete": "RESTRICT" }
+      ]
+    },
+    {
+      "name": "Article",
+      "fields": [
+        { "name": "title", "type": "string", "required": true, "unique": false, "index": true },
+        { "name": "slug", "type": "string", "required": true, "unique": true, "index": true },
+        { "name": "content", "type": "text", "required": true, "unique": false, "index": false },
+        { "name": "excerpt", "type": "text", "required": false, "unique": false, "index": false },
+        { "name": "coverImageUrl", "type": "string", "required": false, "unique": false, "index": false },
+        { "name": "status", "type": "enum", "required": true, "unique": false, "index": true, "default": "DRAFT", "enumValues": ["DRAFT", "PUBLISHED", "ARCHIVED"] },
+        { "name": "publishedAt", "type": "datetime", "required": false, "unique": false, "index": false }
+      ],
+      "relations": [
+        { "name": "tags", "type": "one-to-many", "target": "Tag", "foreignKey": "articleId", "onDelete": "CASCADE" }
+      ]
+    },
+    {
+      "name": "Tag",
+      "fields": [
+        { "name": "label", "type": "string", "required": true, "unique": false, "index": true }
+      ],
+      "relations": []
+    }
+  ],
+  "modules": [
+    { "name": "auth-jwt", "enabled": true, "options": {} },
+    { "name": "file-storage", "enabled": true, "options": { "provider": "minio", "bucket": "media-cms", "maxFileSize": 10 } },
+    { "name": "admin-dashboard", "enabled": true, "options": {} }
+  ],
+  "settings": {
+    "port": 3000,
+    "database": "postgresql",
+    "databaseUrl": "postgresql://postgres:postgres@localhost:5432/media_cms_api",
+    "enableSwagger": true,
+    "enableCors": true,
+    "enableHelmet": true,
+    "enableRateLimit": true,
+    "rateLimitTtl": 60,
+    "rateLimitMax": 100,
+    "docker": true
+  }
+}

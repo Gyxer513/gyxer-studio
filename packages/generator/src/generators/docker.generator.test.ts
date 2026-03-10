@@ -5,6 +5,7 @@ import {
   generateEnvFile,
   generateEnvExample,
   buildDatabaseUrl,
+  generateDockerignore,
 } from './docker.generator.js';
 import type { GyxerProject } from '@gyxer-studio/schema';
 
@@ -74,10 +75,11 @@ describe('Docker Generator', () => {
       expect(df).toContain('npx prisma generate');
     });
 
-    it('should run prisma db push before starting app', () => {
+    it('should run prisma db push and seed before starting app', () => {
       const df = generateDockerfile();
 
       expect(df).toContain('prisma db push --skip-generate');
+      expect(df).toContain('prisma db seed');
       expect(df).toContain('node dist/main.js');
     });
 
@@ -141,6 +143,12 @@ describe('Docker Generator', () => {
 
       expect(compose).toContain('depends_on');
       expect(compose).toContain('condition: service_healthy');
+    });
+
+    it('should include env_file for module env vars', () => {
+      const compose = generateDockerCompose(baseProject);
+
+      expect(compose).toContain('env_file: .env');
     });
 
     it('should handle hyphenated project names', () => {
@@ -338,6 +346,68 @@ describe('Docker Generator', () => {
       expect(env).toContain('DATABASE_URL=mysql://');
       expect(env).toContain('YOUR_PASSWORD');
       expect(env).toContain('DB_PORT=3306');
+    });
+  });
+
+  // ─── Admin embedded in main Dockerfile ─────────────────────
+
+  describe('admin embedded in Dockerfile', () => {
+    it('should not include admin service in docker-compose', () => {
+      const adminProject: GyxerProject = {
+        ...baseProject,
+        modules: [{ name: 'admin-dashboard', enabled: true, options: {} }],
+      };
+      const compose = generateDockerCompose(adminProject);
+
+      expect(compose).not.toContain('admin:');
+      expect(compose).not.toContain('build: ./admin');
+    });
+
+    it('should copy pre-built admin/dist to public/ when hasAdmin is true', () => {
+      const df = generateDockerfile(true);
+
+      expect(df).toContain('COPY admin/dist ./public');
+      expect(df).not.toContain('admin-builder');
+    });
+
+    it('should not copy admin when hasAdmin is false', () => {
+      const df = generateDockerfile(false);
+
+      expect(df).not.toContain('./public');
+      expect(df).not.toContain('admin');
+    });
+
+    it('should exclude admin sources but keep admin/dist in dockerignore when hasAdmin', () => {
+      const di = generateDockerignore(true);
+
+      expect(di).toContain('admin/node_modules');
+      expect(di).toContain('admin/src');
+      expect(di).not.toMatch(/^admin$/m);
+    });
+
+    it('should exclude admin entirely in dockerignore when no admin', () => {
+      const di = generateDockerignore(false);
+
+      expect(di).toContain('admin');
+      expect(di).not.toContain('admin/node_modules');
+    });
+  });
+
+  // ─── .dockerignore ─────────────────────────────────────────
+
+  describe('generateDockerignore', () => {
+    it('should exclude node_modules and dist', () => {
+      const di = generateDockerignore();
+
+      expect(di).toContain('node_modules');
+      expect(di).toContain('dist');
+    });
+
+    it('should exclude .env files', () => {
+      const di = generateDockerignore();
+
+      expect(di).toContain('.env');
+      expect(di).toContain('.env.local');
     });
   });
 

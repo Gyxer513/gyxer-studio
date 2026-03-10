@@ -41,6 +41,7 @@ export default defineConfig({
           { text: 'HTTP Client', link: '/guide/http-client' },
           { text: 'Code Generation', link: '/guide/code-generation' },
           { text: 'CLI', link: '/guide/cli' },
+          { text: 'MCP Server', link: '/guide/mcp' },
         ],
       },
       {

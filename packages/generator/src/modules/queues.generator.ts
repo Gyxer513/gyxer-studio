@@ -168,8 +168,8 @@ export class AddJobDto {
 
 export function getQueuesDependencies(): Record<string, string> {
   return {
-    '@nestjs/bullmq': '^10.0.0',
-    'bullmq': '^5.0.0',
+    '@nestjs/bullmq': '^11.0.0',
+    'bullmq': '^5.50.0',
   };
 }
 

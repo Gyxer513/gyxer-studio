@@ -104,7 +104,7 @@ describe('generateServiceSpec', () => {
     expect(matches).toHaveLength(3);
   });
 
-  it('adds bcrypt mock and auth tests for User with auth-jwt', () => {
+  it('adds bcryptjs mock and auth tests for User with auth-jwt', () => {
     const entity = makeEntity({
       name: 'User',
       fields: [
@@ -118,7 +118,7 @@ describe('generateServiceSpec', () => {
     });
     const spec = generateServiceSpec(entity, project);
 
-    expect(spec).toContain("jest.mock('bcrypt'");
+    expect(spec).toContain("jest.mock('bcryptjs'");
     expect(spec).toContain('should hash password on create');
     expect(spec).toContain('should exclude passwordHash from results');
     expect(spec).toContain("password: 'StrongP@ss1'"); // pragma: allowlist secret
@@ -129,7 +129,7 @@ describe('generateServiceSpec', () => {
     const project = makeProject({ entities: [entity] });
     const spec = generateServiceSpec(entity, project);
 
-    expect(spec).not.toContain("jest.mock('bcrypt'");
+    expect(spec).not.toContain("jest.mock('bcryptjs'");
     expect(spec).not.toContain('should hash password');
   });
 

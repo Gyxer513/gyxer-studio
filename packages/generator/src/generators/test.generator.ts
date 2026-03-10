@@ -67,7 +67,7 @@ export function generateServiceSpec(entity: Entity, project: GyxerProject): stri
   const sampleDto = buildSampleDto(entity, project);
 
   const bcryptMock = hasAuthJwt
-    ? `\njest.mock('bcrypt', () => ({\n  hash: jest.fn().mockResolvedValue('hashed-password'),\n}));\n` // pragma: allowlist secret
+    ? `\njest.mock('bcryptjs', () => ({\n  hash: jest.fn().mockResolvedValue('hashed-password'),\n}));\n` // pragma: allowlist secret
     : '';
 
   const authCreateTests = hasAuthJwt

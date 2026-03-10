@@ -20,8 +20,17 @@ export function generateMain(project: GyxerProject): string {
   lines.push(`import { AppModule } from './app.module';`);
   lines.push(`import { PrismaExceptionFilter } from './prisma/prisma-exception.filter';`);
   lines.push('');
+  const hasAdmin = project.modules?.some((m) => m.name === 'admin-dashboard' && m.enabled !== false) ?? false;
+
   lines.push('async function bootstrap() {');
   lines.push('  const app = await NestFactory.create(AppModule);');
+
+  if (hasAdmin) {
+    lines.push('');
+    lines.push("  // All API routes served under /api prefix (admin SPA served at /)");
+    lines.push("  app.setGlobalPrefix('api');");
+  }
+
   lines.push('');
 
   // Helmet
@@ -94,6 +103,7 @@ export function generateAppModule(project: GyxerProject): string {
   const hasCache = project.modules?.some((m) => m.name === 'cache' && m.enabled !== false) ?? false;
   const hasQueues = project.modules?.some((m) => m.name === 'queues' && m.enabled !== false) ?? false;
   const hasFileStorage = project.modules?.some((m) => m.name === 'file-storage' && m.enabled !== false) ?? false;
+  const hasAdmin = project.modules?.some((m) => m.name === 'admin-dashboard' && m.enabled !== false) ?? false;
   const needsAppGuard = project.settings.enableRateLimit || hasAuthJwt;
 
   const imports: string[] = [];
@@ -163,6 +173,12 @@ export function generateAppModule(project: GyxerProject): string {
     imports.push(`import { APP_GUARD } from '@nestjs/core';`);
   }
 
+  // Admin dashboard — serve React SPA via ServeStaticModule
+  if (hasAdmin) {
+    imports.push(`import { ServeStaticModule } from '@nestjs/serve-static';`);
+    imports.push(`import { join } from 'path';`);
+  }
+
   // Entity modules
   for (const entity of project.entities) {
     const kebab = toKebabCase(entity.name);
@@ -178,6 +194,13 @@ export function generateAppModule(project: GyxerProject): string {
   lines.push('');
   lines.push('@Module({');
   lines.push('  imports: [');
+
+  if (hasAdmin) {
+    lines.push("    ServeStaticModule.forRoot({");
+    lines.push("      rootPath: join(__dirname, '..', 'public'),");
+    lines.push("      exclude: ['/api{/*path}'],");
+    lines.push("    }),");
+  }
 
   if (project.settings.enableRateLimit) {
     lines.push('    ThrottlerModule.forRoot([{');

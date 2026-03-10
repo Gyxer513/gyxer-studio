@@ -133,7 +133,7 @@ export const Public = () => SetMetadata(IS_PUBLIC_KEY, true);
 
 export function getAuthKeycloakDependencies(): Record<string, string> {
   return {
-    '@nestjs/passport': '^10.0.0',
+    '@nestjs/passport': '^11.0.0',
     'passport': '^0.7.0',
     'passport-jwt': '^4.0.1',
     'jwks-rsa': '^3.1.0',

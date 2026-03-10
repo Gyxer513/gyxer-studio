@@ -90,10 +90,10 @@ describe('Service Generator', () => {
       expect(svc).toContain('Prisma.PostUncheckedCreateInput');
     });
 
-    it('should NOT import bcrypt for non-User entity', () => {
+    it('should NOT import bcryptjs for non-User entity', () => {
       const svc = generateService(postEntity, baseProject);
 
-      expect(svc).not.toContain('bcrypt');
+      expect(svc).not.toContain('bcryptjs');
     });
   });
 
@@ -103,10 +103,10 @@ describe('Service Generator', () => {
       modules: [{ name: 'auth-jwt', enabled: true, options: {} }],
     };
 
-    it('should import bcrypt', () => {
+    it('should import bcryptjs', () => {
       const svc = generateService(userEntity, projectWithAuth);
 
-      expect(svc).toContain("import * as bcrypt from 'bcrypt'");
+      expect(svc).toContain("import * as bcrypt from 'bcryptjs'");
     });
 
     it('should hash password in create method', () => {
@@ -135,10 +135,10 @@ describe('Service Generator', () => {
   });
 
   describe('User entity without auth-jwt', () => {
-    it('should NOT import bcrypt', () => {
+    it('should NOT import bcryptjs', () => {
       const svc = generateService(userEntity, baseProject);
 
-      expect(svc).not.toContain('bcrypt');
+      expect(svc).not.toContain('bcryptjs');
     });
 
     it('should NOT hash password', () => {

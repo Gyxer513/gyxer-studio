@@ -5,7 +5,8 @@
     "@gyxer-studio/cli": "0.5.0",
     "@gyxer-studio/editor": "0.1.0",
     "@gyxer-studio/generator": "0.5.0",
-    "@gyxer-studio/schema": "0.5.0"
+    "@gyxer-studio/schema": "0.5.0",
+    "@gyxer-studio/mcp": "0.5.0"
   },
   "changesets": [
     "plugin-modules-alpha"

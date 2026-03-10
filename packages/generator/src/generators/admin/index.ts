@@ -24,8 +24,9 @@ function generateSidebar(project: GyxerProject): string {
     .map((e) => {
       const kebab = toKebabCase(e.name);
       const plural = pluralize(e.name);
+      const pluralKebab = pluralize(kebab);
       return `        <NavLink
-          to="/${kebab}s"
+          to="/${pluralKebab}"
           className={({ isActive }) =>
             cn('flex items-center gap-2 px-3 py-2 rounded-md text-sm transition-colors',
               isActive ? 'bg-primary-50 text-primary-700 font-medium' : 'text-gray-600 hover:bg-gray-100')
@@ -40,13 +41,17 @@ function generateSidebar(project: GyxerProject): string {
   return `import { NavLink } from 'react-router-dom';
 import { LayoutDashboard, Database } from 'lucide-react';
 import { cn } from '../../lib/utils';
+import { GyxerLogo } from '../ui/gyxer-logo';
 
 export function Sidebar() {
   return (
     <aside className="w-60 border-r border-gray-200 bg-white h-screen flex flex-col">
-      <div className="p-4 border-b border-gray-200">
-        <h1 className="text-lg font-bold text-gray-900">${project.name}</h1>
-        <p className="text-xs text-gray-500">Admin Panel</p>
+      <div className="p-4 border-b border-gray-200 flex items-center gap-3">
+        <GyxerLogo className="w-8 h-8" />
+        <div>
+          <h1 className="text-sm font-bold text-gray-900">${project.name}</h1>
+          <p className="text-xs text-gray-500">Admin Panel</p>
+        </div>
       </div>
 
       <nav className="flex-1 p-3 space-y-1">
@@ -137,9 +142,10 @@ function generateAppTsx(project: GyxerProject, hasAuth: boolean): string {
   for (const entity of project.entities) {
     const kebab = toKebabCase(entity.name);
     const plural = pluralize(entity.name);
-    lines.push(`import { ${plural}ListPage } from './pages/${kebab}s/list';`);
-    lines.push(`import { ${plural}CreatePage } from './pages/${kebab}s/create';`);
-    lines.push(`import { ${plural}EditPage } from './pages/${kebab}s/edit';`);
+    const pluralKebab = pluralize(kebab);
+    lines.push(`import { ${plural}ListPage } from './pages/${pluralKebab}/list';`);
+    lines.push(`import { ${plural}CreatePage } from './pages/${pluralKebab}/create';`);
+    lines.push(`import { ${plural}EditPage } from './pages/${pluralKebab}/edit';`);
   }
 
   if (hasAuth) {
@@ -168,9 +174,10 @@ function generateAppTsx(project: GyxerProject, hasAuth: boolean): string {
   for (const entity of project.entities) {
     const kebab = toKebabCase(entity.name);
     const plural = pluralize(entity.name);
-    lines.push(`${indent}<Route path="/${kebab}s" element={<${plural}ListPage />} />`);
-    lines.push(`${indent}<Route path="/${kebab}s/create" element={<${plural}CreatePage />} />`);
-    lines.push(`${indent}<Route path="/${kebab}s/:id/edit" element={<${plural}EditPage />} />`);
+    const pluralKebab = pluralize(kebab);
+    lines.push(`${indent}<Route path="/${pluralKebab}" element={<${plural}ListPage />} />`);
+    lines.push(`${indent}<Route path="/${pluralKebab}/create" element={<${plural}CreatePage />} />`);
+    lines.push(`${indent}<Route path="/${pluralKebab}/:id/edit" element={<${plural}EditPage />} />`);
   }
 
   if (hasAuth) {
