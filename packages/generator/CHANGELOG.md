@@ -1,5 +1,12 @@
 # @gyxer-studio/generator
 
+## 0.7.1
+
+### Patch Changes
+
+- fb476a7: fix: search endpoints validate input instead of leaking MeiliSearch errors as 500 — missing `q`/`index` and an empty reindex body return 400, an unknown index returns 404 with the list of available indexes
+  - @gyxer-studio/schema@0.7.1
+
 ## 0.7.0
 
 ### Patch Changes

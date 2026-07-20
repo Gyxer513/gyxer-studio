@@ -1,5 +1,13 @@
 # @gyxer-studio/cli
 
+## 0.7.1
+
+### Patch Changes
+
+- Updated dependencies [fb476a7]
+  - @gyxer-studio/generator@0.7.1
+  - @gyxer-studio/schema@0.7.1
+
 ## 0.7.0
 
 ### Minor Changes
