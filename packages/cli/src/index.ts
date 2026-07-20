@@ -22,6 +22,7 @@ program
   .command('generate [schema]')
   .description('Generate a NestJS project from a JSON schema (interactive if omitted)')
   .option('-o, --output <dir>', 'Output directory (defaults to ./<project-name>)')
+  .option('-f, --force', 'Overwrite the output directory without asking')
   .action(generateCommand);
 
 // gyxer new <name>

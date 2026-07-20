@@ -8,6 +8,7 @@ import { generateProject } from '@gyxer-studio/generator';
 
 interface GenerateOptions {
   output?: string;
+  force?: boolean;
 }
 
 /**
@@ -141,13 +142,21 @@ export async function generateCommand(schemaPath: string | undefined, options: G
   // Determine output directory
   const outputDir = path.resolve(options.output || `./${projectName}`);
 
-  // If output dir exists, ask for confirmation
-  if (fs.existsSync(outputDir)) {
+  // If output dir exists: --force overwrites, TTY asks, non-TTY fails fast
+  if (fs.existsSync(outputDir) && !options.force) {
+    const relDir = path.relative(process.cwd(), outputDir);
+
+    if (!process.stdin.isTTY) {
+      console.error(chalk.red(`  ✖ Directory "${relDir}" already exists.`));
+      console.error(chalk.dim('    Pass --force to overwrite (non-interactive mode).'));
+      process.exit(1);
+    }
+
     const { overwrite } = await inquirer.prompt<{ overwrite: boolean }>([
       {
         type: 'confirm',
         name: 'overwrite',
-        message: chalk.yellow(`Directory "${path.relative(process.cwd(), outputDir)}" already exists. Overwrite?`),
+        message: chalk.yellow(`Directory "${relDir}" already exists. Overwrite?`),
         default: false,
       },
     ]);
