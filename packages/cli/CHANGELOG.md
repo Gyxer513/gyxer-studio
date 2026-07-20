@@ -1,5 +1,18 @@
 # @gyxer-studio/cli
 
+## 0.7.0
+
+### Minor Changes
+
+- 2702404: feat: `gyxer generate --force` overwrites an existing output directory without asking; without the flag in a non-interactive shell (CI, scripts) the command now fails fast with a clear message instead of hanging on a hidden prompt
+
+### Patch Changes
+
+- Updated dependencies [38258b2]
+- Updated dependencies [2a68761]
+  - @gyxer-studio/generator@0.7.0
+  - @gyxer-studio/schema@0.7.0
+
 ## 0.6.0
 
 ### Minor Changes
