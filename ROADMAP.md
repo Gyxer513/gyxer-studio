@@ -24,7 +24,7 @@ Editor, CLI (generate/validate/editor), MCP-сервер (14 tools) — рабо
 
 ## Косметика / после 1.0
 
-- [ ] Search-модуль: маппить ошибки Meili в 404/400 (сейчас неизвестный индекс и пустое тело reindex дают 500); валидировать обязательный `?index=`.
+- [x] Search-модуль: валидация вместо 500 — нет `q`/`index` или пустое тело reindex → 400, неизвестный индекс → 404 со списком доступных.
 - [ ] Search-модуль: серверный reindex из БД (сейчас `POST /search/:index/reindex` ждёт документы в теле — это bulk-index, а не reindex).
 - [ ] Code-splitting редактора (чанк 525 kB, React Flow).
 - [x] Почистить мёртвые ветки на origin (10 удалено, осталась рабочая changeset-release/master).

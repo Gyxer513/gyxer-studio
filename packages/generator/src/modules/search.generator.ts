@@ -129,7 +129,16 @@ export class SearchService implements OnModuleInit {
 // ─── Search Controller ──────────────────────────────────────
 
 function generateSearchController(): string {
-  return `import { Controller, Get, Post, Query, Param, Body } from '@nestjs/common';
+  return `import {
+  Controller,
+  Get,
+  Post,
+  Query,
+  Param,
+  Body,
+  BadRequestException,
+  NotFoundException,
+} from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiQuery } from '@nestjs/swagger';
 import { SearchService } from './search.service';
 
@@ -137,6 +146,16 @@ import { SearchService } from './search.service';
 @Controller('search')
 export class SearchController {
   constructor(private readonly searchService: SearchService) {}
+
+  /** 404 with the list of known indexes instead of an opaque Meili 500. */
+  private assertKnownIndex(indexName: string): void {
+    const known = this.searchService.getIndexNames();
+    if (!known.includes(indexName)) {
+      throw new NotFoundException(
+        \`Unknown search index "\${indexName}". Available: \${known.join(', ')}\`,
+      );
+    }
+  }
 
   @Get()
   @ApiOperation({ summary: 'Search across an index' })
@@ -150,6 +169,10 @@ export class SearchController {
     @Query('limit') limit?: number,
     @Query('offset') offset?: number,
   ) {
+    if (!query || !indexName) {
+      throw new BadRequestException('Query parameters "q" and "index" are required');
+    }
+    this.assertKnownIndex(indexName);
     return this.searchService.search(indexName, query, { limit, offset });
   }
 
@@ -160,11 +183,15 @@ export class SearchController {
   }
 
   @Post(':index/reindex')
-  @ApiOperation({ summary: 'Reindex all documents for an index' })
+  @ApiOperation({ summary: 'Replace all documents of an index (bulk index)' })
   async reindex(
     @Param('index') indexName: string,
     @Body() documents: Record<string, unknown>[],
   ) {
+    this.assertKnownIndex(indexName);
+    if (!Array.isArray(documents) || documents.length === 0) {
+      throw new BadRequestException('Request body must be a non-empty JSON array of documents');
+    }
     return this.searchService.reindex(indexName, documents);
   }
 }

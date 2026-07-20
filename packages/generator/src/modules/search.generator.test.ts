@@ -83,6 +83,18 @@ describe('search.generator', () => {
     expect(controller).toContain("@ApiTags('search')");
   });
 
+  it('should validate index and query instead of leaking Meili 500s', () => {
+    const files = generateSearchFiles(makeProject());
+    const controller = files.get('src/search/search.controller.ts')!;
+    // missing q/index → 400, unknown index → 404 with the known-index list,
+    // empty reindex body → 400
+    expect(controller).toContain('BadRequestException');
+    expect(controller).toContain('NotFoundException');
+    expect(controller).toContain('assertKnownIndex');
+    expect(controller).toContain('Available:');
+    expect(controller).toContain('non-empty JSON array');
+  });
+
   it('should generate module with correct exports', () => {
     const files = generateSearchFiles(makeProject());
     const module = files.get('src/search/search.module.ts')!;
