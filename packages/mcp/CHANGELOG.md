@@ -1,5 +1,14 @@
 # @gyxer-studio/mcp
 
+## 0.7.0
+
+### Patch Changes
+
+- Updated dependencies [38258b2]
+- Updated dependencies [2a68761]
+  - @gyxer-studio/generator@0.7.0
+  - @gyxer-studio/schema@0.7.0
+
 ## 0.6.0
 
 ### Minor Changes
