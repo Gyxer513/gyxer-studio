@@ -1,17 +1,21 @@
 #!/usr/bin/env node
 
+import { createRequire } from 'node:module';
 import { Command } from 'commander';
 import { generateCommand } from './commands/generate.js';
 import { newCommand } from './commands/new.js';
 import { editorCommand } from './commands/editor.js';
 import { validateCommand } from './commands/validate.js';
 
+const require = createRequire(import.meta.url);
+const { version } = require('../package.json') as { version: string };
+
 const program = new Command();
 
 program
   .name('gyxer')
   .description('Gyxer CLI — generate production-ready NestJS backends')
-  .version('0.2.0');
+  .version(version);
 
 // gyxer generate [schema.json] — with or without a config path
 program

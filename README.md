@@ -135,7 +135,7 @@ npx @gyxer-studio/cli generate examples/shop.json -o ./shop-api
 | CLI | Commander, Inquirer, Chalk, Ora |
 | MCP | Model Context Protocol SDK, Zod |
 | Generated Backend | NestJS, Prisma, class-validator, Swagger |
-| Testing | Vitest — 367 tests |
+| Testing | Vitest — 381 tests |
 
 ## Project Structure
 
@@ -157,7 +157,7 @@ gyxer-studio/
 ```bash
 npm install          # install all dependencies
 npm run build        # build all packages
-npm test             # run all 367 tests
+npm test             # run all 381 tests
 npm run dev          # start editor dev server
 ```
 

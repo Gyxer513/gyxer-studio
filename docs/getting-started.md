@@ -51,7 +51,7 @@ npx @gyxer-studio/cli validate configs/my-app.json
 ## Running Tests (Development)
 
 ```bash
-npm test                         # all 367 tests
+npm test                         # all 381 tests
 npm test -w packages/schema      # schema validation tests
 npm test -w packages/generator   # code generation tests
 ```

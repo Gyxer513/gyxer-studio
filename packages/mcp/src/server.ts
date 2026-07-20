@@ -1,3 +1,4 @@
+import { createRequire } from 'node:module';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { registerProjectTools } from './tools/project.tools.js';
 import { registerEntityTools } from './tools/entity.tools.js';
@@ -6,10 +7,13 @@ import { registerRelationTools } from './tools/relation.tools.js';
 import { registerModuleTools } from './tools/module.tools.js';
 import { readProject } from './project-io.js';
 
+const require = createRequire(import.meta.url);
+const { version } = require('../package.json') as { version: string };
+
 export function createServer(): McpServer {
   const server = new McpServer({
     name: 'gyxer',
-    version: '0.5.0',
+    version,
   });
 
   // ─── Tools ────────────────────────────────────────────────
