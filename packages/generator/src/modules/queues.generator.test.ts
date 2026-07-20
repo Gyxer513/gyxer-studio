@@ -88,7 +88,6 @@ describe('Queues Generator', () => {
 
   it('should return Redis env vars', () => {
     const env = getQueuesEnvVars();
-    expect(env).toContain('REDIS_HOST=');
-    expect(env).toContain('REDIS_PORT=');
+    expect(env).toContain('REDIS_URL=');
   });
 });

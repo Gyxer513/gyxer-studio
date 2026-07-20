@@ -32,8 +32,8 @@ function generateCacheModule(opts: { ttl: number; max: number }): string {
   return `import { Module } from '@nestjs/common';
 import { CacheModule as NestCacheModule } from '@nestjs/cache-manager';
 import { createKeyv } from '@keyv/redis';
+import { Keyv } from 'keyv';
 import { CacheableMemory } from 'cacheable';
-import { Cacheable } from 'cacheable';
 import { CacheService } from './cache.service';
 
 @Module({
@@ -42,13 +42,11 @@ import { CacheService } from './cache.service';
       useFactory: () => {
         const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
 
-        // Primary: Redis, Secondary: In-memory fallback
-        const primary = createKeyv(redisUrl);
-        const secondary = new CacheableMemory({ ttl: ${opts.ttl} * 1000, lruSize: ${opts.max} });
-
         return {
+          // Reads hit the in-memory store first, Redis second; writes go to both
           stores: [
-            new Cacheable({ stores: [primary, secondary] }),
+            new Keyv({ store: new CacheableMemory({ ttl: ${opts.ttl} * 1000, lruSize: ${opts.max} }) }),
+            createKeyv(redisUrl),
           ],
         };
       },
@@ -72,9 +70,9 @@ export class CacheService {
   constructor(@Inject(CACHE_MANAGER) private readonly cache: Cache) {}
 
   /**
-   * Get a value from cache.
+   * Get a value from cache (null when the key is absent).
    */
-  async get<T>(key: string): Promise<T | undefined> {
+  async get<T>(key: string): Promise<T | null> {
     return this.cache.get<T>(key);
   }
 
@@ -109,6 +107,7 @@ export function getCacheDependencies(): Record<string, string> {
     '@nestjs/cache-manager': '^3.1.0',
     'cache-manager': '^6.0.0',
     'cacheable': '^1.0.0',
+    'keyv': '^5.0.0',
     '@keyv/redis': '^4.0.0',
   };
 }

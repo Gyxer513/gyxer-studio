@@ -27,7 +27,10 @@ function generateModuleAppEnv(flags: ModuleFlags): string {
   const lines: string[] = [];
   if (flags.needsRedis)    lines.push('      - REDIS_URL=redis://redis:6379');
   if (flags.needsMinio)    lines.push('      - S3_ENDPOINT=http://minio:9000');
-  if (flags.needsMeili)    lines.push('      - MEILISEARCH_HOST=http://meilisearch:7700');
+  if (flags.needsMeili) {
+    lines.push('      - MEILISEARCH_HOST=http://meilisearch:7700');
+    lines.push('      - MEILISEARCH_API_KEY=${MEILI_MASTER_KEY:-masterkey}');
+  }
   if (flags.needsKeycloak) lines.push('      - KEYCLOAK_AUTH_SERVER_URL=http://keycloak:8080');
   return lines.length ? '\n' + lines.join('\n') : '';
 }
@@ -74,7 +77,7 @@ function generateModuleServices(flags: ModuleFlags): string {
     volumes:
       - miniodata:/data
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      test: ["CMD", "curl", "-f", "http://127.0.0.1:9000/minio/health/live"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -92,7 +95,7 @@ function generateModuleServices(flags: ModuleFlags): string {
     volumes:
       - meilidata:/meili_data
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--spider", "http://localhost:7700/health"]
+      test: ["CMD", "wget", "--no-verbose", "--spider", "http://127.0.0.1:7700/health"]
       interval: 5s
       timeout: 5s
       retries: 5

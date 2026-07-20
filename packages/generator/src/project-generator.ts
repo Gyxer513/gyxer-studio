@@ -370,12 +370,15 @@ export async function generateProject(
     // Only add Redis env if cache didn't already add it
     if (!hasCache) {
       envContent += getQueuesEnvVars();
-      envExampleContent += 'REDIS_HOST=localhost\nREDIS_PORT=6379\n';
+      envExampleContent += 'REDIS_URL=redis://localhost:6379\n';
     }
   }
   if (hasFileStorage) {
-    envContent += getFileStorageEnvVars();
-    envExampleContent += 'S3_ENDPOINT=http://localhost:9000\nS3_REGION=us-east-1\nS3_ACCESS_KEY=minioadmin\nS3_SECRET_KEY=minioadmin\nS3_BUCKET=uploads\n';
+    const bucket =
+      (project.modules.find((m) => m.name === 'file-storage')?.options?.bucket as string) ||
+      'uploads';
+    envContent += getFileStorageEnvVars(bucket);
+    envExampleContent += `S3_ENDPOINT=http://localhost:9000\nS3_REGION=us-east-1\nS3_ACCESS_KEY=minioadmin\nS3_SECRET_KEY=minioadmin\nS3_BUCKET=${bucket}\n`;
   }
   if (hasSearch) {
     envContent += getSearchEnvVars();

@@ -39,10 +39,15 @@ import { QueuesProcessor } from './queues.processor';
 @Module({
   imports: [
     BullModule.forRoot({
-      connection: {
-        host: process.env.REDIS_HOST || 'localhost',
-        port: parseInt(process.env.REDIS_PORT || '6379', 10),
-      },
+      connection: (() => {
+        // REDIS_URL is the canonical setting (shared with the cache module);
+        // REDIS_HOST/REDIS_PORT remain as overrides
+        const url = new URL(process.env.REDIS_URL || 'redis://localhost:6379');
+        return {
+          host: process.env.REDIS_HOST || url.hostname,
+          port: parseInt(process.env.REDIS_PORT || url.port || '6379', 10),
+        };
+      })(),
     }),
     BullModule.registerQueue({
       name: '${opts.queueName}',
@@ -174,7 +179,6 @@ export function getQueuesDependencies(): Record<string, string> {
 }
 
 export function getQueuesEnvVars(): string {
-  return `REDIS_HOST=localhost
-REDIS_PORT=6379
+  return `REDIS_URL=redis://localhost:6379
 `;
 }

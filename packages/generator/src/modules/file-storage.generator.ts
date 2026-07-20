@@ -257,11 +257,11 @@ export function getFileStorageDevDependencies(): Record<string, string> {
   };
 }
 
-export function getFileStorageEnvVars(): string {
+export function getFileStorageEnvVars(bucket: string = 'uploads'): string {
   return `S3_ENDPOINT=http://localhost:9000
 S3_REGION=us-east-1
 S3_ACCESS_KEY=minioadmin
 S3_SECRET_KEY=minioadmin
-S3_BUCKET=uploads
+S3_BUCKET=${bucket}
 `;
 }
