@@ -244,13 +244,31 @@ volumes:
 `;
 }
 
+/**
+ * The schema defaults (dbUser 'postgres', dbPort 5432) are postgres-flavored;
+ * translate them for MySQL so generated configs connect out of the box.
+ */
+function resolveMysqlSettings(settings: GyxerProject['settings']): { user: string; port: number } {
+  return {
+    user: settings.dbUser === 'postgres' ? 'root' : settings.dbUser,
+    port: settings.dbPort === 5432 ? 3306 : settings.dbPort,
+  };
+}
+
 function generateDockerComposeMysql(project: GyxerProject, dbName: string): string {
-  const { dbUser, dbPassword, dbPort } = project.settings;
+  const { dbPassword } = project.settings;
+  const { user, port } = resolveMysqlSettings(project.settings);
   const flags = getModuleFlags(project);
   const moduleEnv = generateModuleAppEnv(flags);
   const moduleDeps = generateModuleAppDependsOn(flags);
   const moduleServices = generateModuleServices(flags);
   const moduleVolumes = generateModuleVolumes(flags);
+
+  // A non-root user must be created by the mysql image explicitly
+  const userEnv =
+    user === 'root'
+      ? ''
+      : `\n      MYSQL_USER: ${user}\n      MYSQL_PASSWORD: \${DB_PASSWORD:-${dbPassword}}`;
 
   return `services:
   app:
@@ -259,7 +277,7 @@ function generateDockerComposeMysql(project: GyxerProject, dbName: string): stri
       - "\${PORT:-${project.settings.port}}:${project.settings.port}"
     env_file: .env
     environment:
-      - DATABASE_URL=mysql://${dbUser}:\${DB_PASSWORD:-${dbPassword}}@db:3306/${dbName}
+      - DATABASE_URL=mysql://${user}:\${DB_PASSWORD:-${dbPassword}}@db:3306/${dbName}
       - PORT=${project.settings.port}${moduleEnv}
     depends_on:
       db:
@@ -270,9 +288,9 @@ function generateDockerComposeMysql(project: GyxerProject, dbName: string): stri
     image: mysql:8
     environment:
       MYSQL_DATABASE: ${dbName}
-      MYSQL_ROOT_PASSWORD: \${DB_PASSWORD:-${dbPassword}}
+      MYSQL_ROOT_PASSWORD: \${DB_PASSWORD:-${dbPassword}}${userEnv}
     ports:
-      - "\${DB_PORT:-${dbPort}}:3306"
+      - "\${DB_PORT:-${port}}:3306"
     volumes:
       - mysqldata:/var/lib/mysql
     healthcheck:
@@ -296,8 +314,11 @@ export function buildDatabaseUrl(
   switch (settings.database) {
     case 'sqlite':
       return 'file:./dev.db';
-    case 'mysql':
-      return `mysql://${settings.dbUser}:${settings.dbPassword}@${settings.dbHost}:${settings.dbPort}/${dbName}`;
+    case 'mysql': {
+      const user = settings.dbUser === 'postgres' ? 'root' : settings.dbUser;
+      const port = settings.dbPort === 5432 ? 3306 : settings.dbPort;
+      return `mysql://${user}:${settings.dbPassword}@${settings.dbHost}:${port}/${dbName}`;
+    }
     case 'postgresql':
     default:
       return `postgresql://${settings.dbUser}:${settings.dbPassword}@${settings.dbHost}:${settings.dbPort}/${dbName}`;
@@ -319,10 +340,14 @@ PORT=${project.settings.port}
   }
 
   const protocol = db === 'mysql' ? 'mysql' : 'postgresql';
+  const { user, port } =
+    db === 'mysql'
+      ? resolveMysqlSettings(project.settings)
+      : { user: project.settings.dbUser, port: project.settings.dbPort };
 
   return `DB_HOST=${project.settings.dbHost}
-DB_PORT=${project.settings.dbPort}
-DB_USER=${project.settings.dbUser}
+DB_PORT=${port}
+DB_USER=${user}
 DB_PASSWORD=${project.settings.dbPassword}
 DATABASE_URL=${protocol}://\${DB_USER}:\${DB_PASSWORD}@\${DB_HOST}:\${DB_PORT}/${dbName}
 PORT=${project.settings.port}
@@ -364,7 +389,7 @@ PORT=${project.settings.port}
   const protocol = db === 'mysql' ? 'mysql' : 'postgresql';
 
   return `DB_HOST=localhost
-DB_PORT=${project.settings.dbPort}
+DB_PORT=${db === 'mysql' ? resolveMysqlSettings(project.settings).port : project.settings.dbPort}
 DB_USER=${db === 'mysql' ? 'root' : 'postgres'}
 DB_PASSWORD=YOUR_PASSWORD
 DATABASE_URL=${protocol}://\${DB_USER}:\${DB_PASSWORD}@\${DB_HOST}:\${DB_PORT}/YOUR_DB_NAME

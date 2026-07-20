@@ -221,6 +221,45 @@ describe('Docker Generator', () => {
       expect(compose).toContain('mysqladmin');
     });
 
+    it('should translate postgres-flavored schema defaults to root/3306', () => {
+      // The editor sends schema defaults (dbUser 'postgres', dbPort 5432) even for mysql
+      const defaultsProject: GyxerProject = {
+        ...baseProject,
+        name: 'mysql-defaults',
+        settings: {
+          ...baseProject.settings,
+          database: 'mysql',
+          databaseUrl: '',
+          dbUser: 'postgres',
+          dbPort: 5432,
+        },
+      };
+      const compose = generateDockerCompose(defaultsProject);
+
+      expect(compose).toContain('DATABASE_URL=mysql://root:');
+      expect(compose).toContain('${DB_PORT:-3306}:3306');
+      expect(compose).not.toContain('mysql://postgres');
+    });
+
+    it('should create a custom mysql user via MYSQL_USER', () => {
+      const customUserProject: GyxerProject = {
+        ...baseProject,
+        name: 'mysql-custom',
+        settings: {
+          ...baseProject.settings,
+          database: 'mysql',
+          databaseUrl: '',
+          dbUser: 'appuser',
+          dbPort: 3306,
+        },
+      };
+      const compose = generateDockerCompose(customUserProject);
+
+      expect(compose).toContain('MYSQL_USER: appuser');
+      expect(compose).toContain('MYSQL_PASSWORD:');
+      expect(compose).toContain('DATABASE_URL=mysql://appuser:');
+    });
+
     it('should use port 3306', () => {
       const compose = generateDockerCompose(mysqlProject);
 
