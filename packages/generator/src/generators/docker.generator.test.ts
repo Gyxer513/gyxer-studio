@@ -37,7 +37,7 @@ const sqliteProject: GyxerProject = {
   settings: {
     ...baseProject.settings,
     database: 'sqlite',
-    databaseUrl: 'file:./prisma/dev.db',
+    databaseUrl: 'file:./dev.db',
   },
 };
 
@@ -174,7 +174,7 @@ describe('Docker Generator', () => {
     it('should use file-based DATABASE_URL', () => {
       const compose = generateDockerCompose(sqliteProject);
 
-      expect(compose).toContain('DATABASE_URL=file:./prisma/dev.db');
+      expect(compose).toContain('DATABASE_URL=file:./dev.db');
     });
 
     it('should use sqlite-data volume', () => {
@@ -298,7 +298,7 @@ describe('Docker Generator', () => {
     it('should use file URL for sqlite', () => {
       const env = generateEnvFile(sqliteProject);
 
-      expect(env).toContain('DATABASE_URL=file:./prisma/dev.db');
+      expect(env).toContain('DATABASE_URL=file:./dev.db');
       expect(env).not.toContain('DB_PASSWORD');
       expect(env).not.toContain('DB_PORT');
     });
@@ -336,7 +336,7 @@ describe('Docker Generator', () => {
     it('should use file URL for sqlite example', () => {
       const env = generateEnvExample(sqliteProject);
 
-      expect(env).toContain('DATABASE_URL=file:./prisma/dev.db');
+      expect(env).toContain('DATABASE_URL=file:./dev.db');
       expect(env).not.toContain('DB_PASSWORD');
     });
 
@@ -427,7 +427,7 @@ describe('Docker Generator', () => {
     it('should return file URL for sqlite', () => {
       const url = buildDatabaseUrl(sqliteSettings, 'my_db');
 
-      expect(url).toBe('file:./prisma/dev.db');
+      expect(url).toBe('file:./dev.db');
     });
 
     it('should return mysql URL for mysql', () => {

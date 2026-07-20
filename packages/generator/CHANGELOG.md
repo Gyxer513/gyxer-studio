@@ -20,6 +20,8 @@
 
 ### Patch Changes
 
+- fix: fields with a default value are now optional in the Create DTO — the database fills them in (previously `POST` rejected requests missing e.g. `isActive` despite `@default(true)`)
+- fix: sqlite `DATABASE_URL` no longer duplicates the prisma folder (`file:./prisma/dev.db` → `file:./dev.db`); in Docker the database file now lands inside the persisted `sqlite-data` volume instead of outside it
 - Updated dependencies [2f642b7]
 - Updated dependencies [1083756]
   - @gyxer-studio/schema@0.6.0

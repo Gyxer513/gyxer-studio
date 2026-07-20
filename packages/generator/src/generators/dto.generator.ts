@@ -8,6 +8,11 @@ interface FkFieldInfo {
   targetEntity: string;
 }
 
+/** A field with a default is optional in the Create DTO — the DB fills it in. */
+function hasDefault(field: Field): boolean {
+  return field.default !== undefined && field.default !== null;
+}
+
 /**
  * Collect all foreign key fields that this entity needs in its DTO.
  * Sources:
@@ -73,7 +78,7 @@ export function generateCreateDto(entity: Entity, project: GyxerProject): string
   const lines: string[] = [];
 
   // Import ApiPropertyOptional too if any field is optional
-  const hasOptionalFields = entity.fields.some((f) => !f.required);
+  const hasOptionalFields = entity.fields.some((f) => !f.required || hasDefault(f));
   if (hasOptionalFields) {
     lines.push("import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';");
   } else {
@@ -159,7 +164,7 @@ export function generateUpdateDto(entity: Entity, project: GyxerProject): string
 
 function generateDtoField(field: Field, entity: Entity, isUpdate: boolean): string {
   const lines: string[] = [];
-  const optional = isUpdate || !field.required;
+  const optional = isUpdate || !field.required || hasDefault(field);
   const decorator = isUpdate ? 'ApiPropertyOptional' : optional ? 'ApiPropertyOptional' : 'ApiProperty';
 
   // Swagger decorator
@@ -216,7 +221,7 @@ function generateFkDtoField(fk: FkFieldInfo, isUpdate: boolean): string {
 function getValidators(field: Field, isUpdate: boolean): string[] {
   const validators: string[] = [];
 
-  if (isUpdate || !field.required) {
+  if (isUpdate || !field.required || hasDefault(field)) {
     validators.push('@IsOptional()');
   }
 
@@ -267,7 +272,7 @@ function generateValidatorImports(
   }
 
   for (const field of fields) {
-    if (!field.required || isUpdate) validators.add('IsOptional');
+    if (!field.required || isUpdate || hasDefault(field)) validators.add('IsOptional');
 
     switch (field.type) {
       case 'string':

@@ -198,8 +198,24 @@ describe('generateCreateDto', () => {
     const dto = generateCreateDto(entity, makeProject([entity]));
 
     expect(dto).toContain('@IsBoolean()');
-    expect(dto).toContain('isActive: boolean;');
+    // required + default → optional in Create DTO, the DB fills it in
+    expect(dto).toContain('@IsOptional()');
+    expect(dto).toContain('isActive?: boolean;');
     expect(dto).toContain('default: true');
+  });
+
+  it('should keep required fields without a default mandatory', () => {
+    const entity: Entity = {
+      name: 'User',
+      fields: [
+        { name: 'isAdmin', type: 'boolean', required: true, unique: false, index: false },
+      ],
+      relations: [],
+    };
+    const dto = generateCreateDto(entity, makeProject([entity]));
+
+    expect(dto).not.toContain('@IsOptional()');
+    expect(dto).toContain('isAdmin: boolean;');
   });
 
   it('should handle enum fields', () => {

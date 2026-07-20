@@ -233,7 +233,7 @@ function generateDockerComposeSqlite(project: GyxerProject): string {
       - "\${PORT:-${project.settings.port}}:${project.settings.port}"
     env_file: .env
     environment:
-      - DATABASE_URL=file:./prisma/dev.db
+      - DATABASE_URL=file:./dev.db
       - PORT=${project.settings.port}${moduleEnv}
     volumes:
       - sqlite-data:/app/prisma${dependsOnBlock}
@@ -295,7 +295,7 @@ export function buildDatabaseUrl(
 ): string {
   switch (settings.database) {
     case 'sqlite':
-      return 'file:./prisma/dev.db';
+      return 'file:./dev.db';
     case 'mysql':
       return `mysql://${settings.dbUser}:${settings.dbPassword}@${settings.dbHost}:${settings.dbPort}/${dbName}`;
     case 'postgresql':
@@ -313,7 +313,7 @@ export function generateEnvFile(project: GyxerProject): string {
   const dbName = project.name.replace(/-/g, '_');
 
   if (db === 'sqlite') {
-    return `DATABASE_URL=file:./prisma/dev.db
+    return `DATABASE_URL=file:./dev.db
 PORT=${project.settings.port}
 `;
   }
@@ -356,7 +356,7 @@ export function generateEnvExample(project: GyxerProject): string {
   const db = project.settings.database;
 
   if (db === 'sqlite') {
-    return `DATABASE_URL=file:./prisma/dev.db
+    return `DATABASE_URL=file:./dev.db
 PORT=${project.settings.port}
 `;
   }
