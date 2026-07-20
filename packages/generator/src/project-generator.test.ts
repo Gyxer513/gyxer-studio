@@ -367,6 +367,22 @@ describe('E2E: generateProject', () => {
       expect(pkg.dependencies['@nestjs/throttler']).toBeDefined();
     });
 
+    it('should include keycloak deps AND dev types in package.json for auth-keycloak', async () => {
+      const keycloakProject: GyxerProject = {
+        ...minimalProject,
+        name: 'keycloak-api',
+        modules: [{ name: 'auth-keycloak', enabled: true, options: {} }],
+      };
+      await generateProject(keycloakProject, { outputDir: tmpDir, silent: true });
+
+      const pkg = JSON.parse(await fs.readFile(path.join(tmpDir, 'package.json'), 'utf-8'));
+      expect(pkg.dependencies['passport-jwt']).toBeDefined();
+      expect(pkg.dependencies['jwks-rsa']).toBeDefined();
+      // generated keycloak.strategy.ts imports passport-jwt — without the
+      // @types package the generated project fails to compile (TS7016)
+      expect(pkg.devDependencies['@types/passport-jwt']).toBeDefined();
+    });
+
     it('should generate valid Prisma schema with relations', async () => {
       await generateProject(blogProject, { outputDir: tmpDir, silent: true });
 

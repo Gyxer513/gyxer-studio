@@ -507,6 +507,7 @@ function generatePackageJson(project: GyxerProject): string {
       'typescript-eslint': '^8.18.0',
       prettier: '^3.4.0',
       ...(hasAuthJwt ? { 'ts-node': '^10.9.0', ...getAuthDevDependencies() } : {}),
+      ...(hasAuthKeycloak && !hasAuthJwt ? getAuthKeycloakDevDependencies() : {}),
       ...(hasFileStorage ? getFileStorageDevDependencies() : {}),
       ...(hasAuthOAuth && hasAuthJwt ? getAuthOAuthDevDependencies(
         ((project.modules.find((m) => m.name === 'auth-oauth')?.options?.providers as string[]) || ['google']) as any
