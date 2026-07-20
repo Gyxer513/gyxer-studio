@@ -29,3 +29,61 @@ jobs:
 
       - name: Run tests
         run: npm test
+
+  runtime-smoke:
+    name: Runtime smoke (generated app boots and serves CRUD)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build packages
+        run: npm run build
+
+      - name: Generate blog app on sqlite
+        run: |
+          node -e "
+            const fs = require('fs');
+            const c = JSON.parse(fs.readFileSync('examples/blog.json', 'utf8'));
+            c.name = 'smoke-app';
+            c.settings.database = 'sqlite';
+            delete c.settings.databaseUrl;
+            fs.writeFileSync('/tmp/smoke-app.json', JSON.stringify(c, null, 2));
+          "
+          node packages/cli/dist/index.js generate /tmp/smoke-app.json -o /tmp/smoke-app --force
+
+      - name: Install, migrate and build generated app
+        working-directory: /tmp/smoke-app
+        run: |
+          npm install --no-audit --no-fund
+          npx prisma migrate dev --name init
+          npm run build
+          npm test
+
+      - name: Boot app and probe CRUD
+        working-directory: /tmp/smoke-app
+        run: |
+          PORT=3999 node dist/main.js &
+          APP_PID=$!
+          for i in $(seq 1 30); do
+            curl -sf http://localhost:3999/api/docs > /dev/null && break
+            sleep 1
+          done
+          curl -sf http://localhost:3999/api/docs > /dev/null || { echo "Swagger did not come up"; exit 1; }
+          # POST relies on DB defaults (regression: required+default fields must be optional in Create DTO)
+          curl -sf -X POST http://localhost:3999/users \
+            -H "Content-Type: application/json" \
+            -d '{"email":"smoke@example.com","name":"Smoke"}' | grep -q '"isActive":true' \
+            || { echo "POST /users failed"; exit 1; }
+          curl -sf http://localhost:3999/users | grep -q 'smoke@example.com' \
+            || { echo "GET /users failed"; exit 1; }
+          kill $APP_PID
+          echo "Runtime smoke OK"
